@@ -1,0 +1,5 @@
+- Avoid name collisions when doing beta reductions.
+- Add specs.
+- Make grammar more whitespace-friendly. E.g. "λx.  x x" now breaks.
+- Make reduction do one step at a time.
+- Try a functional style implementation to see if it results better than the OO one.
