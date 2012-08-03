@@ -13,7 +13,7 @@ Install Node.js and NPM.
 Install CoffeeScript and Jison:
 
 ```bash
-    sudo npm install -g coffee-script jison
+sudo npm install -g coffee-script jison
 ```
 
 Compile and watch the .coffee files:
