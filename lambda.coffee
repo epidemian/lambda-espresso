@@ -27,13 +27,14 @@ Function::trace = do ->
     for i in [0...indent] then ind += '  '
     console.log "#{ind}#{msg}"
 
-  makeTracing = (name, fn) -> (args...) ->
-    log "(#{@}).#{name}(#{args.join ', '})"
-    indent++
-    res = fn.apply @, args
-    indent--
-    log "-> #{res}"
-    res
+  makeTracing = (name, fn) ->
+    (args...) ->
+      log "(#{@}).#{name}(#{args.join ', '})"
+      indent++
+      res = fn.apply @, args
+      indent--
+      log "-> #{res}"
+      res
 
   (arg) ->
     for own name, fn of arg
@@ -51,10 +52,7 @@ class VarNode extends Node
   @trace reduce: -> @
   @trace apply: -> no
   @trace replace: (varName, node) ->
-    if varName is @name
-      node
-    else
-      @
+    if varName is @name then node else @
 
 class AbsNode extends Node
   constructor: (@varName, @body) ->
@@ -64,13 +62,12 @@ class AbsNode extends Node
     new AbsNode @varName, @body.reduce()
   @trace apply: (node) ->
     @body.replace @varName, node
-  @trace replace: (varName, node) -> # (\x.\z.x z) \y.y z
-    if varName is @varName
-      # The parameter of this abstraction makes a new context, so no replacement
-      # is needed.
-      @
-    else
-      new AbsNode @varName, @body.replace varName, node
+  @trace replace: (varName, node) ->
+    # TODO rename this abstraction's @varName in @body if @varName is in "node"'s free vars.
+    # The parameter of this abstraction makes a new context, so no replacement
+    # is needed.
+    return @ if varName is @varName
+    new AbsNode @varName, @body.replace varName, node
 
 class ApplyNode extends Node
   constructor: (@left, @right) ->
@@ -79,7 +76,7 @@ class ApplyNode extends Node
   rightApplyString: -> "(#{@})"
   @trace reduce: ->
     left = @left.reduce()
-    left.apply(@right) or new ApplyNode left, @right.reduce()
+    (left.apply @right) or new ApplyNode left, @right.reduce()
   @trace apply: -> no
   @trace replace: (varName, node) ->
     new ApplyNode (@left.replace varName, node), (@right.replace varName, node)
