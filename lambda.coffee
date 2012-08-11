@@ -81,14 +81,14 @@ class ApplyNode extends Node
     new ApplyNode (@left.replace varName, node), (@right.replace varName, node)
 
 # Global namespace.
-λ = exports ? (@Lambda = {})
+Lambda = exports ? (@Lambda = {})
 
-λ.parse = (expr) ->
+Lambda.parse = (expr) ->
   parser.parse expr
 
-λ.printAst = (expr) ->
+Lambda.printAst = (expr) ->
   nodes = parser.parse expr
   console.log JSON.stringify nodes, null, 2
 
-#console.log (λ.parse '(λx.λy.x y x) y b').reduce().toString()
-λ.printAst 'λx y z. y z'
+console.log (Lambda.parse '(λx.λy.x y x) y b').reduce().toString()
+#Lambda.printAst 'λx y z. y z'
