@@ -16,7 +16,7 @@ parser.yy =
 
 # A useful function to trace some method's execution.
 Function::trace = do ->
-  traceEnabled = yes
+  traceEnabled = no
 
   # Global indentation level.
   indent = 0
@@ -120,12 +120,11 @@ class ApplyNode extends Node
 Lambda = exports ? (@Lambda = {})
 
 Lambda.parse = (expr) ->
-  parser.parse expr
+  (parser.parse expr).toString()
 
-Lambda.printAst = (expr) ->
-  nodes = parser.parse expr
-  console.log JSON.stringify nodes, null, 2
+Lambda.reduce = (expr) ->
+  (parser.parse expr).reduce().toString()
 
-print (Lambda.parse '(λx.λy.x z y x) y b').reduce().toString()
-print (Lambda.parse '(λx.λy.(λz.λy.z y) (x y)) y').reduce().toString()
+#print (Lambda.parse '(λx.λy.x z y x) y b').reduce().toString()
+#print (Lambda.parse '(λx.λy.(λz.λy.z y) (x y)) y').reduce().toString()
 #Lambda.printAst 'λx y z. y z'

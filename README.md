@@ -19,12 +19,12 @@ sudo npm install -g coffee-script jison
 Compile and watch the .coffee files:
 
 ```bash
-coffee -wc .
+coffee -wco lib .
 ```
 
 Compile the grammar file:
 
 ```bash
-jison grammar.jison
+jison src/grammar.jison -o lib/grammar.js
 ```
 

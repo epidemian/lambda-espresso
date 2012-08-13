@@ -3,3 +3,4 @@
 - Make grammar more whitespace-friendly. E.g. "λx.  x x" now breaks.
 - Make reduction do one step at a time.
 - Try a functional style implementation to see if it results better than the OO one.
+- Add maximum recursion level to avoid non-termination problems.
