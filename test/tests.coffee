@@ -2,7 +2,7 @@ assert = require 'assert'
 {parse, reduce} = require '../lib/lambda'
 
 shouldParse = (expr, expected) ->
-  assert.equal (reduce expr), expected
+  assert.equal (parse expr), expected
 
 shouldReduce = (expr, expected) ->
   assert.equal (reduce expr), expected
