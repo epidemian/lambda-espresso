@@ -16,15 +16,10 @@ Install CoffeeScript and Jison:
 sudo npm install -g coffee-script jison
 ```
 
-Compile and watch the .coffee files:
+And run:
 
 ```bash
-coffee -wco lib .
+cake watch
 ```
 
-Compile the grammar file:
-
-```bash
-jison src/grammar.jison -o lib/grammar.js
-```
-
+To watch the source files for changes and re-compile and run the tests.
