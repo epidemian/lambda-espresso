@@ -28,10 +28,10 @@ describe 'parse()', ->
     shouldParse 'λx.(λy.(λz.w))', 'λx.λy.λz.w'
 
   it 'should remove unnecessary whitespace', ->
-    # FIXME!
-#    shouldParse '  x  ', 'x'
-#    shouldParse '  x  y  ', 'x y'
-#    shouldParse '  λx  .  x  ', 'λx.x'
+    shouldParse '  x  ', 'x'
+    shouldParse '  x  y  ', 'x y'
+    shouldParse '  λx  .  x  ', 'λx.x'
+    shouldParse '  λx  .  x  (  y  z  )  x  ', 'λx.x (y z) x'
 
 describe 'reduce()', ->
   it 'should not reduce simple irreducible expressions', ->

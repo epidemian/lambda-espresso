@@ -9,15 +9,17 @@
 "("       { return '('; }
 ")"       { return ')'; }
 "\\"|"λ"  { return 'LAMBDA'; }
-"."\s?    { return '.'; }
+"."       { return '.'; }
 [a-zA-Z]+ { return 'VAR'; }
-\s+       { return 'SEP'; }
+\s+       { /* ignore */ }
 <<EOF>>   { return 'EOF'; }
 /lex
 
 
 %right LAMBDA
-%left SEP
+%left VAR
+%left '('
+%left APPLY
 
 %%
 
@@ -26,10 +28,10 @@ file
   ;
 
 expr
-  : LAMBDA var '.' expr { $$ = yy.parseAbstraction($var, $expr); }
-  | expr SEP expr       { $$ = yy.parseApplication($expr1, $expr2); }
-  | var                 { $$ = yy.parseVariable(yytext); }
-  | '(' expr ')'        { $$ = $expr; }
+  : LAMBDA var '.' expr   { $$ = yy.parseAbstraction($var, $expr); }
+  | expr expr %prec APPLY { $$ = yy.parseApplication($expr1, $expr2); }
+  | var                   { $$ = yy.parseVariable(yytext); }
+  | "(" expr ")"          { $$ = $expr; }
   ;
 
 var
