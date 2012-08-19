@@ -26,15 +26,10 @@ file
   ;
 
 expr
-  : LAMBDA var_list '.' expr { $$ = yy.parseAbstraction($var_list, $expr); }
-  | expr SEP expr            { $$ = yy.parseApplication($expr1, $expr2); }
-  | var                      { $$ = yy.parseVariable(yytext); }
-  | '(' expr ')'             { $$ = $expr; }
-  ;
-
-var_list
-  : var_list SEP var { $$ = $var_list.concat($var); }
-  | var              { $$ = [$var]; }
+  : LAMBDA var '.' expr { $$ = yy.parseAbstraction($var, $expr); }
+  | expr SEP expr       { $$ = yy.parseApplication($expr1, $expr2); }
+  | var                 { $$ = yy.parseVariable(yytext); }
+  | '(' expr ')'        { $$ = $expr; }
   ;
 
 var

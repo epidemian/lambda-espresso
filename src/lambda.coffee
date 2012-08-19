@@ -5,14 +5,9 @@ parser = new (require './grammar').Parser
 
 # Add some handy functions so the parser can build the AST nodes.
 parser.yy =
-  parseAbstraction: (varList, body) ->
-    i = varList.length
-    body = new AbsNode varList[i], body while i--
-    body
-  parseApplication: (left, right) ->
-    new ApplyNode left, right
-  parseVariable: (name) ->
-    new VarNode name
+  parseAbstraction: (varName, body) -> new AbsNode varName, body
+  parseApplication: (left, right) -> new ApplyNode left, right
+  parseVariable: (name) -> new VarNode name
 
 # A useful function to trace some method's execution.
 Function::trace = do ->
