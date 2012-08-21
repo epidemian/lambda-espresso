@@ -30,7 +30,7 @@ file
 expr
   : LAMBDA var '.' expr   { $$ = yy.parseAbstraction($var, $expr); }
   | expr expr %prec APPLY { $$ = yy.parseApplication($expr1, $expr2); }
-  | var                   { $$ = yy.parseVariable(yytext); }
+  | var                   { $$ = yy.parseVariable($var); }
   | "(" expr ")"          { $$ = $expr; }
   ;
 
