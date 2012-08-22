@@ -56,7 +56,7 @@ class VarNode extends Node
   replace: (varName, node) ->
     if varName is @name then node else @
   hasFree: (varName) -> @name is varName
-  canRenameVar: -> yes
+  varRenameCollides: -> no
 
 class AbsNode extends Node
   constructor: (@varName, @body) ->
@@ -66,12 +66,7 @@ class AbsNode extends Node
     new AbsNode @varName, @body.reduce()
   @trace apply: (node) ->
     @body.replace @varName, node
-  # TODO Renaming is not correct as of now. Consider the case:
-  # (λy.λy1.x y y1)[x := y z]
-  # (λy.λy1.x y y1) must be alpha-renamed because y is free on (y z) and x is
-  # free on (λy1.x y y1). The current algorithm now chooses to rename y to y1, but
-  # is invalid, because it'll make the y variable, free in (λy1.x y y1) be bound
-  # to a new abstraction.
+
   @trace replace: (varName, node) ->
     # (λx.T)[x := S] = λx.T
     # (λx creates a new context for x so no firther substitution is needed)
@@ -93,8 +88,9 @@ class AbsNode extends Node
 
     until name and validName
       name = base + ++n
-      validName = not (substitutionNode.hasFree name) and
-        (@body.canRenameVar @varName, name)
+      validName = not (substitutionNode.hasFree name) and # Avoid name collisions with substitution term.
+        not (@body.hasFree name) and # Avoid name collisions with free variables in body.
+        not (@body.varRenameCollides @varName, name) # Avoid name collisions with inner abstractions.
 
     # A new AbsNode with the new name and the body with the renamed var.
     new AbsNode name, (@body.replace @varName, new VarNode name)
@@ -102,12 +98,11 @@ class AbsNode extends Node
   hasFree: (varName) ->
     varName isnt @varName and @body.hasFree varName
 
-  canRenameVar: (from, to) ->
-    # The only two ways a variable can't be renamed are:
-    # - The variable is free in this abstraction and will be renamed to this
-    #   abstraction's varName (thus changing it's binding), or
-    # - The variabe can't be renamed in the abstraction's body.
-    not (@hasFree from) or (to isnt @varName and (@body.canRenameVar from, to))
+  varRenameCollides: (from, to) ->
+    # A variable rename collides with this abstraction if the former variable
+    # vas free in this context and the new name for the variable is the same as
+    # the varName in the abstraction, thus changing old free variable binding.
+    ((@hasFree from) and @varName is to) or (@body.varRenameCollides from, to)
 
 class ApplyNode extends Node
   constructor: (@left, @right) ->
@@ -123,8 +118,8 @@ class ApplyNode extends Node
     new ApplyNode (@left.replace varName, node), (@right.replace varName, node)
   hasFree: (varName) ->
     (@left.hasFree varName) or (@right.hasFree varName)
-  canRenameVar: (from, to) ->
-    (@left.canRenameVar from, to) and (@right.canRenameVar from, to)
+  varRenameCollides: (from, to) ->
+    (@left.varRenameCollides from, to) or (@right.varRenameCollides from, to)
 
 # Global namespace.
 Lambda = exports ? (@Lambda = {})

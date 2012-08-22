@@ -78,3 +78,13 @@ describe 'reduce()', ->
       shouldReduce '(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6'
       # Same idea, but in this case it has to go quite deep to find a new name.
       shouldReduce '(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5'
+
+    it 'should not choose a name that collides with free variables', ->
+      shouldReduce '(λx.λy.x y y1) y', 'λy2.y y2 y1'
+
+    it 'should not choose a name that collides in any form', ->
+      # This test combines the other three criteria. y can't be renamed to y1 or
+      # y4 because it would collide with free variables; nor renamed to y2 or y5
+      # because it would make y bind to an inner abstraction; not renamed to y3
+      # or y6 because they are free in the substitution term.
+      shouldReduce '(λx.λy.λy2.λy5.x y y1 y4) (y y3 y6)', 'λy7.λy2.λy5.y y3 y6 y7 y1 y4'
