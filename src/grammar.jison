@@ -5,14 +5,14 @@
 %lex
 %%
 
-\s*\n\s*  {/* ignore */}
-"("       { return '('; }
-")"       { return ')'; }
-"\\"|"λ"  { return 'LAMBDA'; }
-"."       { return '.'; }
-[a-zA-Z]+ { return 'VAR'; }
-\s+       { /* ignore */ }
-<<EOF>>   { return 'EOF'; }
+\s*\n\s*       {/* ignore */}
+"("            { return '('; }
+")"            { return ')'; }
+"\\"|"λ"       { return 'LAMBDA'; }
+"."            { return '.'; }
+[a-z][a-z0-9]* { return 'VAR'; }
+\s+            { /* ignore */ }
+<<EOF>>        { return 'EOF'; }
 /lex
 
 
