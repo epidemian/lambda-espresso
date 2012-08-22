@@ -55,7 +55,8 @@ class VarNode extends Node
   apply: -> no
   replace: (varName, node) ->
     if varName is @name then node else @
-  freeVars: -> [@name]
+  hasFree: (varName) -> @name is varName
+  canRenameVar: -> yes
 
 class AbsNode extends Node
   constructor: (@varName, @body) ->
@@ -68,33 +69,45 @@ class AbsNode extends Node
   # TODO Renaming is not correct as of now. Consider the case:
   # (λy.λy1.x y y1)[x := y z]
   # (λy.λy1.x y y1) must be alpha-renamed because y is free on (y z) and x is
-  # free on (x y y1). The current algorithm now chooses to rename y to y1, but
+  # free on (λy1.x y y1). The current algorithm now chooses to rename y to y1, but
   # is invalid, because it'll make the y variable, free in (λy1.x y y1) be bound
   # to a new abstraction.
   @trace replace: (varName, node) ->
-    # The parameter of this abstraction makes a new context, so no replacement
-    # is needed.
+    # (λx.T)[x := S] = λx.T
+    # (λx creates a new context for x so no firther substitution is needed)
     return @ if varName is @varName
-    # Avoid name collisions by renaming the @varName if it conflicts with any of
-    # the node's free vars.
-    freeVars = node.freeVars()
-    if @varName in freeVars
-      (@renameVar freeVars).replace varName, node
+    # (λy.T)[x := S] with x != y
+    # if y is free in S and x is free in T, then must α-convert λy.T to avoid
+    # name conflicts.
+    if (node.hasFree @varName) and (@body.hasFree varName)
+      # (λy.T)[x := S] = ((λy.T)[y := y'])[y' := S]
+      (@renameVar node).replace varName, node
     else
+      # (λy.T)[x := S] = λy.(T[x := S])
       new AbsNode @varName, @body.replace varName, node
 
-  renameVar: (freeVars) ->
-    # The the letters part of the var in case it's an already renamed var.
-    base = @varName.replace /\d+/, ''
-    n = 1
-    name = base
-    while name in freeVars
-      name = base + n++
+  renameVar: (substitutionNode) ->
+    # Split the name into base and number part.
+    base = @varName.replace /\d+$/, ''
+    n = if m = @varName.match /\d+$/ then parseInt m[0] else 0
+
+    until name and validName
+      name = base + ++n
+      validName = not (substitutionNode.hasFree name) and
+        (@body.canRenameVar @varName, name)
+
     # A new AbsNode with the new name and the body with the renamed var.
     new AbsNode name, (@body.replace @varName, new VarNode name)
 
-  freeVars: ->
-    removeAll @body.freeVars(), @varName
+  hasFree: (varName) ->
+    varName isnt @varName and @body.hasFree varName
+
+  canRenameVar: (from, to) ->
+    # The only two ways a variable can't be renamed are:
+    # - The variable is free in this abstraction and will be renamed to this
+    #   abstraction's varName (thus changing it's binding), or
+    # - The variabe can't be renamed in the abstraction's body.
+    not (@hasFree from) or (to isnt @varName and (@body.canRenameVar from, to))
 
 class ApplyNode extends Node
   constructor: (@left, @right) ->
@@ -108,8 +121,10 @@ class ApplyNode extends Node
   @trace apply: -> no
   @trace replace: (varName, node) ->
     new ApplyNode (@left.replace varName, node), (@right.replace varName, node)
-  freeVars: ->
-    @left.freeVars().concat @right.freeVars()
+  hasFree: (varName) ->
+    (@left.hasFree varName) or (@right.hasFree varName)
+  canRenameVar: (from, to) ->
+    (@left.canRenameVar from, to) and (@right.canRenameVar from, to)
 
 # Global namespace.
 Lambda = exports ? (@Lambda = {})

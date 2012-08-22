@@ -63,10 +63,18 @@ describe 'reduce()', ->
 
 
     it 'should not rename if y is free in S but x does not occur in T', ->
-      # FIXME!
-#      shouldReduce '(λx.λy.y) (y z)', 'λy.y'
+      shouldReduce '(λx.λy.y) (y z)', 'λy.y'
 
     it 'should not rename if y is free in S but x has only bound occurrences in T', ->
-      # FIXME!
-#      shouldReduce '(λx.λy.y λx.x) (y z)', 'λy.y λx.x'
-#      shouldReduce '(λx.λy.y λx.x x y λx.x) (y z)', 'λy.y λx.x x y λx.x'
+      shouldReduce '(λx.λy.y λx.x) (y z)', 'λy.y λx.x'
+      shouldReduce '(λx.λy.y λx.x x y λx.x) (y z)', 'λy.y λx.x x y λx.x'
+
+    it 'should not choose a name that makes an inner variable bind to another abstraction', ->
+      # In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to use
+      # [y := y1] because it would make the inner y bind to the second
+      # abstraction instead of the first one.
+      shouldReduce '(λx.λy.λy1.x y) y', 'λy2.λy1.y y2'
+      # Same thing as above but with higher numbers.
+      shouldReduce '(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6'
+      # Same idea, but in this case it has to go quite deep to find a new name.
+      shouldReduce '(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5'
