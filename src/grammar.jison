@@ -24,14 +24,14 @@
 %%
 
 file
-  : expr EOF { return $expr; }
+  : term EOF { return $term; }
   ;
 
-expr
-  : LAMBDA var '.' expr   { $$ = yy.parseAbstraction($var, $expr); }
-  | expr expr %prec APPLY { $$ = yy.parseApplication($expr1, $expr2); }
+term
+  : LAMBDA var '.' term   { $$ = yy.parseAbstraction($var, $term); }
+  | term term %prec APPLY { $$ = yy.parseApplication($term1, $term2); }
   | var                   { $$ = yy.parseVariable($var); }
-  | "(" expr ")"          { $$ = $expr; }
+  | "(" term ")"          { $$ = $term; }
   ;
 
 var
