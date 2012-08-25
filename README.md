@@ -1,10 +1,10 @@
-# λ Calculus Parser
+# ☕ λ-Espresso ☕
 
-A λ calculus implementation in CoffeeScript
+A λ calculus interpreter written in CoffeeScript.
 
 ## Usage
 
-TODO
+You can play with λ-Espresso [here](http://epidemian.github.com/lambda-espresso/).
 
 ## Development
 

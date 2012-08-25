@@ -1,5 +1,11 @@
-- Make reduction do one step at a time.
 - Try a functional style implementation to see if it results better than the OO one.
-- Add maximum recursion level to avoid non-termination problems.
+- Add maximum recursion level option to avoid non-termination problems.
 - Add reduction strategy option: normal or applicative.
 - Add Eta-reduction option.
+- Add collapse/expand reduction steps option.
+- Add comment syntax.
+- Add expand macro (lazy|eager) option.
+- Improve index.html
+  - Add some CSS styles (Twitter's Bootstrap maybe?)
+  - Add link to GH repo
+  - Add examples
