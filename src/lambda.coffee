@@ -16,12 +16,10 @@ parse = (str) ->
     parseApplication: (left, right) -> new Application left, right
     parseVariable: (name) -> new Variable name
     parseMacroDefinition: (name, term) ->
-      console.log 'macro def', name, term
-      throw "#{name} already defined" if macros[name]
+      throw Error "#{name} already defined" if macros[name]
       macros[name] = new Macro name, term
     parseMacroUsage: (name) ->
-      console.log 'macro usage', name
-      throw "#{name} not defined" unless name
+      throw Error "#{name} not defined" unless macros[name]
       macros[name]
     parseTermEvaluation: (term) -> terms.push term
     getProgram: -> terms
@@ -140,7 +138,7 @@ class Macro extends Term
     (@term.applyStep term) and new Application @term, term
   replace: (varName, term) ->
     if @hasFree varName
-      throw "Logical error: #{varName} is free in #{@name}." +
+      throw Error "Logical error: #{varName} is free in #{@name}." +
         "Macros cannot have free variables"
     @
   hasFree: (varName) -> @term.hasFree varName
@@ -153,12 +151,12 @@ reduceTerm = (term) ->
   maxSteps = 100
   while term = term.reduceStep()
     steps.push term.toString()
-    throw 'Too many reduction steps' if steps.length > maxSteps
+    throw Error 'Too many reduction steps' if steps.length > maxSteps
   steps
 
 parseTerm = (str) ->
   terms = parse str
-  throw "program has #{terms.length} terms" if terms.length isnt 1
+  throw Error "program has #{terms.length} terms" if terms.length isnt 1
   terms[0]
 
 # Parse a program with only one term.

@@ -18,7 +18,6 @@ $input.keyup (e) ->
 ($ '.run').click -> run()
 
 run = ->
-  console.log 'run!'
   program = $input.val()
   try
     reductions = lambda.reduceProgram program

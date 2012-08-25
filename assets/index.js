@@ -437,16 +437,14 @@ require['./lambda'] = new function() {
         return new Variable(name);
       },
       parseMacroDefinition: function(name, term) {
-        console.log('macro def', name, term);
         if (macros[name]) {
-          throw "" + name + " already defined";
+          throw Error("" + name + " already defined");
         }
         return macros[name] = new Macro(name, term);
       },
       parseMacroUsage: function(name) {
-        console.log('macro usage', name);
-        if (!name) {
-          throw "" + name + " not defined";
+        if (!macros[name]) {
+          throw Error("" + name + " not defined");
         }
         return macros[name];
       },
@@ -547,32 +545,26 @@ require['./lambda'] = new function() {
       return "(" + this + ")";
     };
 
-    Abstraction.trace({
-      reduceStep: function() {
-        var reducedBody;
-        reducedBody = this.body.reduceStep();
-        return reducedBody && new Abstraction(this.varName, reducedBody);
-      }
-    });
+    Abstraction.prototype.reduceStep = function() {
+      var reducedBody;
+      reducedBody = this.body.reduceStep();
+      return reducedBody && new Abstraction(this.varName, reducedBody);
+    };
 
-    Abstraction.trace({
-      applyStep: function(term) {
-        return this.body.replace(this.varName, term);
-      }
-    });
+    Abstraction.prototype.applyStep = function(term) {
+      return this.body.replace(this.varName, term);
+    };
 
-    Abstraction.trace({
-      replace: function(varName, term) {
-        if (varName === this.varName) {
-          return this;
-        }
-        if ((term.hasFree(this.varName)) && (this.body.hasFree(varName))) {
-          return (this.renameVar(term)).replace(varName, term);
-        } else {
-          return new Abstraction(this.varName, this.body.replace(varName, term));
-        }
+    Abstraction.prototype.replace = function(varName, term) {
+      if (varName === this.varName) {
+        return this;
       }
-    });
+      if ((term.hasFree(this.varName)) && (this.body.hasFree(varName))) {
+        return (this.renameVar(term)).replace(varName, term);
+      } else {
+        return new Abstraction(this.varName, this.body.replace(varName, term));
+      }
+    };
 
     Abstraction.prototype.renameVar = function(substitutionTerm) {
       var base, m, n, name, validName;
@@ -614,33 +606,27 @@ require['./lambda'] = new function() {
       return "(" + this + ")";
     };
 
-    Application.trace({
-      reduceStep: function() {
-        var applied, reducedLeft, reducedRight;
-        applied = this.left.applyStep(this.right);
-        if (applied) {
-          return applied;
-        }
-        reducedLeft = this.left.reduceStep();
-        if (reducedLeft) {
-          return new Application(reducedLeft, this.right);
-        }
-        reducedRight = this.right.reduceStep();
-        return reducedRight && new Application(this.left, reducedRight);
+    Application.prototype.reduceStep = function() {
+      var applied, reducedLeft, reducedRight;
+      applied = this.left.applyStep(this.right);
+      if (applied) {
+        return applied;
       }
-    });
+      reducedLeft = this.left.reduceStep();
+      if (reducedLeft) {
+        return new Application(reducedLeft, this.right);
+      }
+      reducedRight = this.right.reduceStep();
+      return reducedRight && new Application(this.left, reducedRight);
+    };
 
-    Application.trace({
-      applyStep: function() {
-        return null;
-      }
-    });
+    Application.prototype.applyStep = function() {
+      return null;
+    };
 
-    Application.trace({
-      replace: function(varName, term) {
-        return new Application(this.left.replace(varName, term), this.right.replace(varName, term));
-      }
-    });
+    Application.prototype.replace = function(varName, term) {
+      return new Application(this.left.replace(varName, term), this.right.replace(varName, term));
+    };
 
     Application.prototype.hasFree = function(varName) {
       return (this.left.hasFree(varName)) || (this.right.hasFree(varName));
@@ -653,8 +639,6 @@ require['./lambda'] = new function() {
     return Application;
 
   })(Term);
-
-  require('helpers');
 
   Macro = (function(_super) {
 
@@ -669,26 +653,20 @@ require['./lambda'] = new function() {
       return this.name;
     };
 
-    Macro.trace({
-      reduceStep: function() {
-        return this.term.reduceStep() && this.term;
-      }
-    });
+    Macro.prototype.reduceStep = function() {
+      return this.term.reduceStep() && this.term;
+    };
 
-    Macro.trace({
-      applyStep: function(term) {
-        return (this.term.applyStep(term)) && new Application(this.term, term);
-      }
-    });
+    Macro.prototype.applyStep = function(term) {
+      return (this.term.applyStep(term)) && new Application(this.term, term);
+    };
 
-    Macro.trace({
-      replace: function(varName, term) {
-        if (this.hasFree(varName)) {
-          throw ("Logical error: " + varName + " is free in " + this.name + ".") + "Macros cannot have free variables";
-        }
-        return this;
+    Macro.prototype.replace = function(varName, term) {
+      if (this.hasFree(varName)) {
+        throw Error(("Logical error: " + varName + " is free in " + this.name + ".") + "Macros cannot have free variables");
       }
-    });
+      return this;
+    };
 
     Macro.prototype.hasFree = function(varName) {
       return this.term.hasFree(varName);
@@ -709,7 +687,7 @@ require['./lambda'] = new function() {
     while (term = term.reduceStep()) {
       steps.push(term.toString());
       if (steps.length > maxSteps) {
-        throw 'Too many reduction steps';
+        throw Error('Too many reduction steps');
       }
     }
     return steps;
@@ -719,7 +697,7 @@ require['./lambda'] = new function() {
     var terms;
     terms = parse(str);
     if (terms.length !== 1) {
-      throw "program has " + terms.length + " terms";
+      throw Error("program has " + terms.length + " terms");
     }
     return terms[0];
   };
