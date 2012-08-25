@@ -8,39 +8,37 @@
 var grammar = (function(){
 var parser = {trace: function trace() { },
 yy: {},
-symbols_: {"error":2,"root":3,"program":4,"EOF":5,"line":6,"SEPARATOR":7,"term":8,"LAMBDA":9,"var":10,".":11,"(":12,")":13,"VAR":14,"$accept":0,"$end":1},
-terminals_: {2:"error",5:"EOF",7:"SEPARATOR",9:"LAMBDA",11:".",12:"(",13:")",14:"VAR"},
-productions_: [0,[3,2],[4,0],[4,1],[4,2],[4,3],[6,1],[8,4],[8,2],[8,1],[8,3],[10,1]],
+symbols_: {"error":2,"root":3,"program":4,"EOF":5,"line":6,"SEPARATOR":7,"term":8,"macro":9,"=":10,"LAMBDA":11,"var":12,".":13,"(":14,")":15,"MACRO":16,"VAR":17,"$accept":0,"$end":1},
+terminals_: {2:"error",5:"EOF",7:"SEPARATOR",10:"=",11:"LAMBDA",13:".",14:"(",15:")",16:"MACRO",17:"VAR"},
+productions_: [0,[3,2],[4,0],[4,1],[4,2],[4,3],[6,1],[6,3],[8,4],[8,2],[8,1],[8,1],[8,3],[9,1],[12,1]],
 performAction: function anonymous(yytext,yyleng,yylineno,yy,yystate,$$,_$) {
 
 var $0 = $$.length - 1;
 switch (yystate) {
-case 1: return $$[$0-1]; 
+case 1: return yy.getProgram(); 
 break;
-case 2: this.$ = []; 
+case 6: this.$ = yy.parseTermEvaluation($$[$0]); 
 break;
-case 3: this.$ = [$$[$0]]; 
+case 7: this.$ = yy.parseMacroDefinition($$[$0-2], $$[$0]); 
 break;
-case 4: this.$ = $$[$0-1]; 
+case 8: this.$ = yy.parseAbstraction($$[$0-2], $$[$0]); 
 break;
-case 5: (this.$ = $$[$0-2]).push($$[$0]); 
+case 9: this.$ = yy.parseApplication($$[$0-1], $$[$0]); 
 break;
-case 6: this.$ = $$[$0]; 
+case 10: this.$ = yy.parseVariable($$[$0]); 
 break;
-case 7: this.$ = yy.parseAbstraction($$[$0-2], $$[$0]); 
+case 11: this.$ = yy.parseMacroUsage($$[$0]); 
 break;
-case 8: this.$ = yy.parseApplication($$[$0-1], $$[$0]); 
+case 12: this.$ = $$[$0-1]; 
 break;
-case 9: this.$ = yy.parseVariable($$[$0]); 
+case 13: this.$ = yytext; 
 break;
-case 10: this.$ = $$[$0-1]; 
-break;
-case 11: this.$ = yytext; 
+case 14: this.$ = yytext; 
 break;
 }
 },
-table: [{3:1,4:2,5:[2,2],6:3,7:[2,2],8:4,9:[1,5],10:6,12:[1,7],14:[1,8]},{1:[3]},{5:[1,9],7:[1,10]},{5:[2,3],7:[2,3]},{5:[2,6],7:[2,6],8:11,9:[1,5],10:6,12:[1,7],14:[1,8]},{10:12,14:[1,8]},{5:[2,9],7:[2,9],9:[2,9],12:[2,9],13:[2,9],14:[2,9]},{8:13,9:[1,5],10:6,12:[1,7],14:[1,8]},{5:[2,11],7:[2,11],9:[2,11],11:[2,11],12:[2,11],13:[2,11],14:[2,11]},{1:[2,1]},{5:[2,4],6:14,7:[2,4],8:4,9:[1,5],10:6,12:[1,7],14:[1,8]},{5:[2,8],7:[2,8],8:11,9:[2,8],10:6,12:[2,8],13:[2,8],14:[2,8]},{11:[1,15]},{8:11,9:[1,5],10:6,12:[1,7],13:[1,16],14:[1,8]},{5:[2,5],7:[2,5]},{8:17,9:[1,5],10:6,12:[1,7],14:[1,8]},{5:[2,10],7:[2,10],9:[2,10],12:[2,10],13:[2,10],14:[2,10]},{5:[2,7],7:[2,7],8:11,9:[1,5],10:6,12:[1,7],13:[2,7],14:[1,8]}],
-defaultActions: {9:[2,1]},
+table: [{3:1,4:2,5:[2,2],6:3,7:[2,2],8:4,9:5,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{1:[3]},{5:[1,11],7:[1,12]},{5:[2,3],7:[2,3]},{5:[2,6],7:[2,6],8:13,9:14,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{5:[2,11],7:[2,11],10:[1,15],11:[2,11],14:[2,11],16:[2,11],17:[2,11]},{12:16,17:[1,10]},{5:[2,10],7:[2,10],11:[2,10],14:[2,10],15:[2,10],16:[2,10],17:[2,10]},{8:17,9:14,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{5:[2,13],7:[2,13],10:[2,13],11:[2,13],14:[2,13],15:[2,13],16:[2,13],17:[2,13]},{5:[2,14],7:[2,14],11:[2,14],13:[2,14],14:[2,14],15:[2,14],16:[2,14],17:[2,14]},{1:[2,1]},{5:[2,4],6:18,7:[2,4],8:4,9:5,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{5:[2,9],7:[2,9],8:13,9:14,11:[2,9],12:7,14:[2,9],15:[2,9],16:[2,9],17:[2,9]},{5:[2,11],7:[2,11],11:[2,11],14:[2,11],15:[2,11],16:[2,11],17:[2,11]},{8:19,9:14,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{13:[1,20]},{8:13,9:14,11:[1,6],12:7,14:[1,8],15:[1,21],16:[1,9],17:[1,10]},{5:[2,5],7:[2,5]},{5:[2,7],7:[2,7],8:13,9:14,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{8:22,9:14,11:[1,6],12:7,14:[1,8],16:[1,9],17:[1,10]},{5:[2,12],7:[2,12],11:[2,12],14:[2,12],15:[2,12],16:[2,12],17:[2,12]},{5:[2,8],7:[2,8],8:13,9:14,11:[1,6],12:7,14:[1,8],15:[2,8],16:[1,9],17:[1,10]}],
+defaultActions: {11:[2,1]},
 parseError: function parseError(str, hash) {
     throw new Error(str);
 },
@@ -321,26 +319,30 @@ lexer.performAction = function anonymous(yy,yy_,$avoiding_name_collisions,YY_STA
 
 var YYSTATE=YY_START
 switch($avoiding_name_collisions) {
-case 0: return 12; 
+case 0: return 14; 
 break;
-case 1: return 13; 
+case 1: return 15; 
 break;
-case 2: return 9; 
+case 2: return 11; 
 break;
-case 3: return 11; 
+case 3: return 13; 
 break;
-case 4: return 14; 
+case 4: return 10; 
 break;
-case 5: return 7; 
+case 5: return 17; 
 break;
-case 6: /* ignore whitespace */ 
+case 6: return 16; 
 break;
-case 7: return 5; 
+case 7: return 7; 
+break;
+case 8: /* ignore whitespace */ 
+break;
+case 9: return 5; 
 break;
 }
 };
-lexer.rules = [/^(?:\()/,/^(?:\))/,/^(?:\\|λ)/,/^(?:\.)/,/^(?:[a-z][a-z0-9]*)/,/^(?:[\n])/,/^(?:[ \t]+)/,/^(?:$)/];
-lexer.conditions = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7],"inclusive":true}};
+lexer.rules = [/^(?:\()/,/^(?:\))/,/^(?:\\|λ)/,/^(?:\.)/,/^(?:=)/,/^(?:[a-z][a-z0-9]*)/,/^(?:[A-Z][A-Z0-9]*)/,/^(?:[\n])/,/^(?:[ \t]+)/,/^(?:$)/];
+lexer.conditions = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9],"inclusive":true}};
 return lexer;})()
 parser.lexer = lexer;function Parser () { this.yy = {}; }Parser.prototype = parser;parser.Parser = Parser;
 return new Parser;
@@ -369,22 +371,47 @@ require['./lambda'] = new function() {
   var exports = this;
   // Generated by CoffeeScript 1.3.3
 (function() {
-  var Abstraction, Application, Term, Variable, parseTerm, parser, reduceTerm,
+  var Abstraction, Application, Term, Variable, parse, parseTerm, reduceTerm,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
-  parser = new (require('./grammar')).Parser;
-
-  parser.yy = {
-    parseAbstraction: function(varName, body) {
-      return new Abstraction(varName, body);
-    },
-    parseApplication: function(left, right) {
-      return new Application(left, right);
-    },
-    parseVariable: function(name) {
-      return new Variable(name);
-    }
+  parse = function(str) {
+    var macros, parser, terms;
+    parser = new (require('./grammar')).Parser;
+    macros = {};
+    terms = [];
+    parser.yy = {
+      parseAbstraction: function(varName, body) {
+        return new Abstraction(varName, body);
+      },
+      parseApplication: function(left, right) {
+        return new Application(left, right);
+      },
+      parseVariable: function(name) {
+        return new Variable(name);
+      },
+      parseMacroDefinition: function(name, term) {
+        console.log('macro def', name, term);
+        if (macros[name]) {
+          throw "" + name + " already defined";
+        }
+        return macros[name] = term;
+      },
+      parseMacroUsage: function(name) {
+        console.log('macro usage', name);
+        if (!name) {
+          throw "" + name + " not defined";
+        }
+        return macros[name];
+      },
+      parseTermEvaluation: function(term) {
+        return terms.push(term);
+      },
+      getProgram: function() {
+        return terms;
+      }
+    };
+    return parser.parse(str);
   };
 
   Term = (function() {
@@ -584,7 +611,7 @@ require['./lambda'] = new function() {
 
   parseTerm = function(str) {
     var terms;
-    terms = parser.parse(str);
+    terms = parse(str);
     if (terms.length !== 1) {
       throw "program has " + terms.length + " terms";
     }
@@ -601,7 +628,7 @@ require['./lambda'] = new function() {
 
   exports.reduceProgram = function(expr) {
     var term, terms, _i, _len, _results;
-    terms = parser.parse(expr);
+    terms = parse(expr);
     _results = [];
     for (_i = 0, _len = terms.length; _i < _len; _i++) {
       term = terms[_i];

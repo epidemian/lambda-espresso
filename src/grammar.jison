@@ -5,7 +5,9 @@
 ")"            { return ')'; }
 "\\"|"λ"       { return 'LAMBDA'; }
 "."            { return '.'; }
+"="            { return '='; }
 [a-z][a-z0-9]* { return 'VAR'; }
+[A-Z][A-Z0-9]* { return 'MACRO'; }
 [\n]           { return 'SEPARATOR'; }
 [ \t]+         { /* ignore whitespace */ }
 <<EOF>>        { return 'EOF'; }
@@ -13,6 +15,7 @@
 
 
 %right LAMBDA
+%left MACRO
 %left VAR
 %left '('
 %left APPLY
@@ -20,25 +23,31 @@
 %%
 
 root
-  : program EOF { return $program; }
+  : program EOF { return yy.getProgram(); }
   ;
 
 program
-  :                        { $$ = []; }
-  | line                   { $$ = [$line]; }
-  | program SEPARATOR      { $$ = $program; }
-  | program SEPARATOR line { ($$ = $program).push($line); }
+  :
+  | line
+  | program SEPARATOR
+  | program SEPARATOR line
   ;
 
 line
-  : term { $$ = $term; }
+  : term           { $$ = yy.parseTermEvaluation($term); }
+  | macro '=' term { $$ = yy.parseMacroDefinition($macro, $term); }
   ;
 
 term
   : LAMBDA var '.' term   { $$ = yy.parseAbstraction($var, $term); }
   | term term %prec APPLY { $$ = yy.parseApplication($term1, $term2); }
   | var                   { $$ = yy.parseVariable($var); }
+  | macro                 { $$ = yy.parseMacroUsage($macro); }
   | "(" term ")"          { $$ = $term; }
+  ;
+
+macro
+  : MACRO { $$ = yytext; }
   ;
 
 var

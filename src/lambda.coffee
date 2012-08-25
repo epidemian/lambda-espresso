@@ -1,13 +1,32 @@
 # λ calculus parser
 
-# A custom Jison parser.
-parser = new (require './grammar').Parser
+# Parses an input program string and returns a list of terms to be reduced.
+parse = (str) ->
+  # A custom Jison parser.
+  parser = new (require './grammar').Parser
 
-# Add some handy functions so the parser can build the AST.
-parser.yy =
-  parseAbstraction: (varName, body) -> new Abstraction varName, body
-  parseApplication: (left, right) -> new Application left, right
-  parseVariable: (name) -> new Variable name
+  # A macro teble with the macros by their names.
+  macros = {}
+  # The terms of the program.
+  terms = []
+
+  # Add some handy functions so the parser can build the AST.
+  parser.yy =
+    parseAbstraction: (varName, body) -> new Abstraction varName, body
+    parseApplication: (left, right) -> new Application left, right
+    parseVariable: (name) -> new Variable name
+    parseMacroDefinition: (name, term) ->
+      console.log 'macro def', name, term
+      throw "#{name} already defined" if macros[name]
+      macros[name] = term
+    parseMacroUsage: (name) ->
+      console.log 'macro usage', name
+      throw "#{name} not defined" unless name
+      macros[name]
+    parseTermEvaluation: (term) -> terms.push term
+    getProgram: -> terms
+
+  parser.parse str
 
 # An abstract λ calculus term.
 class Term
@@ -115,7 +134,7 @@ reduceTerm = (term) ->
   steps
 
 parseTerm = (str) ->
-  terms = parser.parse str
+  terms = parse str
   throw "program has #{terms.length} terms" if terms.length isnt 1
   terms[0]
 
@@ -129,6 +148,5 @@ exports.reduceTerm = (str) ->
 
 # Reduce a program that might have multiple terms.
 exports.reduceProgram = (expr) ->
-  terms = parser.parse expr
+  terms = parse expr
   reduceTerm term for term in terms
-
