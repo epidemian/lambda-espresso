@@ -18,7 +18,7 @@ parse = (str) ->
     parseMacroDefinition: (name, term) ->
       console.log 'macro def', name, term
       throw "#{name} already defined" if macros[name]
-      macros[name] = term
+      macros[name] = new Macro name, term
     parseMacroUsage: (name) ->
       console.log 'macro usage', name
       throw "#{name} not defined" unless name
@@ -122,6 +122,29 @@ class Application extends Term
     (@left.hasFree varName) or (@right.hasFree varName)
   varRenameCollides: (from, to) ->
     (@left.varRenameCollides from, to) or (@right.varRenameCollides from, to)
+
+# A macro is not a classical λ term, but in this implementation it's used to
+# name a given term. While that term is "wrapped" in a macro, it's printed as
+# the macro's name; when the macro is asked to make a reduction step, the
+# "unwrapping" counts as a reduction step.
+class Macro extends Term
+  constructor: (@name, @term) ->
+  toString: -> @name
+  reduceStep: ->
+    # Only if the inner term can be reduced the macro is reduced, and the
+    # reduction consists on substituting the macro with the actual term.
+    @term.reduceStep() and @term
+  applyStep: (term) ->
+    # Same logic as above. If the inner term can be applied, create a new
+    # application as the macro expansion.
+    (@term.applyStep term) and new Application @term, term
+  replace: (varName, term) ->
+    if @hasFree varName
+      throw "Logical error: #{varName} is free in #{@name}." +
+        "Macros cannot have free variables"
+    @
+  hasFree: (varName) -> @term.hasFree varName
+  varRenameCollides: (from, to) -> @term.varRenameCollides from, to
 
 # Reduces a term up to its normal form and returns an array with each step of
 # the reduction.
