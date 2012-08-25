@@ -1,17 +1,13 @@
-/* Lambda calculus grammar stolen from http://zaach.github.com/jison/try/
- * Original author: Zach Carter
- */
-
 %lex
 %%
 
-\s*\n\s*       {/* ignore */}
 "("            { return '('; }
 ")"            { return ')'; }
 "\\"|"λ"       { return 'LAMBDA'; }
 "."            { return '.'; }
 [a-z][a-z0-9]* { return 'VAR'; }
-\s+            { /* ignore */ }
+[\n]           { return 'SEPARATOR'; }
+[ \t]+         { /* ignore whitespace */ }
 <<EOF>>        { return 'EOF'; }
 /lex
 
@@ -23,8 +19,19 @@
 
 %%
 
-file
-  : term EOF { return $term; }
+root
+  : program EOF { return $program; }
+  ;
+
+program
+  :                        { $$ = []; }
+  | line                   { $$ = [$line]; }
+  | program SEPARATOR      { $$ = $program; }
+  | program SEPARATOR line { ($$ = $program).push($line); }
+  ;
+
+line
+  : term { $$ = $term; }
   ;
 
 term

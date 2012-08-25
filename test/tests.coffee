@@ -1,11 +1,12 @@
 assert = require 'assert'
-{parse, reduce} = require '../lib/lambda'
+{parseTerm, reduceTerm} = require '../lib/lambda'
 
 shouldParse = (expr, expected) ->
-  assert.equal (parse expr), expected
+  assert.strictEqual (parseTerm expr), expected
 
 shouldReduce = (expr, expected) ->
-  assert.equal (reduce expr), expected
+  steps = reduceTerm expr
+  assert.strictEqual steps[steps.length - 1], expected
 
 describe 'parse()', ->
 

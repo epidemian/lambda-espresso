@@ -104,17 +104,31 @@ class Application extends Term
   varRenameCollides: (from, to) ->
     (@left.varRenameCollides from, to) or (@right.varRenameCollides from, to)
 
-exports.parse = (expr) ->
-  (parser.parse expr).toString()
-
-exports.reduce = (expr) ->
-  (reductionSteps expr).pop()
-
-exports.reductionSteps = reductionSteps = (expr) ->
-  term = parser.parse expr
-  steps = [term]
+# Reduces a term up to its normal form and returns an array with each step of
+# the reduction.
+reduceTerm = (term) ->
+  steps = [term.toString()]
   maxSteps = 100
   while term = term.reduceStep()
     steps.push term.toString()
     throw 'Too many reduction steps' if steps.length > maxSteps
   steps
+
+parseTerm = (str) ->
+  terms = parser.parse str
+  throw "program has #{terms.length} terms" if terms.length isnt 1
+  terms[0]
+
+# Parse a program with only one term.
+exports.parseTerm = (str) ->
+  (parseTerm str).toString()
+
+# Reduce a program with only one term.
+exports.reduceTerm = (str) ->
+  reduceTerm parseTerm str
+
+# Reduce a program that might have multiple terms.
+exports.reduceProgram = (expr) ->
+  terms = parser.parse expr
+  reduceTerm term for term in terms
+

@@ -19,13 +19,15 @@ $input.keyup (e) ->
 
 run = ->
   console.log 'run!'
-  expr = $input.val()
+  program = $input.val()
   try
-    steps = lambda.reductionSteps expr
+    reductions = lambda.reduceProgram program
     result = ''
-    for step, i in steps
-      result += '<br> → ' if i > 0
-      result += if i < steps.length - 1 then step else "<b>#{step}</b>"
+    for steps in reductions
+      for step, i in steps
+        result += ' → ' if i > 0
+        result += if i < steps.length - 1 then step else "<b>#{step}</b>"
+        result += '<br>'
     $output.empty().html result
   catch e
     $error.text e.message
