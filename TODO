@@ -1,3 +1,5 @@
 - Make reduction do one step at a time.
 - Try a functional style implementation to see if it results better than the OO one.
 - Add maximum recursion level to avoid non-termination problems.
+- Add reduction strategy option: normal or applicative.
+- Add Eta-reduction option.

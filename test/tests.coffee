@@ -50,8 +50,7 @@ describe 'reduce()', ->
 
 
   it 'should reduce a beta-redex that is formed only after a reduction', ->
-    # FIXME!
-#    shouldReduce '(λx.x y) (λz.z z)', 'y y'
+    shouldReduce '(λx.x y) (λz.z z)', 'y y'
 
   describe 'renaming in substitution (λy.T)[x := S]', ->
 

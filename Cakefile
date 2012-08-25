@@ -38,7 +38,7 @@ task 'build', 'build a merged script to include in index.html', ->
       #{moduleSources.join '\n'}
     }());
   """
-  fs.writeFileSync 'public/index.js', code
+  fs.writeFileSync 'assets/index.js', code
 
 task 'test', 'run tests', ->
   run 'mocha'

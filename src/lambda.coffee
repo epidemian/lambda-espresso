@@ -19,8 +19,8 @@ class Term
 class Variable extends Term
   constructor: (@name) ->
   toString: -> @name
-  reduce: -> @
-  apply: -> no
+  reduceStep: -> null # Variables cannot be reduced.
+  applyStep: -> null # Nor applied.
   replace: (varName, term) ->
     # x[x := T] = T, y[x := T] = y
     if varName is @name then term else @
@@ -31,9 +31,10 @@ class Abstraction extends Term
   constructor: (@varName, @body) ->
   toString: -> "λ#{@varName}.#{@body}"
   leftApplyString: -> "(#{@})"
-  reduce: ->
-    new Abstraction @varName, @body.reduce()
-  apply: (term) ->
+  reduceStep: ->
+    reducedBody = @body.reduceStep()
+    reducedBody and new Abstraction @varName, reducedBody
+  applyStep: (term) ->
     @body.replace @varName, term
 
   replace: (varName, term) ->
@@ -82,11 +83,19 @@ class Application extends Term
   toString: ->
     "#{@left.leftApplyString()} #{@right.rightApplyString()}"
   rightApplyString: -> "(#{@})"
-  reduce: ->
-    leftReduced = @left.reduce()
-    rightReduced = @right.reduce()
-    (leftReduced.apply rightReduced) or new Application leftReduced, rightReduced
-  apply: -> no
+  reduceStep: ->
+    applied = @left.applyStep @right
+    # An application step is a reduction step:
+    return applied if applied
+
+    # Reduce left one step; maybe next step it can be applied.
+    reducedLeft = @left.reduceStep()
+    return new Application reducedLeft, @right if reducedLeft
+
+    # Left is irreducible; try reducing right.
+    reducedRight = @right.reduceStep()
+    reducedRight and new Application @left, reducedRight
+  applyStep: -> null
   replace: (varName, term) ->
     # (T S)[x := R] = (T[x := R]) (S[x := R])
     new Application (@left.replace varName, term), (@right.replace varName, term)
@@ -95,11 +104,17 @@ class Application extends Term
   varRenameCollides: (from, to) ->
     (@left.varRenameCollides from, to) or (@right.varRenameCollides from, to)
 
-# Global namespace.
-Lambda = exports ? (@Lambda = {})
-
-Lambda.parse = (expr) ->
+exports.parse = (expr) ->
   (parser.parse expr).toString()
 
-Lambda.reduce = (expr) ->
-  (parser.parse expr).reduce().toString()
+exports.reduce = (expr) ->
+  (reductionSteps expr).pop()
+
+exports.reductionSteps = reductionSteps = (expr) ->
+  term = parser.parse expr
+  steps = [term]
+  maxSteps = 100
+  while term = term.reduceStep()
+    steps.push term.toString()
+    throw 'Too many reduction steps' if steps.length > maxSteps
+  steps

@@ -18,12 +18,19 @@ $input.keyup (e) ->
 ($ '.run').click -> run()
 
 run = ->
+  console.log 'run!'
   expr = $input.val()
   try
-    result = lambda.reduce expr
-    $output.text "#{expr} → #{result}"
+    steps = lambda.reductionSteps expr
+    result = ''
+    for step, i in steps
+      result += '<br> → ' if i > 0
+      result += if i < steps.length - 1 then step else "<b>#{step}</b>"
+    $output.empty().html result
   catch e
     $error.text e.message
 
   $outputContainer.toggle result?
   $errorContainer.toggle not result?
+
+$input.focus()
