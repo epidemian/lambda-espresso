@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8" />
+  <title>λ Playground</title>
+  <link href="normalize.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+</head>
+<body>
+  <h1>λ Playground</h1>
+  <div class="tip">Enter your λ-expressions here (tip: use "\" to insert "λ")</div>
+  <textarea class="input">(λx.λy.x y) (w z)</textarea>
+  <button class="run" title="Ctrl+Enter">Run</button>
+  <div class="output-container">
+    <h2>Result:</h2>
+    <div class="output"></div>
+  </div>
+  <div class="error-container">
+    <h2>Error:</h2>
+    <pre class="error"></pre>
+  </div>
+  <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+  <script src="index.js"></script>
+</body>

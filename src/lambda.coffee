@@ -22,6 +22,7 @@ class Variable extends Term
   reduce: -> @
   apply: -> no
   replace: (varName, term) ->
+    # x[x := T] = T, y[x := T] = y
     if varName is @name then term else @
   hasFree: (varName) -> @name is varName
   varRenameCollides: -> no
@@ -87,6 +88,7 @@ class Application extends Term
     (leftReduced.apply rightReduced) or new Application leftReduced, rightReduced
   apply: -> no
   replace: (varName, term) ->
+    # (T S)[x := R] = (T[x := R]) (S[x := R])
     new Application (@left.replace varName, term), (@right.replace varName, term)
   hasFree: (varName) ->
     (@left.hasFree varName) or (@right.hasFree varName)

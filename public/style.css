@@ -1,0 +1,13 @@
+.input {
+  width:600px;
+  height: 200px;
+  display: block;
+}
+
+.error-container {
+  color: red;
+}
+
+.output-container, .error-container {
+  display: none;
+}
