@@ -3,9 +3,9 @@
 - Add reduction strategy option: normal or applicative.
 - Add Eta-reduction option.
 - Add collapse/expand reduction steps option.
-- Add comment syntax.
 - Add expand macro (lazy|eager) option.
 - Add macros tests.
+- Add step-by-step reduction tests.
 - Make step-by-step reduction output the reduction type (alpha-conversion, beta-reduction or macro-expansion) for each step. Also, maybe add a "highlighting" step to reductions so the GUI can show which variables and terms where substituted =D
 - Improve index.html
   - Add some CSS styles (Twitter's Bootstrap maybe?)
@@ -13,3 +13,4 @@
   - Add examples
   - Add "permalink" option.
   - Save options and code in localStorage.
+- Fix bad parenthesization of "λx.x (λy.y) z"

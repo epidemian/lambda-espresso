@@ -383,12 +383,14 @@ case 7: return 7;
 break;
 case 8: /* ignore whitespace */ 
 break;
-case 9: return 5; 
+case 9: /* ignore line comments */ 
+break;
+case 10: return 5; 
 break;
 }
 };
-lexer.rules = [/^(?:\()/,/^(?:\))/,/^(?:\\|λ)/,/^(?:\.)/,/^(?:=)/,/^(?:[a-z][a-z0-9]*)/,/^(?:[A-Z][A-Z0-9]*)/,/^(?:[\n])/,/^(?:[ \t]+)/,/^(?:$)/];
-lexer.conditions = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9],"inclusive":true}};
+lexer.rules = [/^(?:\()/,/^(?:\))/,/^(?:\\|λ)/,/^(?:\.)/,/^(?:=)/,/^(?:[a-z][a-z0-9-_]*)/,/^(?:[A-Z][A-Z0-9-_]*)/,/^(?:[\n])/,/^(?:[ \t]+)/,/^(?:;.*)/,/^(?:$)/];
+lexer.conditions = {"INITIAL":{"rules":[0,1,2,3,4,5,6,7,8,9,10],"inclusive":true}};
 return lexer;})()
 parser.lexer = lexer;function Parser () { this.yy = {}; }Parser.prototype = parser;parser.Parser = Parser;
 return new Parser;
@@ -787,6 +789,8 @@ require['./index'] = new function() {
     $outputContainer.toggle(result != null);
     return $errorContainer.toggle(!(result != null));
   };
+
+  $input.val("; Write some λ-expressions here. Use \"\\\" to enter \"λ\" ;)\n(λx.λy.λz.z y x) a b c");
 
   $input.focus();
 
