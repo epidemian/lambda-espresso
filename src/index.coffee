@@ -7,13 +7,20 @@ $outputContainer = $ '.output-container'
 $error           = $ '.error'
 $errorContainer  = $ '.error-container'
 
-$input.keyup (e) ->
-  return run() if e.keyCode is 13 and e.ctrlKey
+# Run code on ctrl+enter.
+($ document).keyup (e) ->
+  run() if e.keyCode is 13 and e.ctrlKey
 
+$input.keyup (e) ->
   # Replace every "\" with "λ" while typing.
   code = $input.val()
   code = code.replace /\\/g, 'λ'
+  # Preserve selection
+  start = $input[0].selectionStart
+  end   = $input[0].selectionEnd
   $input.val code
+  $input[0].selectionStart = start
+  $input[0].selectionEnd   = end
 
 ($ '.run').click -> run()
 

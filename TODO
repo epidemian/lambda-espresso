@@ -11,6 +11,5 @@
   - Add some CSS styles (Twitter's Bootstrap maybe?)
   - Add link to GH repo
   - Add examples
-  - Fix "\" for "λ" replacement in textarea.
   - Add "permalink" option.
   - Save options and code in localStorage.
