@@ -1,22 +1,65 @@
 <!DOCTYPE html>
-<head>
-  <meta charset="utf-8" />
-  <title>☕ λ-Espresso ☕</title>
-  <link href="assets/normalize.css" rel="stylesheet" />
-  <link href="assets/style.css" rel="stylesheet" />
-  <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
-</head>
-<body>
-  <h1>☕ λ-Espresso ☕</h1>
-  <textarea class="input" spellcheck="false"></textarea>
-  <button class="run" title="Ctrl+Enter">Run</button>
-  <div class="output-container">
-    <h2>Result:</h2>
-    <div class="output"></div>
-  </div>
-  <div class="error-container">
-    <h2>Error:</h2>
-    <pre class="error"></pre>
-  </div>
-  <script src="assets/index.js"></script>
-</body>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>☕ λ-Espresso ☕</title>
+    <link href="assets/style.css" rel="stylesheet" />
+    <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="assets/vendor/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" />
+    <script src="http://code.jquery.com/jquery-1.8.0.min.js"></script>
+    <script src="assets/vendor/bootstrap/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="page-header">☕ λ-Espresso ☕</h1>
+      <div class="row">
+        <div class="span3">
+          <div class="well well-small">
+            <legend>Options</legend>
+            <label>Reduction strategy</label>
+            <label class="radio inline">
+              <input type="radio" name="reduction-strategy" value="normal" checked>Normal
+            </label>
+            <label class="radio inline">
+              <input type="radio" name="reduction-strategy" value="applicative">Applicative
+            </label>
+            <label>
+              <input type="text" class="input-mini" value="100">Max. reduction steps
+            </label>
+            <label class="checkbox">
+              <input type="checkbox" checked>η-reductions
+            </label>
+          </div>
+        </div>
+        <div class="span9">
+          <textarea class="input" spellcheck="false" rows="12"></textarea>
+          <div class="btn-toolbar">
+            <button class="run btn btn-primary" title="Ctrl+Enter">Run</button>
+            <button class="btn" title="Get a URL to share some code with your friends!">Link</button>
+            <div class="btn-group">
+              <button class="btn dropdown-toggle" data-toggle="dropdown">
+                Examples
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li><a href="#">Example 1</a></li>
+                <li><a href="#">Example 2</a></li>
+                <li><a href="#">Example 3</a></li>
+                <li><a href="#">Example 4</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="output-container">
+            <h2>Result:</h2>
+            <div class="output"></div>
+          </div>
+          <div class="error-container">
+            <h2>Error:</h2>
+            <pre class="error"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="assets/index.js"></script>
+  </body>
+</html>
