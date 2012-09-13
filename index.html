@@ -16,18 +16,30 @@
         <div class="span3">
           <div class="well well-small">
             <legend>Options</legend>
-            <label>Reduction strategy</label>
-            <label class="radio inline">
-              <input type="radio" name="reduction-strategy" value="normal" checked>Normal
-            </label>
-            <label class="radio inline">
-              <input type="radio" name="reduction-strategy" value="applicative">Applicative
+            <label>
+              Reduction strategy<br>
+              <label class="radio inline" title="Use normal order; should reduce all reducible expressions">
+                <input type="radio" name="reduction-strategy" value="normal" checked>Normal
+              </label>
+              <label class="radio inline" title="Use applicative order; some reducible expressions might not terminate">
+                <input type="radio" name="reduction-strategy" value="applicative">Applicative
+              </label>
             </label>
             <label>
-              <input type="text" class="input-mini" value="100">Max. reduction steps
+              Max. reduction steps<br>
+              <input type="text" class="input-mini" value="100">
             </label>
-            <label class="checkbox">
+            <label class="checkbox" title="Enable η-reductions (e.g. λx.f x → f)">
               <input type="checkbox" checked>η-reductions
+            </label>
+            <label>
+              Expand macros<br>
+              <label class="radio inline" title="Expand macros only when necessary; might require more reduction steps">
+                <input type="radio" name="expand-macros" value="lazy" checked>Lazy
+              </label>
+              <label class="radio inline" title="Expand all macros at start">
+                <input type="radio" name="expand-macros" value="eager">Eager
+              </label>
             </label>
           </div>
         </div>
