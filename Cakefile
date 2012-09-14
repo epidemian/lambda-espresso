@@ -24,7 +24,7 @@ task 'watch', 'compile source files and run tests everytime source files change'
 task 'build', 'build a merged script to include in index.html', ->
   # Code shamelessly stolen from jashkenas/coffee-script.
   # TODO Use some fancy build tool like Brunch (http://brunch.io/) or Browserify
-  moduleSources = for name in ['helpers','grammar', 'lambda', 'index']
+  moduleSources = for name in ['helpers','grammar', 'lambda', 'examples', 'index']
     """
       require['./#{name}'] = new function() {
         var exports = this;

@@ -1,5 +1,6 @@
 # Script for index.html
 lambda = require './lambda'
+examples = (require './examples').all
 
 $input           = $ '.input'
 $output          = $ '.output'
@@ -46,3 +47,9 @@ $input.val """
 (λx.λy.λz.z y x) a b c
 """
 $input.focus()
+
+$examplesMenu = $ '.examples.dropdown-menu'
+examples.forEach (example) ->
+  $li = $ """<li><a href="#">#{example.name}</a></li>"""
+  $li.click -> $input.val example.code
+  $examplesMenu.append $li
