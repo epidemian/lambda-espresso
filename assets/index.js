@@ -834,13 +834,14 @@ require['./index'] = new function() {
     var $li, hash;
     hash = (">" + example.code).replace(/\n/g, '%0A');
     $li = $("<li><a href=\"#" + hash + "\">" + example.name + "</a></li>");
-    $li.click(function() {
+    $li.click(function(e) {
+      e.preventDefault();
       return $input.val(example.code);
     });
     return $examplesMenu.append($li);
   });
 
-  ($('button.link')).click(function() {
+  ($('button.link')).click(function(e) {
     var code;
     code = $input.val();
     return location.hash = ">" + code;

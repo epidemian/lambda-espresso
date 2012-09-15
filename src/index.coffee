@@ -69,7 +69,9 @@ $examplesMenu = $ '.examples.dropdown-menu'
 examples.forEach (example) ->
   hash = ">#{example.code}".replace /\n/g, '%0A'
   $li = $ """<li><a href="##{hash}">#{example.name}</a></li>"""
-  $li.click -> $input.val example.code
+  $li.click (e) ->
+    e.preventDefault() # Don't change the location.hash
+    $input.val example.code
   $examplesMenu.append $li
 
 ($ 'button.link').click ->
