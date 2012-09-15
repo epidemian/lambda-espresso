@@ -17,9 +17,10 @@ body,html {
 
 body > div.container {
   min-height:100%;
+  padding-bottom: 40px; /* Space for footer */
+  box-sizing: border-box; /* Makes the padding not to overflow the window size when everything should fit nicely */
 }
 
 footer {
-  height:40px;
   margin-top: -40px;
 }
