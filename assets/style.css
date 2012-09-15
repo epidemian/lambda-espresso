@@ -10,3 +10,16 @@
 .output-container, .error-container {
   display: none;
 }
+
+body,html {
+  height:100%;
+}
+
+body > div.container {
+  min-height:100%;
+}
+
+footer {
+  height:40px;
+  margin-top: -40px;
+}

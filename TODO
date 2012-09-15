@@ -9,7 +9,7 @@
 - Make step-by-step reduction output the reduction type (alpha-conversion, beta-reduction or macro-expansion) for each step. Also, maybe add a "highlighting" step to reductions so the GUI can show which variables and terms where substituted =D
 - Improve index.html
   - Add some CSS styles (Twitter's Bootstrap maybe?)
-  - Add link to GH repo
   - Add examples
   - Save options and code in localStorage.
+  - Use some binding library like Knockout.js to keep the DOM on-sync more easily :)
 - Fix bad parenthesization of "λx.x (λy.y) z"
