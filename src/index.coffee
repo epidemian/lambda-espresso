@@ -8,6 +8,11 @@ $outputContainer = $ '.output-container'
 $error           = $ '.error'
 $errorContainer  = $ '.error-container'
 
+preserveScrollPosition = (fn) ->
+  top = document.body.scrollTop
+  fn()
+  document.body.scrollTop = top
+
 # Run code on ctrl+enter.
 ($ document).keyup (e) ->
   run() if e.keyCode is 13 and e.ctrlKey
@@ -52,7 +57,8 @@ run = ->
     $output.empty().html result
     updateOutputExpansions()
     ($ '.reduction', $output).click ->
-      ($ '.collapsed, .expanded', @).toggle()
+      preserveScrollPosition =>
+        ($ '.collapsed, .expanded', @).toggle()
   catch e
     $error.text e.message
 
@@ -92,9 +98,10 @@ options =
   expandOutput: no
 
 updateOutputExpansions = ->
-  expand = options.expandOutput
-  ($ '.expand-all, .reduction .collapsed').toggle not expand
-  ($ '.collapse-all, .reduction .expanded').toggle expand
+  preserveScrollPosition ->
+    expand = options.expandOutput
+    ($ '.expand-all, .reduction .collapsed').toggle not expand
+    ($ '.collapse-all, .reduction .expanded').toggle expand
 
 ($ '.expand-all, .collapse-all'). click ->
   options.expandOutput = not options.expandOutput
