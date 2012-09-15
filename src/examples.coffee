@@ -1,7 +1,7 @@
 exports.all = [
   name: 'Basics'
   code: '''
-    ; This example is not intend to be a tutorial on λ Calculus. 
+    ; This example is not intend to be a tutorial nor an introduction to λ Calculus.
     ; You should probably read http://en.wikipedia.org/wiki/Lambda_calculus for that :)
     ; As you can see, these are comments. You can run this example clicking the Run button below or pressing Ctrl+Enter.
     ; So... the three basic types of λ expressions are variables:

@@ -67,7 +67,8 @@ $input.focus()
 
 $examplesMenu = $ '.examples.dropdown-menu'
 examples.forEach (example) ->
-  $li = $ """<li><a href="#">#{example.name}</a></li>"""
+  hash = ">#{example.code}".replace /\n/g, '%0A'
+  $li = $ """<li><a href="##{hash}">#{example.name}</a></li>"""
   $li.click -> $input.val example.code
   $examplesMenu.append $li
 

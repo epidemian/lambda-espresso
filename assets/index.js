@@ -734,7 +734,7 @@ require['./examples'] = new function() {
   exports.all = [
     {
       name: 'Basics',
-      code: '; This example is not intend to be a tutorial on λ Calculus. \n; You should probably read http://en.wikipedia.org/wiki/Lambda_calculus for that :)\n; As you can see, these are comments. You can run this example clicking the Run button below or pressing Ctrl+Enter.\n; So... the three basic types of λ expressions are variables:\nx\n; Applications:\nx y\n; And abstractions (also known as functions):\nλx.x\n; If the left side of an application is an abstraction, then a reduction takes place:\n(λx.x) y\n; That little abstraction at the left is the identity, a very simple function that just reduces to whatever you apply to it.\n; We can give it a name like so:\nID = λx.x\n; And then just refer it by that name:\nID a\n; You can apply any kind of λ expression to an abstraction, like another function:\nID λb.c\n; Or an application:\nID (x y)\n; Or even the identity function itself:\nID ID\n; That means you can apply identity to itself as many times as you want and it\'ll still be identity:\nID ID ID ID ID\n; Notice that applications are left-associative, so the line above is equivalent to:\n((((ID ID) ID) ID) ID)\n\n; TODO: explain applicative and normal order...'
+      code: '; This example is not intend to be a tutorial nor an introduction to λ Calculus.\n; You should probably read http://en.wikipedia.org/wiki/Lambda_calculus for that :)\n; As you can see, these are comments. You can run this example clicking the Run button below or pressing Ctrl+Enter.\n; So... the three basic types of λ expressions are variables:\nx\n; Applications:\nx y\n; And abstractions (also known as functions):\nλx.x\n; If the left side of an application is an abstraction, then a reduction takes place:\n(λx.x) y\n; That little abstraction at the left is the identity, a very simple function that just reduces to whatever you apply to it.\n; We can give it a name like so:\nID = λx.x\n; And then just refer it by that name:\nID a\n; You can apply any kind of λ expression to an abstraction, like another function:\nID λb.c\n; Or an application:\nID (x y)\n; Or even the identity function itself:\nID ID\n; That means you can apply identity to itself as many times as you want and it\'ll still be identity:\nID ID ID ID ID\n; Notice that applications are left-associative, so the line above is equivalent to:\n((((ID ID) ID) ID) ID)\n\n; TODO: explain applicative and normal order...'
     }, {
       name: 'Booleans',
       code: '; Example showcasing Church booleans.\nTRUE = λt.λf.t\nFALSE = λt.λf.f\nAND = λp.λq.p q p\nOR = λp.λq.p p q\n      \n; Print truth tables for AND and OR.\nAND FALSE FALSE\nAND FALSE TRUE\nAND TRUE FALSE\nAND TRUE TRUE\nOR FALSE FALSE\nOR FALSE TRUE\nOR TRUE FALSE\nOR TRUE TRUE'
@@ -831,8 +831,9 @@ require['./index'] = new function() {
   $examplesMenu = $('.examples.dropdown-menu');
 
   examples.forEach(function(example) {
-    var $li;
-    $li = $("<li><a href=\"#\">" + example.name + "</a></li>");
+    var $li, hash;
+    hash = (">" + example.code).replace(/\n/g, '%0A');
+    $li = $("<li><a href=\"#" + hash + "\">" + example.name + "</a></li>");
     $li.click(function() {
       return $input.val(example.code);
     });
