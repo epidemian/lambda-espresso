@@ -786,23 +786,37 @@ require['./index'] = new function() {
   });
 
   run = function() {
-    var i, program, reductions, result, step, steps, _i, _j, _len, _len1;
+    var first, i, last, program, reductions, result, step, steps, _i, _j, _len, _len1;
     program = $input.val();
     try {
       reductions = lambda.reduceProgram(program);
       result = '';
       for (_i = 0, _len = reductions.length; _i < _len; _i++) {
         steps = reductions[_i];
+        result += '<div class="reduction">';
+        first = steps[0];
+        last = steps[steps.length - 1];
+        result += "<div class=\"collapsed\">" + first + " → <b>" + last + "</b></div>";
+        result += '<div class="expanded">';
+        result += "<b>" + first + "</b><br>";
         for (i = _j = 0, _len1 = steps.length; _j < _len1; i = ++_j) {
           step = steps[i];
-          if (i > 0) {
-            result += ' → ';
+          if (i === 0 && steps.length > 1) {
+            continue;
           }
-          result += i < steps.length - 1 ? step : "<b>" + step + "</b>";
-          result += '<br>';
+          if (i === steps.length - 1) {
+            step = "<b>" + step + "</b>";
+          }
+          result += " → " + step + "<br>";
         }
+        result += '</div>';
+        result += '</div>';
       }
       $output.empty().html(result);
+      ($('.expanded', $output)).hide();
+      ($('.reduction', $output)).click(function() {
+        return ($('.collapsed, .expanded', this)).toggle();
+      });
     } catch (e) {
       $error.text(e.message);
     }

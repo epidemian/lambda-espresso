@@ -24,3 +24,11 @@ body > div.container {
 footer {
   margin-top: -40px;
 }
+
+.reduction {
+    cursor: pointer;
+}
+
+.reduction:hover {
+    text-decoration: underline;
+}
