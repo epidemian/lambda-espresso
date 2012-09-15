@@ -28,7 +28,3 @@ footer {
 .reduction {
     cursor: pointer;
 }
-
-.reduction:hover {
-    text-decoration: underline;
-}

@@ -50,7 +50,7 @@ run = ->
 
       result += '</div>' # /.reduction
     $output.empty().html result
-    ($ '.expanded', $output).hide()
+    updateOutputExpansions()
     ($ '.reduction', $output).click ->
       ($ '.collapsed, .expanded', @).toggle()
   catch e
@@ -85,3 +85,16 @@ updateInputFromHash = ->
 
 ($ window).on 'hashchange', updateInputFromHash
 updateInputFromHash()
+
+options =
+  expandOutput: no
+
+updateOutputExpansions = ->
+  expand = options.expandOutput
+  ($ '.expand-all, .reduction .collapsed').toggle not expand
+  ($ '.collapse-all, .reduction .expanded').toggle expand
+
+($ '.expand-all, .collapse-all'). click ->
+  options.expandOutput = not options.expandOutput
+  updateOutputExpansions()
+
