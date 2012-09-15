@@ -33,19 +33,19 @@ run = ->
     for steps in reductions
       result += '<div class="reduction">'
 
-      first = steps[0]
-      last = steps[steps.length - 1]
-
       # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-      result += "<div class=\"collapsed\">#{first} → <b>#{last}</b></div>"
+      collapsed = if steps.length is 1
+        "<b>#{steps[0]}</b>"
+      else
+        "#{steps[0]} → <b>#{steps[steps.length - 1]}</b>"
+      result += "<div class=\"collapsed\">#{collapsed}</div>"
 
       # Expanded form.
       result += '<div class="expanded">'
-      result += "<b>#{first}</b><br>"
       for step, i in steps
-        continue if i is 0 and steps.length > 1
-        step = "<b>#{step}</b>" if i is steps.length - 1
-        result += " → #{step}<br>"
+        result += ' → ' if i > 0
+        result += if i < steps.length - 1 then step else "<b>#{step}</b>"
+        result += '<br>'
       result += '</div>' # /.expanded
 
       result += '</div>' # /.reduction
