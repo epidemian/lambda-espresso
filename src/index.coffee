@@ -43,8 +43,8 @@ run = ->
   $errorContainer.toggle not result?
 
 $input.val """
-; Write some λ-expressions here. Use "\\" to enter "λ" ;)
-(λx.λy.λz.z y x) a b c
+  ; Write some λ-expressions here. Use "\\" to enter "λ" ;)
+  (λx.λy.λz.z y x) a b c
 """
 $input.focus()
 
@@ -53,3 +53,17 @@ examples.forEach (example) ->
   $li = $ """<li><a href="#">#{example.name}</a></li>"""
   $li.click -> $input.val example.code
   $examplesMenu.append $li
+
+($ 'button.link').click ->
+  code = $input.val()
+  location.hash = ">#{code}"
+
+updateInputFromHash = ->
+  hash = decodeURI location.hash
+  codeStart = hash.indexOf '>'
+  if codeStart isnt -1
+    code = hash.slice codeStart + 1
+    $input.val code
+
+($ window).on 'hashchange', updateInputFromHash
+updateInputFromHash()

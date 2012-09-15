@@ -11,6 +11,5 @@
   - Add some CSS styles (Twitter's Bootstrap maybe?)
   - Add link to GH repo
   - Add examples
-  - Add "permalink" option.
   - Save options and code in localStorage.
 - Fix bad parenthesization of "λx.x (λy.y) z"
