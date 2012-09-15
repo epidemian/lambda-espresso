@@ -8,8 +8,13 @@
 - Add step-by-step reduction tests.
 - Make step-by-step reduction output the reduction type (alpha-conversion, beta-reduction or macro-expansion) for each step. Also, maybe add a "highlighting" step to reductions so the GUI can show which variables and terms where substituted =D
 - Improve index.html
-  - Add some CSS styles (Twitter's Bootstrap maybe?)
-  - Add examples
   - Save options and code in localStorage.
   - Use some binding library like Knockout.js to keep the DOM on-sync more easily :)
-- Fix bad parenthesization of "λx.x (λy.y) z"
+- Add examples to tests
+- Add more examples:
+  - Numerals
+  - Lists (or ranges)
+  - Some recursion example. E.g. Fibonacci or Factorial.
+  - Prime number generator? (IDK if division is implementable though...)
+  - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
+- Fix bad parenthesization of "(λx.x) (λy.y) z" (parsing is OK)
