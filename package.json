@@ -1,0 +1,7 @@
+{
+  "name": "lambda-espresso",
+  "version": "0.0.1",
+  "scripts": {
+    "preinstall": "sudo npm install -g coffee-script jison mocha nodemon"
+  }
+}
