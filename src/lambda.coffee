@@ -1,4 +1,5 @@
 # λ calculus parser
+{repeatStr} = require './helpers'
 
 # Term types. Uses classes only for pattern matching and destructuring.
 class Variable    then constructor: (@name) ->
@@ -50,9 +51,10 @@ termStr = (t, l = 0, r = 0) ->
       str = "(#{str})" if l > 0
       str
 
+# Print a given term in an tree format; intended for debugging purposes.
 logTerm = (t, ind = 0) ->
   log = (msg) ->
-    console.log ('| ' for i in [0...ind]).join('') + msg
+    console.log (repeatStr '| ', ind) + msg
   switch type t
     when Variable, Macro
       log t.name
