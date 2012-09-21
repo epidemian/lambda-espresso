@@ -1,5 +1,11 @@
 # λ calculus parser
 
+# Term types. Uses classes only for pattern matching and destructuring.
+class Variable    then constructor: (@name) ->
+class Abstraction then constructor: (@varName, @body) ->
+class Application then constructor: (@left, @right) ->
+class Macro       then constructor: (@name, @term) ->
+
 # Parses an input program string and returns a list of terms to be reduced.
 parse = (str) ->
   # A custom Jison parser.
@@ -26,131 +32,149 @@ parse = (str) ->
 
   parser.parse str
 
-# An abstract λ calculus term.
-class Term
-  leftApplyString: -> '' + @
-  rightApplyString: -> '' + @
-  toJSON: ->
-    [@constructor.name].concat (v for own k, v of @)
+type = (t) -> t.constructor
 
-class Variable extends Term
-  constructor: (@name) ->
-  toString: -> @name
-  reduceStep: -> null # Variables cannot be reduced.
-  applyStep: -> null # Nor applied.
-  replace: (varName, term) ->
-    # x[x := T] = T, y[x := T] = y
-    if varName is @name then term else @
-  hasFree: (varName) -> @name is varName
-  varRenameCollides: -> no
+# Returns the string representation for a given term.
+termStr = (t) ->
+  switch type t
+    when Variable, Macro
+      t.name
+    when Abstraction
+      "λ#{t.varName}.#{termStr t.body}"
+    when Application
+      "#{leftApplicationStr t.left} #{rightApplicationStr t.right}"
 
-class Abstraction extends Term
-  constructor: (@varName, @body) ->
-  toString: -> "λ#{@varName}.#{@body}"
-  leftApplyString: -> "(#{@})"
-  reduceStep: ->
-    reducedBody = @body.reduceStep()
-    reducedBody and new Abstraction @varName, reducedBody
-  applyStep: (term) ->
-    @body.replace @varName, term
+leftApplicationStr = (t) ->
+  if (type t) is Abstraction then "(#{termStr t})" else termStr t
+rightApplicationStr = (t) ->
+  if (type t) is Application then "(#{termStr t})" else termStr t
 
-  replace: (varName, term) ->
-    # (λx.T)[x := S] = λx.T
-    # (λx creates a new context for x so no firther substitution is needed)
-    return @ if varName is @varName
-    # (λy.T)[x := S] with x != y
-    # if y is free in S and x is free in T, then must α-convert λy.T to avoid
-    # name conflicts.
-    if (term.hasFree @varName) and (@body.hasFree varName)
-      # (λy.T)[x := S] = ((λy.T)[y := y'])[y' := S]
-      (@renameVar term).replace varName, term
-    else
-      # (λy.T)[x := S] = λy.(T[x := S])
-      new Abstraction @varName, @body.replace varName, term
+# Reduces term t by one step.
+reduceStep = (t) ->
+  switch type t
+    when Variable
+      # Variables cannot be reduced.
+      null
+    when Abstraction
+      reducedBody = reduceStep t.body
+      reducedBody and new Abstraction t.varName, reducedBody
+    when Application
+      applied = applyStep t.left, t.right
+      # An application step is a reduction step:
+      return applied if applied
 
-  renameVar: (substitutionTerm) ->
-    # Split the name into base and number part.
-    base = @varName.replace /\d+$/, ''
-    n = if m = @varName.match /\d+$/ then parseInt m[0] else 0
+      # Reduce left one step; maybe next step it can be applied.
+      reducedLeft = reduceStep t.left
+      return new Application reducedLeft, t.right if reducedLeft
 
-    until name and validName
-      name = base + ++n
-      validName =
-        # Avoid name collisions with substitution term.
-        not (substitutionTerm.hasFree name) and
-        # Avoid name collisions with free variables in body.
-        not (@body.hasFree name) and
-        # Avoid name collisions with inner abstractions.
-        not (@body.varRenameCollides @varName, name)
+      # Left is irreducible; try reducing right.
+      reducedRight = reduceStep t.right
+      reducedRight and new Application t.left, reducedRight
+    when Macro
+      # Only if the inner term can be reduced the macro is reduced, and the
+      # reduction consists on substituting the macro with the actual term.
+      (reduceStep t.term) and t.term
 
-    # A new abstraction with the new name and the body with the renamed var.
-    new Abstraction name, (@body.replace @varName, new Variable name)
+# Applies term s into term t.
+applyStep = (t, s) ->
+  switch type t
+    when Variable, Application
+      null
+    when Abstraction
+      substitute t.body, t.varName, s
+    when Macro
+      # Same logic as reduceStep. If the inner term can be applied, create a new
+      # application as the macro expansion.
+      (applyStep t.term, s) and new Application t.term, s
 
-  hasFree: (varName) ->
-    varName isnt @varName and @body.hasFree varName
+# Applies the substitution T[x := S]
+# I.e., substitutes the variable x for the term S in the term T.
+substitute = (t, x, s) ->
+  switch type t
+    when Variable
+      # x[x := S] = S
+      # y[x := S] = y
+      if t.name is x then s else t
+    when Abstraction
+      # (λx.E)[x := S] = λx.E
+      # (λx creates a new context for x so no further substitution is needed)
+      return t if t.varName is x
+      # (λy.E)[x := S] with x != y
+      # if y is free in S and x is free in E, then must α-convert λy.E to avoid
+      # name conflicts.
+      if (isFree t.varName, s) and (isFree x, t.body)
+        # (λy.E)[x := S] = ((λy.E)[y := y'])[y' := S]
+        substitute (renameVar t, s), x, s
+      else
+        # (λy.E)[x := S] = λy.(E[x := S])
+        new Abstraction t.varName, (substitute t.body, x, s)
+    when Application
+      # (U V)[x := S] = (U[x := S]) (V[x := S])
+      new Application (substitute t.left, x, s), (substitute t.right, x, s)
+    when Macro
+      if isFree x, t.term
+        throw Error "Logical error: #{x} is free in #{t.name}." +
+          "Macros cannot have free variables"
+      t
 
-  varRenameCollides: (from, to) ->
-    # A variable rename collides with this abstraction if the former variable
-    # vas free in this context and the new name for the variable is the same as
-    # the varName in the abstraction, thus changing old free variable binding.
-    ((@hasFree from) and @varName is to) or (@body.varRenameCollides from, to)
+# Renames the variable of an abstraction to avoid naming conflicts when
+# substituting
+renameVar = (abstraction, t) ->
+  {varName, body} = abstraction
+  # Split the name into base and number part.
+  base = varName.replace /\d+$/, ''
+  n = if m = varName.match /\d+$/ then parseInt m[0] else 0
 
-class Application extends Term
-  constructor: (@left, @right) ->
-  toString: ->
-    "#{@left.leftApplyString()} #{@right.rightApplyString()}"
-  rightApplyString: -> "(#{@})"
-  reduceStep: ->
-    applied = @left.applyStep @right
-    # An application step is a reduction step:
-    return applied if applied
+  until newName and isValid
+    newName = base + ++n
+    isValid =
+      # Avoid name collisions with substitution term.
+      not (isFree newName, t) and
+      # Avoid name collisions with free variables in body.
+      not (isFree newName, body) and
+      # Avoid name collisions with inner abstractions.
+      not (varRenameCollides body, varName, newName)
 
-    # Reduce left one step; maybe next step it can be applied.
-    reducedLeft = @left.reduceStep()
-    return new Application reducedLeft, @right if reducedLeft
+  # A new abstraction with the new name and the body with the renamed var.
+  new Abstraction newName, (substitute body, varName, new Variable newName)
 
-    # Left is irreducible; try reducing right.
-    reducedRight = @right.reduceStep()
-    reducedRight and new Application @left, reducedRight
-  applyStep: -> null
-  replace: (varName, term) ->
-    # (T S)[x := R] = (T[x := R]) (S[x := R])
-    new Application (@left.replace varName, term), (@right.replace varName, term)
-  hasFree: (varName) ->
-    (@left.hasFree varName) or (@right.hasFree varName)
-  varRenameCollides: (from, to) ->
-    (@left.varRenameCollides from, to) or (@right.varRenameCollides from, to)
+# Whether the variable x is free in the term t.
+isFree = (x, t) ->
+  switch type t
+    when Variable
+      t.name is x
+    when Abstraction
+      t.varName isnt x and isFree x, t.body
+    when Application
+      (isFree x, t.left) or (isFree x, t.right)
+    when Macro
+      isFree x, t.term
 
-# A macro is not a classical λ term, but in this implementation it's used to
-# name a given term. While that term is "wrapped" in a macro, it's printed as
-# the macro's name; when the macro is asked to make a reduction step, the
-# "unwrapping" counts as a reduction step.
-class Macro extends Term
-  constructor: (@name, @term) ->
-  toString: -> @name
-  reduceStep: ->
-    # Only if the inner term can be reduced the macro is reduced, and the
-    # reduction consists on substituting the macro with the actual term.
-    @term.reduceStep() and @term
-  applyStep: (term) ->
-    # Same logic as above. If the inner term can be applied, create a new
-    # application as the macro expansion.
-    (@term.applyStep term) and new Application @term, term
-  replace: (varName, term) ->
-    if @hasFree varName
-      throw Error "Logical error: #{varName} is free in #{@name}." +
-        "Macros cannot have free variables"
-    @
-  hasFree: (varName) -> @term.hasFree varName
-  varRenameCollides: (from, to) -> @term.varRenameCollides from, to
+varRenameCollides = (t, oldName, newName) ->
+  switch type t
+    when Variable
+      no
+    when Abstraction
+      # A variable rename collides with this abstraction if the old variable
+      # was free in the abstraction and the new name for the variable is the
+      # same as the varName of the abstraction, thus changing old free variable
+      # binding.
+      collisionHere = (isFree oldName, t) and t.varName is newName
+      # Or if the renaming collides in the body of the abstraction...
+      collisionHere or varRenameCollides t.body, oldName, newName
+    when Application
+      (varRenameCollides t.left, oldName, newName) or
+      (varRenameCollides t.right, oldName, newName)
+    when Macro
+      varRenameCollides t.term, oldName, newName
 
 # Reduces a term up to its normal form and returns an array with each step of
 # the reduction.
 reduceTerm = (term) ->
-  steps = [term.toString()]
+  steps = [termStr term]
   maxSteps = 100
-  while term = term.reduceStep()
-    steps.push term.toString()
+  while term = reduceStep term
+    steps.push termStr term
     throw Error 'Too many reduction steps' if steps.length > maxSteps
   steps
 
@@ -161,7 +185,7 @@ parseTerm = (str) ->
 
 # Parse a program with only one term.
 exports.parseTerm = (str) ->
-  (parseTerm str).toString()
+  termStr parseTerm str
 
 # Reduce a program with only one term.
 exports.reduceTerm = (str) ->
