@@ -50,11 +50,6 @@ termStr = (t, l = 0, r = 0) ->
       str = "(#{str})" if l > 0
       str
 
-leftApplicationStr = (t) ->
-  if (type t) is Abstraction then "(#{termStr t})" else termStr t
-rightApplicationStr = (t) ->
-  if (type t) is Application then "(#{termStr t})" else termStr t
-
 logTerm = (t, ind = 0) ->
   log = (msg) ->
     console.log ('| ' for i in [0...ind]).join('') + msg

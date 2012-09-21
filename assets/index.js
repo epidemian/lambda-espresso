@@ -707,7 +707,6 @@ require['./lambda'] = new function() {
   };
 
   exports.parseTerm = function(str) {
-    logTerm(parseTerm(str));
     return termStr(parseTerm(str));
   };
 
