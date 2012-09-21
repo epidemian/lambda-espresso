@@ -34,20 +34,40 @@ parse = (str) ->
 
 type = (t) -> t.constructor
 
-# Returns the string representation for a given term.
-termStr = (t) ->
+# Returns the string representation for a given term t.
+# l is the number of terms "at the left" of t and r the number of term "at the
+# right"; they are used for parenthesization.
+termStr = (t, l = 0, r = 0) ->
   switch type t
     when Variable, Macro
       t.name
     when Abstraction
-      "λ#{t.varName}.#{termStr t.body}"
+      str = "λ#{t.varName}.#{termStr t.body}"
+      str = "(#{str})" if r > 0
+      str
     when Application
-      "#{leftApplicationStr t.left} #{rightApplicationStr t.right}"
+      str = "#{termStr t.left, l, r + 1} #{termStr t.right, l + 1, r}"
+      str = "(#{str})" if l > 0
+      str
 
 leftApplicationStr = (t) ->
   if (type t) is Abstraction then "(#{termStr t})" else termStr t
 rightApplicationStr = (t) ->
   if (type t) is Application then "(#{termStr t})" else termStr t
+
+logTerm = (t, ind = 0) ->
+  log = (msg) ->
+    console.log ('| ' for i in [0...ind]).join('') + msg
+  switch type t
+    when Variable, Macro
+      log t.name
+    when Abstraction
+      log "λ#{t.varName}"
+      logTerm t.body, ind + 1
+    when Application
+      log "@"
+      logTerm t.left, ind + 1
+      logTerm t.right, ind + 1
 
 # Reduces term t by one step.
 reduceStep = (t) ->

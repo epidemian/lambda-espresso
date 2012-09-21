@@ -34,6 +34,12 @@ describe 'parse()', ->
     shouldParse '  λx  .  x  ', 'λx.x'
     shouldParse '  λx  .  x  (  y  z  )  x  ', 'λx.x (y z) x'
 
+  it 'should respect operations\' precedence when applying parentheses', ->
+    shouldParse 'λa.a λb.b λc.c λd.d', 'λa.a λb.b λc.c λd.d'
+    shouldParse '(λa.a) (λb.b) (λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d'
+    shouldParse '(((λa.a) λb.b) λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d'
+    shouldParse 'λa.a (λb.b (λc.c (λd.d)))', 'λa.a λb.b λc.c λd.d'
+
 describe 'reduce()', ->
   it 'should not reduce simple irreducible expressions', ->
     shouldReduce 'x', 'x'
