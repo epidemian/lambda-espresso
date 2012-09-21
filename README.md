@@ -6,6 +6,8 @@ A λ calculus interpreter written in CoffeeScript.
 
 You can play with λ-Espresso [here](http://epidemian.github.com/lambda-espresso/).
 
+Have any ideas or suggestions? You can [create a ticket](https://github.com/epidemian/lambda-espresso/issues) on GitHub :)
+
 ## Development
 
 Install Node.js and NPM.

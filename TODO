@@ -18,3 +18,7 @@
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
 - Fix bad parenthesization of "(λx.x) (λy.y) z" (parsing is OK)
+
+Minor (but fun):
+- Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
+- Use CoffeeScript to deifne the grammar instead of a Jison grammar file
