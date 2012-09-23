@@ -12,7 +12,7 @@ parse = (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
 
-  # A macro teble with the macros by their names.
+  # A macro table with the macros by their names.
   macros = {}
   # The terms of the program.
   terms = []
@@ -90,6 +90,7 @@ reduceStep = (t) ->
     when Macro
       # Only if the inner term can be reduced the macro is reduced, and the
       # reduction consists on substituting the macro with the actual term.
+      # TODO This is macro expansion step.
       (reduceStep t.term) and t.term
 
 # Applies term s into term t.
@@ -98,10 +99,12 @@ applyStep = (t, s) ->
     when Variable, Application
       null
     when Abstraction
+      # TODO Beta reduction here!
       substitute t.body, t.varName, s
     when Macro
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
+      # TODO This is macro expansion step.
       (applyStep t.term, s) and new Application t.term, s
 
 # Applies the substitution T[x := S]
@@ -119,9 +122,10 @@ substitute = (t, x, s) ->
       # (λy.E)[x := S] with x != y
       # if y is free in S and x is free in E, then must α-convert λy.E to avoid
       # name conflicts.
-      if (isFree t.varName, s) and (isFree x, t.body)
-        # (λy.E)[x := S] = ((λy.E)[y := y'])[y' := S]
-        substitute (renameVar t, s), x, s
+      if (freeIn t.varName, s) and (freeIn x, t.body)
+        # (λy.E)[x := S] = λy'.(E[y := y'][y' := S])
+        # TODO This is alpha-conversion. Multiple of them can happen inside the same beta-reduction.
+        substitute (renameAbstractionVar t, s), x, s
       else
         # (λy.E)[x := S] = λy.(E[x := S])
         new Abstraction t.varName, (substitute t.body, x, s)
@@ -129,14 +133,14 @@ substitute = (t, x, s) ->
       # (U V)[x := S] = (U[x := S]) (V[x := S])
       new Application (substitute t.left, x, s), (substitute t.right, x, s)
     when Macro
-      if isFree x, t.term
+      if freeIn x, t.term
         throw Error "Logical error: #{x} is free in #{t.name}." +
           "Macros cannot have free variables"
       t
 
-# Renames the variable of an abstraction to avoid naming conflicts when
-# substituting
-renameVar = (abstraction, t) ->
+# Renames the variable of an abstraction to avoid naming conflicts when doing a
+# substitution.
+renameAbstractionVar = (abstraction, substitutionTerm) ->
   {varName, body} = abstraction
   # Split the name into base and number part.
   base = varName.replace /\d+$/, ''
@@ -146,9 +150,9 @@ renameVar = (abstraction, t) ->
     newName = base + ++n
     isValid =
       # Avoid name collisions with substitution term.
-      not (isFree newName, t) and
+      not (freeIn newName, substitutionTerm) and
       # Avoid name collisions with free variables in body.
-      not (isFree newName, body) and
+      not (freeIn newName, body) and
       # Avoid name collisions with inner abstractions.
       not (varRenameCollides body, varName, newName)
 
@@ -156,16 +160,16 @@ renameVar = (abstraction, t) ->
   new Abstraction newName, (substitute body, varName, new Variable newName)
 
 # Whether the variable x is free in the term t.
-isFree = (x, t) ->
+freeIn = (x, t) ->
   switch type t
     when Variable
       t.name is x
     when Abstraction
-      t.varName isnt x and isFree x, t.body
+      t.varName isnt x and freeIn x, t.body
     when Application
-      (isFree x, t.left) or (isFree x, t.right)
+      (freeIn x, t.left) or (freeIn x, t.right)
     when Macro
-      isFree x, t.term
+      freeIn x, t.term
 
 varRenameCollides = (t, oldName, newName) ->
   switch type t
@@ -176,7 +180,7 @@ varRenameCollides = (t, oldName, newName) ->
       # was free in the abstraction and the new name for the variable is the
       # same as the varName of the abstraction, thus changing old free variable
       # binding.
-      collisionHere = (isFree oldName, t) and t.varName is newName
+      collisionHere = (freeIn oldName, t) and t.varName is newName
       # Or if the renaming collides in the body of the abstraction...
       collisionHere or varRenameCollides t.body, oldName, newName
     when Application
