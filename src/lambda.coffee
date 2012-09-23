@@ -123,7 +123,7 @@ substitute = (t, x, s) ->
       # if y is free in S and x is free in E, then must α-convert λy.E to avoid
       # name conflicts.
       if (freeIn t.varName, s) and (freeIn x, t.body)
-        # (λy.E)[x := S] = λy'.(E[y := y'][y' := S])
+        # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
         # TODO This is alpha-conversion. Multiple of them can happen inside the same beta-reduction.
         substitute (renameAbstractionVar t, s), x, s
       else
