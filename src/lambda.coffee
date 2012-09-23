@@ -125,7 +125,9 @@ substitute = (t, x, s) ->
       if (freeIn t.varName, s) and (freeIn x, t.body)
         # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
         # TODO This is alpha-conversion. Multiple of them can happen inside the same beta-reduction.
-        substitute (renameAbstractionVar t, s), x, s
+        newVarName = renameVar t.varName, t.body, s
+        renamedBody = substitute t.body, t.varName, new Variable newVarName
+        new Abstraction newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
         new Abstraction t.varName, (substitute t.body, x, s)
@@ -138,26 +140,22 @@ substitute = (t, x, s) ->
           "Macros cannot have free variables"
       t
 
-# Renames the variable of an abstraction to avoid naming conflicts when doing a
-# substitution.
-renameAbstractionVar = (abstraction, substitutionTerm) ->
-  {varName, body} = abstraction
+# Renames a variable to avoid naming conflicts when doing a substitution.
+renameVar = (oldName, t, s) ->
   # Split the name into base and number part.
-  base = varName.replace /\d+$/, ''
-  n = if m = varName.match /\d+$/ then parseInt m[0] else 0
+  base = oldName.replace /\d+$/, ''
+  n = if m = oldName.match /\d+$/ then parseInt m[0] else 0
 
-  until newName and isValid
+  loop
     newName = base + ++n
     isValid =
       # Avoid name collisions with substitution term.
-      not (freeIn newName, substitutionTerm) and
+      not (freeIn newName, s) and
       # Avoid name collisions with free variables in body.
-      not (freeIn newName, body) and
+      not (freeIn newName, t) and
       # Avoid name collisions with inner abstractions.
-      not (varRenameCollides body, varName, newName)
-
-  # A new abstraction with the new name and the body with the renamed var.
-  new Abstraction newName, (substitute body, varName, new Variable newName)
+      not (varRenameCollides t, oldName, newName)
+    return newName if isValid
 
 # Whether the variable x is free in the term t.
 freeIn = (x, t) ->
