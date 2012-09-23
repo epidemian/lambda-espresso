@@ -1,11 +1,11 @@
 # λ calculus parser
 {repeatStr} = require './helpers'
 
-# Term types. Uses classes only for pattern matching and destructuring.
-class Variable    then constructor: (@name) ->
-class Abstraction then constructor: (@varName, @body) ->
-class Application then constructor: (@left, @right) ->
-class Macro       then constructor: (@name, @term) ->
+# Term types/constructors.
+Variable    = (name)          -> {type: Variable, name}
+Abstraction = (varName, body) -> {type: Abstraction, varName, body}
+Application = (left, right)   -> {type: Application, left, right}
+Macro       = (name, term)    -> {type: Macro, name, term}
 
 # Parses an input program string and returns a list of terms to be reduced.
 parse = (str) ->
@@ -19,12 +19,12 @@ parse = (str) ->
 
   # Add some handy functions so the parser can build the AST.
   parser.yy =
-    parseAbstraction: (varName, body) -> new Abstraction varName, body
-    parseApplication: (left, right) -> new Application left, right
-    parseVariable: (name) -> new Variable name
+    parseAbstraction: (varName, body) -> Abstraction varName, body
+    parseApplication: (left, right) -> Application left, right
+    parseVariable: (name) -> Variable name
     parseMacroDefinition: (name, term) ->
       throw Error "#{name} already defined" if macros[name]
-      macros[name] = new Macro name, term
+      macros[name] = Macro name, term
     parseMacroUsage: (name) ->
       throw Error "#{name} not defined" unless macros[name]
       macros[name]
@@ -33,13 +33,11 @@ parse = (str) ->
 
   parser.parse str
 
-type = (t) -> t.constructor
-
 # Returns the string representation for a given term t.
 # l is the number of terms "at the left" of t and r the number of term "at the
 # right"; they are used for parenthesization.
 termStr = (t, l = 0, r = 0) ->
-  switch type t
+  switch t.type
     when Variable, Macro
       t.name
     when Abstraction
@@ -55,7 +53,7 @@ termStr = (t, l = 0, r = 0) ->
 logTerm = (t, ind = 0) ->
   log = (msg) ->
     console.log (repeatStr '| ', ind) + msg
-  switch type t
+  switch t.type
     when Variable, Macro
       log t.name
     when Abstraction
@@ -68,13 +66,13 @@ logTerm = (t, ind = 0) ->
 
 # Reduces term t by one step.
 reduceStep = (t) ->
-  switch type t
+  switch t.type
     when Variable
       # Variables cannot be reduced.
       null
     when Abstraction
       reducedBody = reduceStep t.body
-      reducedBody and new Abstraction t.varName, reducedBody
+      reducedBody and Abstraction t.varName, reducedBody
     when Application
       applied = applyStep t.left, t.right
       # An application step is a reduction step:
@@ -82,11 +80,11 @@ reduceStep = (t) ->
 
       # Reduce left one step; maybe next step it can be applied.
       reducedLeft = reduceStep t.left
-      return new Application reducedLeft, t.right if reducedLeft
+      return Application reducedLeft, t.right if reducedLeft
 
       # Left is irreducible; try reducing right.
       reducedRight = reduceStep t.right
-      reducedRight and new Application t.left, reducedRight
+      reducedRight and Application t.left, reducedRight
     when Macro
       # Only if the inner term can be reduced the macro is reduced, and the
       # reduction consists on substituting the macro with the actual term.
@@ -95,7 +93,7 @@ reduceStep = (t) ->
 
 # Applies term s into term t.
 applyStep = (t, s) ->
-  switch type t
+  switch t.type
     when Variable, Application
       null
     when Abstraction
@@ -105,12 +103,12 @@ applyStep = (t, s) ->
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
       # TODO This is macro expansion step.
-      (applyStep t.term, s) and new Application t.term, s
+      (applyStep t.term, s) and Application t.term, s
 
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
 substitute = (t, x, s) ->
-  switch type t
+  switch t.type
     when Variable
       # x[x := S] = S
       # y[x := S] = y
@@ -126,14 +124,14 @@ substitute = (t, x, s) ->
         # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
         # TODO This is alpha-conversion. Multiple of them can happen inside the same beta-reduction.
         newVarName = renameVar t.varName, t.body, s
-        renamedBody = substitute t.body, t.varName, new Variable newVarName
-        new Abstraction newVarName, (substitute renamedBody, x, s)
+        renamedBody = substitute t.body, t.varName, Variable newVarName
+        Abstraction newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
-        new Abstraction t.varName, (substitute t.body, x, s)
+        Abstraction t.varName, (substitute t.body, x, s)
     when Application
       # (U V)[x := S] = (U[x := S]) (V[x := S])
-      new Application (substitute t.left, x, s), (substitute t.right, x, s)
+      Application (substitute t.left, x, s), (substitute t.right, x, s)
     when Macro
       if freeIn x, t.term
         throw Error "Logical error: #{x} is free in #{t.name}." +
@@ -159,7 +157,7 @@ renameVar = (oldName, t, s) ->
 
 # Whether the variable x is free in the term t.
 freeIn = (x, t) ->
-  switch type t
+  switch t.type
     when Variable
       t.name is x
     when Abstraction
@@ -170,7 +168,7 @@ freeIn = (x, t) ->
       freeIn x, t.term
 
 varRenameCollides = (t, oldName, newName) ->
-  switch type t
+  switch t.type
     when Variable
       no
     when Abstraction
