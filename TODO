@@ -20,3 +20,5 @@
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
 - Use CoffeeScript to deifne the grammar instead of a Jison grammar file
+
+- Fix parenthesization of (λx.λy.λy2.λy5.x y y1 y4) ((y y3) y6)

@@ -74,13 +74,13 @@ reduceStep = (t) ->
       reducedBody = reduceStep t.body
       reducedBody and Abstraction t.varName, reducedBody
     when Application
-      applied = applyStep t.left, t.right
-      # An application step is a reduction step:
-      return applied if applied
+      if applied = applyStep t.left, t.right
+        # An application step is a reduction step:
+        return applied
 
       # Reduce left one step; maybe next step it can be applied.
-      reducedLeft = reduceStep t.left
-      return Application reducedLeft, t.right if reducedLeft
+      if reducedLeft = reduceStep t.left
+        return Application reducedLeft, t.right
 
       # Left is irreducible; try reducing right.
       reducedRight = reduceStep t.right
@@ -97,13 +97,36 @@ applyStep = (t, s) ->
     when Variable, Application
       null
     when Abstraction
+      {varName, body} = t
+      if renamed = renameStep body, varName, s
+        return Application (Abstraction varName, renamed), s
       # TODO Beta reduction here!
-      substitute t.body, t.varName, s
+      substitute body, varName, s
     when Macro
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
       # TODO This is macro expansion step.
       (applyStep t.term, s) and Application t.term, s
+
+renameStep = (t, x, s) ->
+  switch t.type
+    when Variable, Macro
+      null
+    when Abstraction
+      return null if t.varName is x
+
+      if (freeIn t.varName, s) and (freeIn x, t.body)
+        # TODO This is alpha-conversion.
+        newVarName = renameVar t.varName, t.body, s
+        Abstraction newVarName, (substitute t.body, t.varName, Variable newVarName)
+      else
+        renamedBody = renameStep t.body, x, s
+        renamedBody and Abstraction t.varName, renamedBody
+    when Application
+      if renamedLeft = renameStep t.left, x, s
+        return Application renamedLeft, t.right
+      if renamedRight = renameStep t.right, x, s
+        return Application t.left, renamedRight
 
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
@@ -117,18 +140,10 @@ substitute = (t, x, s) ->
       # (λx.E)[x := S] = λx.E
       # (λx creates a new context for x so no further substitution is needed)
       return t if t.varName is x
-      # (λy.E)[x := S] with x != y
-      # if y is free in S and x is free in E, then must α-convert λy.E to avoid
-      # name conflicts.
-      if (freeIn t.varName, s) and (freeIn x, t.body)
-        # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
-        # TODO This is alpha-conversion. Multiple of them can happen inside the same beta-reduction.
-        newVarName = renameVar t.varName, t.body, s
-        renamedBody = substitute t.body, t.varName, Variable newVarName
-        Abstraction newVarName, (substitute renamedBody, x, s)
-      else
-        # (λy.E)[x := S] = λy.(E[x := S])
-        Abstraction t.varName, (substitute t.body, x, s)
+      # (λy.E)[x := S] = λy.(E[x := S]) given x != y and y not free in S
+      # The "y not free in S" condition should be guaranteed by the renameStep
+      # calls before beta-reduction.
+      Abstraction t.varName, (substitute t.body, x, s)
     when Application
       # (U V)[x := S] = (U[x := S]) (V[x := S])
       Application (substitute t.left, x, s), (substitute t.right, x, s)
