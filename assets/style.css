@@ -27,5 +27,30 @@ footer {
 }
 
 .reduction {
-    cursor: pointer;
+  cursor: pointer;
+  margin-bottom: 5px;
+}
+
+.reduction .step:last-child {
+  font-weight: bold;
+}
+
+.reduction .expanded .arrow {
+  margin-left: 10px;
+}
+
+.arrow {
+  display: inline-block;
+  position: relative;
+  width: 20px;
+  text-align: center
+}
+
+.arrow > small {
+  font-size: 80%;
+  position: absolute;
+  top: 0.6em;
+  left: 0;
+  width: 20px;
+  text-align: center;
 }

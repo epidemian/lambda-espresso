@@ -64,6 +64,16 @@ logTerm = (t, ind = 0) ->
       logTerm t.left, ind + 1
       logTerm t.right, ind + 1
 
+Step = (type, before, after) -> {type, before, after, term: after}
+
+wrapStep = (step, fn) ->
+  return null if not step
+  step.term = fn step.term
+  step.before = fn step.before
+  step.after = fn step.after
+  step
+
+
 # Reduces term t by one step.
 reduceStep = (t) ->
   switch t.type
@@ -71,25 +81,22 @@ reduceStep = (t) ->
       # Variables cannot be reduced.
       null
     when Abstraction
-      reducedBody = reduceStep t.body
-      reducedBody and Abstraction t.varName, reducedBody
+      wrapStep (reduceStep t.body), (body) -> Abstraction t.varName, body
     when Application
       if applied = applyStep t.left, t.right
         # An application step is a reduction step:
         return applied
 
       # Reduce left one step; maybe next step it can be applied.
-      if reducedLeft = reduceStep t.left
-        return Application reducedLeft, t.right
+      if leftStep = reduceStep t.left
+        return wrapStep leftStep, (left) -> Application left, t.right
 
       # Left is irreducible; try reducing right.
-      reducedRight = reduceStep t.right
-      reducedRight and Application t.left, reducedRight
+      wrapStep (reduceStep t.right), (right) -> Application t.left, right
     when Macro
       # Only if the inner term can be reduced the macro is reduced, and the
       # reduction consists on substituting the macro with the actual term.
-      # TODO This is macro expansion step.
-      (reduceStep t.term) and t.term
+      (reduceStep t.term) and Step 'macro', t, t.term
 
 # Applies term s into term t.
 applyStep = (t, s) ->
@@ -98,15 +105,15 @@ applyStep = (t, s) ->
       null
     when Abstraction
       {varName, body} = t
-      if renamed = renameStep body, varName, s
-        return Application (Abstraction varName, renamed), s
-      # TODO Beta reduction here!
-      substitute body, varName, s
+      if renameBodyStep = renameStep body, varName, s
+        return wrapStep renameBodyStep, (body) ->
+          Application (Abstraction varName, body), s
+      Step 'beta', (Application t, s), substitute body, varName, s
     when Macro
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
-      # TODO This is macro expansion step.
-      (applyStep t.term, s) and Application t.term, s
+      if applyStep t.term, s
+        wrapStep (Step 'macro', t, t.term), (macro) -> (Application macro, s)
 
 renameStep = (t, x, s) ->
   switch t.type
@@ -118,15 +125,16 @@ renameStep = (t, x, s) ->
       if (freeIn t.varName, s) and (freeIn x, t.body)
         # TODO This is alpha-conversion.
         newVarName = renameVar t.varName, t.body, s
-        Abstraction newVarName, (substitute t.body, t.varName, Variable newVarName)
+        newBody = substitute t.body, t.varName, (Variable newVarName)
+        Step 'alpha', t, (Abstraction newVarName, newBody)
       else
-        renamedBody = renameStep t.body, x, s
-        renamedBody and Abstraction t.varName, renamedBody
+        wrapStep (renameStep t.body, x, s), (body) ->
+          Abstraction t.varName, body
     when Application
-      if renamedLeft = renameStep t.left, x, s
-        return Application renamedLeft, t.right
-      if renamedRight = renameStep t.right, x, s
-        return Application t.left, renamedRight
+      if leftStep = renameStep t.left, x, s
+        return wrapStep leftStep, (left) -> Application left, t.right
+      if rightStep = renameStep t.right, x, s
+        return wrapStep rightStep, (right) -> Application t.left, right
 
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
@@ -200,15 +208,29 @@ varRenameCollides = (t, oldName, newName) ->
     when Macro
       varRenameCollides t.term, oldName, newName
 
-# Reduces a term up to its normal form and returns an array with each step of
-# the reduction.
+# Reduces a term up to its normal form and returns TODO What does it return?
 reduceTerm = (term) ->
-  steps = [termStr term]
+  result =
+    initial: termStr term
+    steps: []
   maxSteps = 100
-  while term = reduceStep term
-    steps.push termStr term
-    throw Error 'Too many reduction steps' if steps.length > maxSteps
-  steps
+  stepCount = 0
+  loop
+    step = reduceStep term
+    break unless step
+    term = step.term
+    stepCount += 1
+    if stepCount > maxSteps
+      result.terminates = no
+      break
+    result.steps.push
+      type: step.type
+      before: termStr step.before
+      after: termStr step.after
+      # details
+  result.final = termStr term
+  result.terminates ?= yes
+  result
 
 parseTerm = (str) ->
   terms = parse str

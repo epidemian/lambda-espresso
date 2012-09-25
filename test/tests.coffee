@@ -5,8 +5,7 @@ shouldParse = (expr, expected) ->
   assert.strictEqual (parseTerm expr), expected
 
 shouldReduce = (expr, expected) ->
-  steps = reduceTerm expr
-  assert.strictEqual steps[steps.length - 1], expected
+  assert.strictEqual (reduceTerm expr).final, expected
 
 describe 'parse()', ->
 

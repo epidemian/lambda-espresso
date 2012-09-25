@@ -30,27 +30,45 @@ $input.keyup (e) ->
 
 ($ '.run').click -> run()
 
+stepHtml = (step) ->
+  "<span class=\"step\">#{step}</span>"
+
+arrowHtml = (symbol, label) ->
+  "<span class=\"arrow\">#{symbol}<small>#{label}</small></span>"
+
+arrowSymbol = (type) ->
+  if type is 'macro' then '≡' else '→'
+
+arrowLabel = (type) ->
+  switch type
+    when 'alpha' then 'α'
+    when 'beta' then 'β'
+    else ''
+
+arrowHtmlByType = (type) ->
+  arrowHtml (arrowSymbol type), (arrowLabel type)
+
 run = ->
   program = $input.val()
   try
     reductions = lambda.reduceProgram program
     result = ''
-    for steps in reductions
+    for {initial, final, steps} in reductions
       result += '<div class="reduction">'
 
       # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-      collapsed = if steps.length is 1
-        "<b>#{steps[0]}</b>"
+      collapsed = if not steps.length
+        stepHtml initial
       else
-        "#{steps[0]} → <b>#{steps[steps.length - 1]}</b>"
+        (stepHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
+        (stepHtml final)
       result += "<div class=\"collapsed\">#{collapsed}</div>"
 
       # Expanded form.
       result += '<div class="expanded">'
+      result += stepHtml initial
       for step, i in steps
-        result += ' → ' if i > 0
-        result += if i < steps.length - 1 then step else "<b>#{step}</b>"
-        result += '<br>'
+        result += "<br> #{arrowHtmlByType step.type} #{stepHtml step.after}"
       result += '</div>' # /.expanded
 
       result += '</div>' # /.reduction
