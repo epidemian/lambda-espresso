@@ -482,7 +482,7 @@ require['./lambda'] = new function() {
         }
         return str;
       case Application:
-        str = "" + (termStr(t.left, l, r + 1)) + " " + (termStr(t.right, l + 1, r));
+        str = "" + (termStr(t.left, 0, 1)) + " " + (termStr(t.right, 1, 0));
         if (l > 0) {
           str = "(" + str + ")";
         }

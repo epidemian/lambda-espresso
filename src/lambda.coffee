@@ -45,7 +45,7 @@ termStr = (t, l = 0, r = 0) ->
       str = "(#{str})" if r > 0
       str
     when Application
-      str = "#{termStr t.left, l, r + 1} #{termStr t.right, l + 1, r}"
+      str = "#{termStr t.left, 0, 1} #{termStr t.right, 1, r}"
       str = "(#{str})" if l > 0
       str
 
