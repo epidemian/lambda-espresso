@@ -7,7 +7,7 @@ Abstraction = (varName, body) -> {type: Abstraction, varName, body}
 Application = (left, right)   -> {type: Application, left, right}
 Macro       = (name, term)    -> {type: Macro, name, term}
 
-# Parses an input program string and returns a list of terms to be reduced.
+# Parses an input program string and returns an array of terms to be reduced.
 parse = (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
@@ -19,9 +19,9 @@ parse = (str) ->
 
   # Add some handy functions so the parser can build the AST.
   parser.yy =
-    parseAbstraction: (varName, body) -> Abstraction varName, body
-    parseApplication: (left, right) -> Application left, right
-    parseVariable: (name) -> Variable name
+    parseAbstraction: Abstraction
+    parseApplication: Application
+    parseVariable: Variable
     parseMacroDefinition: (name, term) ->
       throw Error "#{name} already defined" if macros[name]
       macros[name] = Macro name, term
@@ -64,17 +64,22 @@ logTerm = (t, ind = 0) ->
       logTerm t.left, ind + 1
       logTerm t.right, ind + 1
 
+# A computation step, be it a β-reduction, an α-conversion or a macro expansion.
 Step = (type, before, after) -> {type, before, after, term: after}
 
+# "Wraps" a step with a given function. The function must take a term and return
+# a term.
+# This operation is used to "go back" from recursive functions that return a
+# step, wrapping that step as the recursion stack unwraps.
+# Side-effect waring: this operation modifies the given step!
 wrapStep = (step, fn) ->
   return null if not step
-  step.term = fn step.term
+  step.term   = fn step.term
   step.before = fn step.before
-  step.after = fn step.after
+  step.after  = fn step.after
   step
 
-
-# Reduces term t by one step.
+# Reduces term t by one step and returns that step, or returns null.
 reduceStep = (t) ->
   switch t.type
     when Variable
@@ -84,7 +89,7 @@ reduceStep = (t) ->
       wrapStep (reduceStep t.body), (body) -> Abstraction t.varName, body
     when Application
       if applied = applyStep t.left, t.right
-        # An application step is a reduction step:
+        # An application step is a reduction step.
         return applied
 
       # Reduce left one step; maybe next step it can be applied.
@@ -98,7 +103,7 @@ reduceStep = (t) ->
       # reduction consists on substituting the macro with the actual term.
       (reduceStep t.term) and Step 'macro', t, t.term
 
-# Applies term s into term t.
+# Applies term s into term t by one step.
 applyStep = (t, s) ->
   switch t.type
     when Variable, Application
@@ -115,15 +120,20 @@ applyStep = (t, s) ->
       if applyStep t.term, s
         wrapStep (Step 'macro', t, t.term), (macro) -> (Application macro, s)
 
+# Makes an α-convertion step (renaming) needed to make the substitution
+# T[x := S] and returns that step, or null in case no renaming is needed.
+# See `substitute` for the logic of substitution.
 renameStep = (t, x, s) ->
   switch t.type
     when Variable, Macro
       null
     when Abstraction
       return null if t.varName is x
-
+      # (λy.E)[x := S] = λy'.(E[y := y'][x := S]) if y is free in S and x is
+      # free in E.
+      # The abstraction variable must be renamed in order to avoid the free
+      # occurence of y in S to become bound once S is applied into E.
       if (freeIn t.varName, s) and (freeIn x, t.body)
-        # TODO This is alpha-conversion.
         newVarName = renameVar t.varName, t.body, s
         newBody = substitute t.body, t.varName, (Variable newVarName)
         Step 'alpha', t, (Abstraction newVarName, newBody)
@@ -138,6 +148,7 @@ renameStep = (t, x, s) ->
 
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
+# Returns the substituted term.
 substitute = (t, x, s) ->
   switch t.type
     when Variable
@@ -190,6 +201,9 @@ freeIn = (x, t) ->
     when Macro
       freeIn x, t.term
 
+# Whether a variable rename collides in a given term. That is, if changing the
+# occurrences of oldName with newName in t would make it change t's meaning
+# (i.e. not be α-equivalent).
 varRenameCollides = (t, oldName, newName) ->
   switch t.type
     when Variable
@@ -199,7 +213,7 @@ varRenameCollides = (t, oldName, newName) ->
       # was free in the abstraction and the new name for the variable is the
       # same as the varName of the abstraction, thus changing old free variable
       # binding.
-      collisionHere = (freeIn oldName, t) and t.varName is newName
+      collisionHere = t.varName is newName and (freeIn oldName, t)
       # Or if the renaming collides in the body of the abstraction...
       collisionHere or varRenameCollides t.body, oldName, newName
     when Application

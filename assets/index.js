@@ -432,15 +432,9 @@ require['./lambda'] = new function() {
     macros = {};
     terms = [];
     parser.yy = {
-      parseAbstraction: function(varName, body) {
-        return Abstraction(varName, body);
-      },
-      parseApplication: function(left, right) {
-        return Application(left, right);
-      },
-      parseVariable: function(name) {
-        return Variable(name);
-      },
+      parseAbstraction: Abstraction,
+      parseApplication: Application,
+      parseVariable: Variable,
       parseMacroDefinition: function(name, term) {
         if (macros[name]) {
           throw Error("" + name + " already defined");
@@ -670,7 +664,7 @@ require['./lambda'] = new function() {
       case Variable:
         return false;
       case Abstraction:
-        collisionHere = (freeIn(oldName, t)) && t.varName === newName;
+        collisionHere = t.varName === newName && (freeIn(oldName, t));
         return collisionHere || varRenameCollides(t.body, oldName, newName);
       case Application:
         return (varRenameCollides(t.left, oldName, newName)) || (varRenameCollides(t.right, oldName, newName));
