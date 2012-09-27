@@ -73,10 +73,10 @@ Step = (type, before, after) -> {type, before, after, term: after}
 # step, wrapping that step as the recursion stack unwraps.
 # Side-effect waring: this operation modifies the given step!
 wrapStep = (step, fn) ->
-  return null if not step
-  step.term   = fn step.term
-  step.before = fn step.before
-  step.after  = fn step.after
+  if step
+    step.term   = fn step.term
+    step.before = fn step.before
+    step.after  = fn step.after
   step
 
 # Reduces term t by one step and returns that step, or returns null.
@@ -224,27 +224,19 @@ varRenameCollides = (t, oldName, newName) ->
 
 # Reduces a term up to its normal form and returns TODO What does it return?
 reduceTerm = (term) ->
-  result =
-    initial: termStr term
-    steps: []
+  initial = termStr term
+  steps = []
   maxSteps = 100
-  stepCount = 0
-  loop
-    step = reduceStep term
-    break unless step
+  while (step = reduceStep term) and (steps.length < maxSteps)
     term = step.term
-    stepCount += 1
-    if stepCount > maxSteps
-      result.terminates = no
-      break
-    result.steps.push
+    steps.push
       type: step.type
       before: termStr step.before
       after: termStr step.after
       # details
-  result.final = termStr term
-  result.terminates ?= yes
-  result
+  final = termStr term
+  terminates = steps.length isnt maxSteps or not step
+  {initial, final, terminates, steps}
 
 parseTerm = (str) ->
   terms = parse str

@@ -516,12 +516,11 @@ require['./lambda'] = new function() {
   };
 
   wrapStep = function(step, fn) {
-    if (!step) {
-      return null;
+    if (step) {
+      step.term = fn(step.term);
+      step.before = fn(step.before);
+      step.after = fn(step.after);
     }
-    step.term = fn(step.term);
-    step.before = fn(step.before);
-    step.after = fn(step.after);
     return step;
   };
 
@@ -674,35 +673,26 @@ require['./lambda'] = new function() {
   };
 
   reduceTerm = function(term) {
-    var maxSteps, result, step, stepCount, _ref;
-    result = {
-      initial: termStr(term),
-      steps: []
-    };
+    var final, initial, maxSteps, step, steps, terminates;
+    initial = termStr(term);
+    steps = [];
     maxSteps = 100;
-    stepCount = 0;
-    while (true) {
-      step = reduceStep(term);
-      if (!step) {
-        break;
-      }
+    while ((step = reduceStep(term)) && (steps.length < maxSteps)) {
       term = step.term;
-      stepCount += 1;
-      if (stepCount > maxSteps) {
-        result.terminates = false;
-        break;
-      }
-      result.steps.push({
+      steps.push({
         type: step.type,
         before: termStr(step.before),
         after: termStr(step.after)
       });
     }
-    result.final = termStr(term);
-    if ((_ref = result.terminates) == null) {
-      result.terminates = true;
-    }
-    return result;
+    final = termStr(term);
+    terminates = steps.length !== maxSteps || !step;
+    return {
+      initial: initial,
+      final: final,
+      terminates: terminates,
+      steps: steps
+    };
   };
 
   parseTerm = function(str) {
