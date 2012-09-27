@@ -1,5 +1,5 @@
 # λ calculus parser
-{repeatStr} = require './helpers'
+{repeatStr, extend} = require './helpers'
 
 # Term types/constructors.
 Variable    = (name)          -> {type: Variable, name}
@@ -37,17 +37,18 @@ parse = (str) ->
 # l is the number of terms "at the left" of t and r the number of term "at the
 # right"; they are used for parenthesization.
 termStr = (t, l = 0, r = 0) ->
-  switch t.type
+  str = switch t.type
     when Variable, Macro
       t.name
     when Abstraction
       str = "λ#{t.varName}.#{termStr t.body}"
-      str = "(#{str})" if r > 0
-      str
+      if r > 0 then "(#{str})" else str
     when Application
       str = "#{termStr t.left, 0, 1} #{termStr t.right, 1, r}"
-      str = "(#{str})" if l > 0
-      str
+      if l > 0 then "(#{str})" else str
+  if t.highlight
+    str = t.highlight str
+  str
 
 # Print a given term in an tree format; intended for debugging purposes.
 logTerm = (t, ind = 0) ->
@@ -64,8 +65,16 @@ logTerm = (t, ind = 0) ->
       logTerm t.left, ind + 1
       logTerm t.right, ind + 1
 
+# TODO: move this into an options object.
+highlightStepMatch = (str) ->
+  "<span class=\"match\">#{str}</span>"
+
 # A computation step, be it a β-reduction, an α-conversion or a macro expansion.
-Step = (type, before, after) -> {type, before, after, term: after}
+Step = (type, before, after) ->
+  type:   type
+  before: extend {highlight: highlightStepMatch}, before
+  after:  extend {highlight: highlightStepMatch}, after
+  term:   after
 
 # "Wraps" a step with a given function. The function must take a term and return
 # a term.

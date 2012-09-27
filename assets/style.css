@@ -31,10 +31,6 @@ footer {
   margin-bottom: 5px;
 }
 
-.reduction .step:last-child {
-  font-weight: bold;
-}
-
 .reduction .expanded .arrow {
   margin-left: 10px;
 }
@@ -53,4 +49,30 @@ footer {
   left: 0;
   width: 20px;
   text-align: center;
+}
+
+.step.highlight .before .match {
+  background-color: rgba(255, 100, 100, 0.5);
+}
+
+.step.highlight .after .match {
+  background-color: rgba(100, 255, 100, 0.5);
+}
+
+.step .before {
+  display: none;
+}
+
+.step:first-child .before {
+  display: inline;
+}
+
+.step.highlight .before {
+  display: inline;
+}
+
+/* Highlight last term of a reduction */
+.term:last-child {
+  /* FIXME! */
+  /*font-weight: bold;*/
 }

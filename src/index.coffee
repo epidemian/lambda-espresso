@@ -30,8 +30,8 @@ $input.keyup (e) ->
 
 ($ '.run').click -> run()
 
-stepHtml = (step) ->
-  "<span class=\"step\">#{step}</span>"
+termHtml = (term, className = '') ->
+  "<span class=\"term #{className}\">#{term}</span>"
 
 arrowHtml = (symbol, label) ->
   "<span class=\"arrow\">#{symbol}<small>#{label}</small></span>"
@@ -58,17 +58,20 @@ run = ->
 
       # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
       collapsed = if not steps.length
-        stepHtml initial
+        termHtml initial
       else
-        (stepHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
-        (stepHtml final)
+        (termHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
+        (termHtml final)
       result += "<div class=\"collapsed\">#{collapsed}</div>"
 
       # Expanded form.
       result += '<div class="expanded">'
-      result += stepHtml initial
-      for step, i in steps
-        result += "<br> #{arrowHtmlByType step.type} #{stepHtml step.after}"
+      if not steps.length
+        result += termHtml initial
+      else
+        for {type, before, after} in steps
+          result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
+            (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
       result += '</div>' # /.expanded
 
       result += '</div>' # /.reduction
@@ -77,6 +80,16 @@ run = ->
     ($ '.reduction', $output).click ->
       preserveScrollPosition =>
         ($ '.collapsed, .expanded', @).toggle()
+    ($ '.expanded .step', $output).hover ->
+      $step = $ @
+      $step.addClass 'highlight'
+      $step.prevAll('.step:eq(0)').find('.after').hide()
+    , ->
+      $step = $ @
+      $step.removeClass 'highlight'
+      # Hide the previous step's after term.
+      $step.prevAll('.step:eq(0)').find('.after').show()
+
   catch e
     $error.text e.message
 
