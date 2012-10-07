@@ -1,6 +1,7 @@
 .input {
   width:100%;
   display: block;
+  font-family: monospace;
 }
 
 .error-container {
@@ -45,18 +46,40 @@ footer {
 .arrow > small {
   font-size: 80%;
   position: absolute;
-  top: 0.6em;
+  top: 0.8em;
   left: 0;
   width: 20px;
   text-align: center;
 }
 
-.step.highlight .before .match {
-  background-color: rgba(255, 100, 100, 0.5);
+.reduction {
+  /* Use monospace font mostly to avoid width change when making text bold */
+  font-family: monospace;
 }
 
-.step.highlight .after .match {
-  background-color: rgba(100, 255, 100, 0.5);
+.step .match {
+  border: 1px solid transparent;
+  border-radius: 3px;
+}
+
+.step.highlight .match {
+  background-color: rgb(233, 248, 255);
+  border-color: rgb(207, 247, 255);
+}
+
+/*.step.highlight .after .match {*/
+  /*background-color: rgb(230, 255, 236);*/
+  /*border-color: rgb(204, 255, 211);*/
+/*}*/
+
+.step.highlight .subst-var {
+  font-weight: bold;
+  color: #e300d9;
+}
+
+.step.highlight .subst-term {
+  font-weight: bold;
+  color: #00b801;
 }
 
 .step .before {

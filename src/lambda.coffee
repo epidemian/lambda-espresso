@@ -41,7 +41,9 @@ termStr = (t, l = 0, r = 0) ->
     when Variable, Macro
       t.name
     when Abstraction
-      str = "λ#{t.varName}.#{termStr t.body}"
+      lambda = "λ#{t.varName}"
+      lambda = t.highlightVar lambda if t.highlightVar
+      str = "#{lambda}.#{termStr t.body}"
       if r > 0 then "(#{str})" else str
     when Application
       str = "#{termStr t.left, 0, 1} #{termStr t.right, 1, r}"
@@ -69,12 +71,28 @@ logTerm = (t, ind = 0) ->
 highlightStepMatch = (str) ->
   "<span class=\"match\">#{str}</span>"
 
+highlightSubstitutionVariable = (str) ->
+  "<span class=\"subst-var\">#{str}</span>"
+
+highlightSubstitutionTerm = (str) ->
+  "<span class=\"subst-term\">#{str}</span>"
+
 # A computation step, be it a β-reduction, an α-conversion or a macro expansion.
-Step = (type, before, after) ->
+Step = (type, before, after, term) ->
   type:   type
   before: extend {highlight: highlightStepMatch}, before
   after:  extend {highlight: highlightStepMatch}, after
-  term:   after
+  term:   term or after
+
+BetaReductionStep = (t, x, s) ->
+  highlightedSubst = extend {highlight: highlightSubstitutionTerm}, s
+  highlightedVar = extend {highlight: highlightSubstitutionVariable}, (Variable x)
+  highlightedAbstBody = substitute t, x, highlightedVar
+  highlightedAbst = extend {highlightVar: highlightSubstitutionVariable}, (Abstraction x, highlightedAbstBody)
+  before = Application highlightedAbst, highlightedSubst
+  after = substitute t, x, highlightedSubst
+  term = substitute t, x, s
+  Step 'beta', before, after, term
 
 # "Wraps" a step with a given function. The function must take a term and return
 # a term.
@@ -122,7 +140,7 @@ applyStep = (t, s) ->
       if renameBodyStep = renameStep body, varName, s
         return wrapStep renameBodyStep, (body) ->
           Application (Abstraction varName, body), s
-      Step 'beta', (Application t, s), substitute body, varName, s
+      BetaReductionStep body, varName, s
     when Macro
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
