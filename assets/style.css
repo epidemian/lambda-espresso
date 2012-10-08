@@ -1,7 +1,6 @@
 .input {
   width:100%;
   display: block;
-  font-family: monospace;
 }
 
 .error-container {
@@ -30,6 +29,7 @@ footer {
 .reduction {
   cursor: pointer;
   margin-bottom: 5px;
+  line-height: 22px;
 }
 
 .reduction .expanded .arrow {
@@ -46,40 +46,29 @@ footer {
 .arrow > small {
   font-size: 80%;
   position: absolute;
-  top: 0.8em;
+  top: 0.65em;
   left: 0;
   width: 20px;
   text-align: center;
 }
 
-.reduction {
-  /* Use monospace font mostly to avoid width change when making text bold */
-  font-family: monospace;
-}
-
 .step .match {
-  border: 1px solid transparent;
+  box-sizing: border-box;
   border-radius: 3px;
 }
 
 .step.highlight .match {
-  background-color: rgb(233, 248, 255);
-  border-color: rgb(207, 247, 255);
+  box-shadow: 0px 1px 3px 1px #D2D2D2;
 }
 
-/*.step.highlight .after .match {*/
-  /*background-color: rgb(230, 255, 236);*/
-  /*border-color: rgb(204, 255, 211);*/
-/*}*/
-
 .step.highlight .subst-var {
-  font-weight: bold;
-  color: #e300d9;
+  color: rgb(227, 0, 217);
+  text-shadow: 0 0 2px white,0 0 1em rgba(227, 0, 217, 0.5);
 }
 
 .step.highlight .subst-term {
-  font-weight: bold;
-  color: #00b801;
+  color: rgb(0, 184, 1);
+  text-shadow: 0 0 2px white, 0 0 1em rgba(0, 184, 1, 0.4);
 }
 
 .step .before {
