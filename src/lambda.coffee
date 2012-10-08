@@ -82,17 +82,17 @@ highlight = (t, fn) ->
     fn = compose fn, t.highlight
   extend {}, t, highlight: fn
 
-highlightAbstractionVar = (t, x) ->
-  hx = highlight (Variable x), highlightSubstitutionVariable
+highlightAbstractionVar = (t, x, fn = highlightSubstitutionVariable) ->
+  hx = highlight (Variable x), fn
   ht = substitute t, x, hx
-  extend (Abstraction x, ht), highlightVar: highlightSubstitutionVariable
+  extend (Abstraction x, ht), highlightVar: fn
 
 # A computation step, be it a β-reduction, an α-conversion or a macro expansion.
 Step = (type, before, after, term) ->
   type:   type
   before: highlight before, highlightStepMatch
   after:  highlight after, highlightStepMatch
-  term:   term or after
+  term:   term
 
 BetaReductionStep = (t, x, s) ->
   hs = highlight s, highlightSubstitutionTerm
@@ -100,6 +100,16 @@ BetaReductionStep = (t, x, s) ->
   after = substitute t, x, hs
   term = substitute t, x, s
   Step 'beta', before, after, term
+
+AlphaConversionStep = (abst, renamedAbst) ->
+  before = highlightAbstractionVar abst.body, abst.varName, highlightSubstitutionVariable
+  after = highlightAbstractionVar renamedAbst.body, renamedAbst.varName, highlightSubstitutionTerm
+  Step 'alpha', before, after, renamedAbst
+
+MacroExpansionStep = (t) ->
+  before = highlight t, highlightSubstitutionVariable
+  after = highlight t.term, highlightSubstitutionTerm
+  Step 'macro', before, after, t.term
 
 # "Wraps" a step with a given function. The function must take a term and return
 # a term.
@@ -135,7 +145,7 @@ reduceStep = (t) ->
     when Macro
       # Only if the inner term can be reduced the macro is reduced, and the
       # reduction consists on substituting the macro with the actual term.
-      (reduceStep t.term) and Step 'macro', t, t.term
+      (reduceStep t.term) and MacroExpansionStep t
 
 # Applies term s into term t by one step.
 applyStep = (t, s) ->
@@ -152,7 +162,7 @@ applyStep = (t, s) ->
       # Same logic as reduceStep. If the inner term can be applied, create a new
       # application as the macro expansion.
       if applyStep t.term, s
-        wrapStep (Step 'macro', t, t.term), (macro) -> (Application macro, s)
+        wrapStep (MacroExpansionStep t), (macro) -> (Application macro, s)
 
 # Makes an α-convertion step (renaming) needed to make the substitution
 # T[x := S] and returns that step, or null in case no renaming is needed.
@@ -170,7 +180,7 @@ renameStep = (t, x, s) ->
       if (freeIn t.varName, s) and (freeIn x, t.body)
         newVarName = renameVar t.varName, t.body, s
         newBody = substitute t.body, t.varName, (Variable newVarName)
-        Step 'alpha', t, (Abstraction newVarName, newBody)
+        AlphaConversionStep t, (Abstraction newVarName, newBody)
       else
         wrapStep (renameStep t.body, x, s), (body) ->
           Abstraction t.varName, body
