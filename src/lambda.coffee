@@ -1,5 +1,5 @@
 # λ calculus parser
-{repeatStr, extend} = require './helpers'
+{repeatStr, extend, compose} = require './helpers'
 
 # Term types/constructors.
 Variable    = (name)          -> {type: Variable, name}
@@ -78,7 +78,9 @@ highlightSubstitutionTerm = (str) ->
   "<span class=\"subst-term\">#{str}</span>"
 
 highlight = (t, fn) ->
-  extend {highlight: fn}, t
+  if t.highlight
+    fn = compose fn, t.highlight
+  extend {}, t, highlight: fn
 
 highlightAbstractionVar = (t, x) ->
   hx = highlight (Variable x), highlightSubstitutionVariable
