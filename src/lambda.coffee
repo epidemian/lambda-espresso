@@ -77,20 +77,25 @@ highlightSubstitutionVariable = (str) ->
 highlightSubstitutionTerm = (str) ->
   "<span class=\"subst-term\">#{str}</span>"
 
+highlight = (t, fn) ->
+  extend {highlight: fn}, t
+
+highlightAbstractionVar = (t, x) ->
+  hx = highlight (Variable x), highlightSubstitutionVariable
+  ht = substitute t, x, hx
+  extend (Abstraction x, ht), highlightVar: highlightSubstitutionVariable
+
 # A computation step, be it a β-reduction, an α-conversion or a macro expansion.
 Step = (type, before, after, term) ->
   type:   type
-  before: extend {highlight: highlightStepMatch}, before
-  after:  extend {highlight: highlightStepMatch}, after
+  before: highlight before, highlightStepMatch
+  after:  highlight after, highlightStepMatch
   term:   term or after
 
 BetaReductionStep = (t, x, s) ->
-  highlightedSubst = extend {highlight: highlightSubstitutionTerm}, s
-  highlightedVar = extend {highlight: highlightSubstitutionVariable}, (Variable x)
-  highlightedAbstBody = substitute t, x, highlightedVar
-  highlightedAbst = extend {highlightVar: highlightSubstitutionVariable}, (Abstraction x, highlightedAbstBody)
-  before = Application highlightedAbst, highlightedSubst
-  after = substitute t, x, highlightedSubst
+  hs = highlight s, highlightSubstitutionTerm
+  before = Application (highlightAbstractionVar t, x), hs
+  after = substitute t, x, hs
   term = substitute t, x, s
   Step 'beta', before, after, term
 
