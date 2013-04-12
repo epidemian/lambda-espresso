@@ -1,4 +1,4 @@
-exports.all = [
+module.exports = [
   name: 'Basics'
   code: '''
     ; This example is not intend to be a tutorial nor an introduction to λ Calculus.

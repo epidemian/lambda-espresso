@@ -1,6 +1,6 @@
 # Script for index.html
 lambda = require './lambda'
-examples = (require './examples').all
+examples = require './examples'
 
 $input           = $ '.input'
 $output          = $ '.output'
