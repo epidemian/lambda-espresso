@@ -1,12 +1,12 @@
-# ☕ λ-Espresso ☕
+# :coffee: λ-Espresso :coffee:
 
 A λ calculus interpreter written in CoffeeScript.
 
 ## Usage
 
-You can play with λ-Espresso [here](http://epidemian.github.com/lambda-espresso/).
+You can play with λ-Espresso [here](http://epidemian.github.io/lambda-espresso/).
 
-Have any ideas or suggestions? You can [create a ticket](https://github.com/epidemian/lambda-espresso/issues) on GitHub :)
+Ideas and suggestions are welcome, please [open an issue](https://github.com/epidemian/lambda-espresso/issues) or, better yet, send a pull request :)
 
 ## Development
 
