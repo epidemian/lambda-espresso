@@ -1,0 +1,6 @@
+{
+  "browser": {
+    "fs": false,
+    "path": false
+  }
+}
