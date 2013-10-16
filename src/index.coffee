@@ -48,10 +48,16 @@ arrowLabel = (type) ->
 arrowHtmlByType = (type) ->
   arrowHtml (arrowSymbol type), (arrowLabel type)
 
+getOptions = ->
+  options = {}
+  maxSteps = parseInt ($ 'input[name=max-steps]').val()
+  options.maxSteps = maxSteps unless isNaN maxSteps
+  options
+
 run = ->
   program = $input.val()
   try
-    reductions = lambda.reduceProgram program
+    reductions = lambda.reduceProgram program, getOptions()
     result = ''
     for {initial, final, steps} in reductions
       result += '<div class="reduction">'

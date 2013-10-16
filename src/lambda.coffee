@@ -266,11 +266,14 @@ varRenameCollides = (t, oldName, newName) ->
     when Macro
       varRenameCollides t.term, oldName, newName
 
+defaultOptions =
+  maxSteps: 100
+
 # Reduces a term up to its normal form and returns TODO What does it return?
-reduceTerm = (term) ->
+reduceTerm = (term, options) ->
+  {maxSteps} = extend {}, defaultOptions, options
   initial = termStr term
   steps = []
-  maxSteps = 100
   while (step = reduceStep term) and (steps.length < maxSteps)
     term = step.term
     steps.push
@@ -292,10 +295,10 @@ exports.parseTerm = (str) ->
   termStr parseTerm str
 
 # Reduce a program with only one term.
-exports.reduceTerm = (str) ->
-  reduceTerm parseTerm str
+exports.reduceTerm = (str, options = {}) ->
+  reduceTerm (parseTerm str), options
 
 # Reduce a program that might have multiple terms.
-exports.reduceProgram = (expr) ->
+exports.reduceProgram = (expr, options = {}) ->
   terms = parse expr
-  reduceTerm term for term in terms
+  reduceTerm term, options for term in terms

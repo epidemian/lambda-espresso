@@ -1,4 +1,3 @@
-- Add maximum recursion level option to avoid non-termination problems.
 - Add reduction strategy option: normal or applicative.
 - Add Eta-reduction option.
 - Add collapse/expand reduction steps option.
@@ -16,6 +15,7 @@
   - Some recursion example. E.g. Fibonacci or Factorial.
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
+- Add options to generated links.
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
