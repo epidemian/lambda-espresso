@@ -7,7 +7,7 @@ shouldParse = (expr, expected) ->
 shouldReduce = (expr, expected) ->
   assert.strictEqual (reduceTerm expr).final, expected
 
-describe 'parse()', ->
+describe 'parseTerm()', ->
 
   it 'should remove unnecessary parentheses', ->
     shouldParse '(x)', 'x'
@@ -39,7 +39,8 @@ describe 'parse()', ->
     shouldParse '(((λa.a) λb.b) λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d'
     shouldParse 'λa.a (λb.b (λc.c (λd.d)))', 'λa.a λb.b λc.c λd.d'
 
-describe 'reduce()', ->
+describe 'reduceTerm()', ->
+
   it 'should not reduce simple irreducible expressions', ->
     shouldReduce 'x', 'x'
     shouldReduce 'x y', 'x y'
@@ -54,7 +55,6 @@ describe 'reduce()', ->
   it 'should reduce multiple beta-redex', ->
     shouldReduce '(λx.λy.x y) v w', 'v w'
 
-
   it 'should reduce a beta-redex that is formed only after a reduction', ->
     shouldReduce '(λx.x y) (λz.z z)', 'y y'
 
@@ -65,7 +65,6 @@ describe 'reduce()', ->
 
     it 'should not rename if y does not occur free in S but x is free in T', ->
       shouldReduce '(λx.λy.x y) (w z)', 'λy.w z y'
-
 
     it 'should not rename if y is free in S but x does not occur in T', ->
       shouldReduce '(λx.λy.y) (y z)', 'λy.y'
