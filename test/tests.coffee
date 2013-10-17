@@ -58,6 +58,18 @@ describe 'reduceTerm()', ->
   it 'should reduce a beta-redex that is formed only after a reduction', ->
     shouldReduce '(λx.x y) (λz.z z)', 'y y'
 
+  it 'should do at most maxStep reduction steps', ->
+    {steps} = reduceTerm '(λx.x x) (λx.x x)', maxSteps: 42
+    assert steps.length is 42
+
+  it 'indicates when a reduction terminates', ->
+    {terminates} = reduceTerm '(λx.x) y'
+    assert terminates
+
+  it 'indicates when a reduction does not terminate', ->
+    {terminates} = reduceTerm '(λx.x x) (λx.x x)'
+    assert not terminates
+
   describe 'renaming in substitution (λy.T)[x := S]', ->
 
     it 'should rename when y is free in S and x is free in T', ->
