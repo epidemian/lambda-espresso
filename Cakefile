@@ -2,6 +2,8 @@
 fs = require 'fs'
 
 run = (cmd) ->
+  # Semi-hack: allow to call commands on local node_modules/.bin dir.
+  cmd = "PATH=\"node_modules/.bin:$PATH\" #{cmd}"
   spawn 'bash', ['-c', cmd], stdio: 'inherit'
 
 task 'watch:coffee', 'compile coffee source files everytime they change', ->
