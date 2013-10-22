@@ -16,6 +16,8 @@
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
 - Add options to generated links.
+- Substitute reduction result by macro name if it is α-equivalent to some macro
+  (and maybe choose the most "similar" macro (to maybe distinguish from ZERO and FALSE)
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.

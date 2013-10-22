@@ -33,13 +33,17 @@ module.exports = [
 ,
   name: 'Booleans'
   code: '''
-    ; Example showcasing Church booleans.
+    ; The booleans and their operations encoded as λ-terms (Church booleans).
     TRUE = λt.λf.t
     FALSE = λt.λf.f
+    NOT = λp.p FALSE TRUE
     AND = λp.λq.p q p
     OR = λp.λq.p p q
-          
-    ; Print truth tables for AND and OR.
+    IF = λp.λq.λr.p q r
+
+    ; Print truth tables for NOT, AND and OR.
+    NOT TRUE
+    NOT FALSE
     AND FALSE FALSE
     AND FALSE TRUE
     AND TRUE FALSE
@@ -48,5 +52,11 @@ module.exports = [
     OR FALSE TRUE
     OR TRUE FALSE
     OR TRUE TRUE
+
+    ; Terms can be nested as much as we want.
+    IF (NOT NOT FALSE) (OR FALSE (IF TRUE TRUE FALSE)) FALSE
+
+    ; There's nothing special about "operators", we can treat them as any other value.
+    (IF FALSE OR AND) TRUE FALSE
   '''
 ]
