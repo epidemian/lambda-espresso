@@ -10,7 +10,6 @@
   - Use some binding library like Knockout.js to keep the DOM on-sync more easily :)
 - Add examples to tests
 - Add more examples:
-  - Numerals
   - Lists (or ranges)
   - Some recursion example. E.g. Fibonacci or Factorial.
   - Prime number generator? (IDK if division is implementable though...)
@@ -18,6 +17,9 @@
 - Add options to generated links.
 - Substitute reduction result by macro name if it is α-equivalent to some macro
   (and maybe choose the most "similar" macro (to maybe distinguish from ZERO and FALSE)
+- Let macros be defined after their usage.
+- Eagerly reduce macros' definitions (or not...)
+- Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
