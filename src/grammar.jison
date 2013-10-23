@@ -1,17 +1,17 @@
 %lex
 %%
 
-"("              { return '('; }
-")"              { return ')'; }
-"\\"|"λ"         { return 'LAMBDA'; }
-"."              { return '.'; }
-"="              { return '='; }
-[a-z][a-z0-9-_]* { return 'VAR'; }
-[A-Z][A-Z0-9-_]* { return 'MACRO'; }
-[\n]             { return 'SEPARATOR'; }
-[ \t]+           { /* ignore whitespace */ }
-";".*            { /* ignore line comments */ }
-<<EOF>>          { return 'EOF'; }
+"("                 { return '('; }
+")"                 { return ')'; }
+"\\"|"λ"            { return 'LAMBDA'; }
+"."                 { return '.'; }
+"="                 { return '='; }
+[a-z][a-z0-9-_]*    { return 'VAR'; }
+[A-Z][A-Z0-9-_]*\'* { return 'MACRO'; }
+[\n]                { return 'SEPARATOR'; }
+[ \t]+              { /* ignore whitespace */ }
+";".*               { /* ignore line comments */ }
+<<EOF>>             { return 'EOF'; }
 /lex
 
 
