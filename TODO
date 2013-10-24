@@ -11,12 +11,11 @@
 - Add examples to tests
 - Add more examples:
   - Lists (or ranges)
-  - Some recursion example. E.g. Fibonacci or Factorial.
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
 - Add options to generated links.
-- Substitute reduction result by macro name if it is α-equivalent to some macro
-  (and maybe choose the most "similar" macro (to maybe distinguish from ZERO and FALSE)
+- Substitute reduction result by macro name if it is α-equivalent to some macro.
+  If more than one macro is α-equivalent, show them all (e.g. "ZERO/FALSE")
 - Let macros be defined after their usage.
 - Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.

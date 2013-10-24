@@ -35,7 +35,9 @@ module.exports = [
 ,
   name: 'Booleans'
   code: '''
-    ; The booleans and their operations encoded as λ-terms (Church booleans).
+    ; Church booleans
+
+    ; The booleans and their operations can be encoded as the following λ-terms:
     TRUE = λt.λf.t
     FALSE = λt.λf.f
     NOT = λp.p FALSE TRUE
@@ -43,7 +45,7 @@ module.exports = [
     OR = λp.λq.p p q
     IF = λp.λq.λr.p q r
 
-    ; Print truth tables for NOT, AND and OR.
+    ; Print truth tables for NOT, AND and OR:
     NOT TRUE
     NOT FALSE
     AND FALSE FALSE
@@ -55,20 +57,25 @@ module.exports = [
     OR TRUE FALSE
     OR TRUE TRUE
 
-    ; Terms can be nested as much as we want.
+    ; Terms can be nested as much as we want:
     IF (NOT NOT FALSE) (OR FALSE (IF TRUE TRUE FALSE)) FALSE
 
-    ; There's nothing special about "operators", we can treat them as any other value.
+    ; There's nothing special about "operators", we can treat them as any other value:
     (IF FALSE OR AND) TRUE FALSE
   '''
 ,
   name: 'Numbers'
   code: '''
-    ; Church numerals example.
+    ; Church numerals
+
+    ; The first few numbers are:
     ZERO = λs.λz.z
     ONE = λs.λz.s z
     TWO = λs.λz.s (s z)
     THREE = λs.λz.s (s (s z))
+    ; In general, any natural number n can be encoded as:
+    ; N = λs.λz.s (s (s ... (s (s z)) ... ))
+    ; with s applied n times.
 
     ; When we get tired of writing numbers like that, we can define a successor function:
     SUCC = λn.λs.λz.s (n s z)
@@ -131,4 +138,42 @@ module.exports = [
     EQ (EXP TWO THREE) (PRED (EXP THREE TWO))
   '''
   # TODO bump up the max-steps for this example (and try to use applicative order).
+,
+  name: 'Factorial'
+  code: '''
+    ; Recursion
+
+    ; Borrow some terms from previous examples:
+    TRUE = λt.λf.t
+    FALSE = λt.λf.f
+    IF = λp.λq.λr.p q r
+
+    ZERO = λs.λz.z
+    ONE = λs.λz.s z
+    TWO = λs.λz.s (s z)
+    THREE = λs.λz.s (s (s z))
+    FOUR = λs.λz.s (s (s (s z)))
+
+    PRED = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+    MULT = λm.λn.λs.m (n s)
+    ISZERO = λn.n (λx.FALSE) TRUE
+
+    ; We'd like to be able to define a factorial function as:
+    ; FACT = λn.IF (ISZERO n) ONE (MULT n (FACT (PRED n)))
+    ; But we can't use a term in its own definition.
+    ; To achieve recursion, we can instead define a function that will receive itself
+    ; as a parameter r, and then recur by calling r with itself and n - 1:
+    FACT_REC = λr.λn.IF (ISZERO n) ONE (MULT n (r r (PRED n)))
+    ; The real factorial function would then be:
+    FACT = FACT_REC FACT_REC
+    FACT FOUR
+
+    ; Another way to recur is to use a general purpose fixed-point combinator.
+    ; The almighty Y Combinator:
+    Y = λf.(λx.f (x x)) (λx.f (x x))
+
+    ; And then there's no need to define a separate function:
+    FACT' = Y λr.λn.IF (ISZERO n) ONE (MULT n (r (PRED n)))
+    FACT' FOUR
+  '''
 ]
