@@ -43,7 +43,7 @@ module.exports = [
     NOT = λp.p FALSE TRUE
     AND = λp.λq.p q p
     OR = λp.λq.p p q
-    IF = λp.λq.λr.p q r
+    IF = λp.p
 
     ; Print truth tables for NOT, AND and OR:
     NOT TRUE
@@ -146,7 +146,7 @@ module.exports = [
     ; Borrow some terms from previous examples:
     TRUE = λt.λf.t
     FALSE = λt.λf.f
-    IF = λp.λq.λr.p q r
+    IF = λp.p
 
     ZERO = λs.λz.z
     ONE = λs.λz.s z
