@@ -109,13 +109,12 @@ $input.val """
 $input.focus()
 
 $examplesMenu = $ '.examples.dropdown-menu'
-examples.forEach (example) ->
+for example, i in examples
   hash = ">#{example.code}".replace /\n/g, '%0A'
-  $li = $ """<li><a href="##{hash}">#{example.name}</a></li>"""
-  $li.click (e) ->
-    e.preventDefault() # Don't change the location.hash
-    $input.val example.code
-  $examplesMenu.append $li
+  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
+$examplesMenu.on 'click', 'li', (e) ->
+  e.preventDefault() # Don't change the location.hash
+  $input.val examples[($ @).index()].code
 
 ($ 'button.link').click ->
   code = $input.val()
