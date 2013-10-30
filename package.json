@@ -7,8 +7,7 @@
     "coffee-script": "~1.6.3",
     "jison": "~0.4.13",
     "mocha": "~1.13.0",
-    "browserify": "2.34.3",
-    "nodemon": "~0.7.10"
+    "browserify": "2.34.3"
   },
   "browser": {
     "fs": false,
