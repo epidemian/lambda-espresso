@@ -1,5 +1,3 @@
-SHELL = /bin/bash
-
 coffee_files = $(wildcard src/*.coffee)
 js_files = $(coffee_files:src/%.coffee=lib/%.js) lib/grammar.js
 bin_dir = node_modules/.bin
@@ -28,8 +26,10 @@ test: build
 	$(bin_dir)/mocha --growl --colors >/dev/null
 
 watch: test
-	@inotifywait \
-	  --monitor --quiet \
-	  --event modify,close_write,moved_to,move_self,create,delete,delete_self \
-	  --exclude ___jb_ \
-	  --recursive src test | while read; do make test; done
+	@while true; do \
+	  inotifywait \
+	    --event modify,close_write,move,move_self,create,delete,delete_self \
+	    --quiet --recursive \
+	    src test; \
+	  make --no-print-directory test; \
+	done
