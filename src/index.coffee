@@ -79,15 +79,15 @@ renderReductions = timed 'render html', (reductions) ->
       (termHtml final)
     result += "<div class=\"collapsed\">#{collapsed}</div>"
 
-    # Expanded form.
-    result += '<div class="expanded">'
-    if not steps.length
-      result += termHtml initial
-    else
-      for {type, before, after} in steps
-        result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
-        (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
-    result += '</div>' # /.expanded
+#    # Expanded form.
+#    result += '<div class="expanded">'
+#    if not steps.length
+#      result += termHtml initial
+#    else
+#      for {type, before, after} in steps
+#        result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
+#        (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
+#    result += '</div>' # /.expanded
 
     result += '</div>' # /.reduction
   $output.empty().html result

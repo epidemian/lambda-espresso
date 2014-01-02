@@ -1,5 +1,5 @@
 # λ calculus parser
-{repeatStr, extend, compose, timed} = require './helpers'
+{repeatStr, extend, timed} = require './helpers'
 
 # Term types/constructors.
 Variable    = (name)          -> {type: Variable, name}
@@ -123,6 +123,48 @@ wrapStep = (step, fn) ->
     step.after  = fn step.after
   step
 
+composeAbs = (fn, x) -> (b) -> fn Abstraction x, b
+composeAppL = (fn, l) -> (r) -> fn Application l, r
+composeAppR = (fn, r) -> (l) -> fn Application l, r
+composeMacro = (fn, n) -> (t) -> fn Macro n, t
+
+reduceNormal = (t, cb) ->
+  switch t.type
+    when Variable
+      t
+    when Abstraction
+      Abstraction t.varName, (reduceNormal t.body, (composeAbs cb, t.varName))
+    when Application
+      l = reduceCallByName t.left, (composeAppR cb, t.right)
+      if l.type is Abstraction
+        reduceNormal (apply l, t.right, cb), cb
+      else
+        l = reduceNormal l, (composeAppR cb, t.right) # Finish reducing l.
+        r = reduceNormal t.right, (composeAppL cb, l)
+        Application l, r
+    when Macro
+      cb t.term
+      reduceNormal t.term, (composeMacro cb, t.name)
+
+reduceCallByName = (t, cb) ->
+  switch t.type
+    when Variable, Abstraction
+      t
+    when Application
+      l = reduceCallByName t.left, (composeAppR cb, t.right)
+      if l.type is Abstraction
+        reduceCallByName (apply l, t.right, cb), cb
+      else
+        t
+    when Macro
+      cb t.term
+      reduceCallByName t.term, (composeMacro cb, t.name)
+
+apply = (abs, subst, cb) ->
+  applied = substitute2 abs.body, abs.varName, subst, cb
+  cb applied
+  applied
+
 # Reduces term t by one step and returns that step, or returns null.
 reduceStep = (t) ->
   switch t.type
@@ -216,6 +258,45 @@ substitute = (t, x, s) ->
           "Macros cannot have free variables"
       t
 
+# Applies the substitution T[x := S]
+# I.e., substitutes the variable x for the term S in the term T.
+# Returns the substituted term.
+substitute2 = (t, x, s, cb) ->
+  switch t.type
+    when Variable
+    # x[x := S] = S
+    # y[x := S] = y
+      if t.name is x then s else t
+    when Abstraction
+    # (λx.E)[x := S] = λx.E
+    # (λx creates a new context for x so no further substitution is needed)
+      return t if t.varName is x
+      # (λy.E)[x := S] with x != y
+      # if y is free in S and x is free in E, then must α-convert λy.E to avoid
+      # name conflicts.
+      if (freeIn t.varName, s) and (freeIn x, t.body)
+        # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
+        newVarName = renameVar t.varName, t.body, s
+        # Note: not passing cb as no further alpha-renames should be performed
+        # on these two substitutions (so cb shouldn't be called).
+        renamedBody = substitute2 t.body, t.varName, Variable newVarName
+        cb Abstraction newVarName, renamedBody
+        Abstraction newVarName, (substitute2 renamedBody, x, s)
+      else
+        # (λy.E)[x := S] = λy.(E[x := S])
+        Abstraction t.varName, (substitute2 t.body, x, s, (cb and composeAbs cb, t.varName))
+    when Application
+      # (U V)[x := S] = (U[x := S]) (V[x := S])
+      l = substitute2 t.left, x, s, (cb and composeAppR cb, t.right)
+      r = substitute2 t.right, x, s, (cb and composeAppL cb, t.left)
+      Application l, r
+    when Macro
+      if freeIn x, t.term
+        throw Error "Logical error: #{x} is free in #{t.name}." +
+        "Macros cannot have free variables"
+      t
+
+
 # Renames a variable to avoid naming conflicts when doing a substitution.
 renameVar = (oldName, t, s) ->
   # Split the name into base and number part.
@@ -272,23 +353,28 @@ defaultOptions =
 # Reduces a term up to its normal form and returns TODO What does it return?
 reduceTerm = timed 'reduce', (term, options) ->
   {maxSteps} = extend {}, defaultOptions, options
-  initial = termStr term
+  enough = {}
   steps = []
-  while (step = reduceStep term) and (steps.length < maxSteps)
-    term = step.term
-    steps.push
-      type: step.type
-      before: termStr step.before
-      after: termStr step.after
-      # details
-  final = termStr term
-  terminates = steps.length isnt maxSteps or not step
+  try
+    reduceNormal term, (t) ->
+      throw enough if steps.length >= maxSteps
+      steps.push t
+    terminates = yes
+  catch e
+    throw e if e isnt enough
+    terminates = no
+
+  initial = termStr term
+  final = termStr steps[steps.length - 1] or term
   {initial, final, terminates, steps}
 
 parseTerm = (str) ->
   terms = parse str
   throw Error "program has #{terms.length} terms" if terms.length isnt 1
   terms[0]
+
+exports.logTerm = (str) ->
+  logTerm parseTerm str
 
 # Parse a program with only one term.
 exports.parseTerm = (str) ->
