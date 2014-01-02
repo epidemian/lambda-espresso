@@ -1,5 +1,5 @@
 # λ calculus parser
-{repeatStr, extend, compose} = require './helpers'
+{repeatStr, extend, compose, timed} = require './helpers'
 
 # Term types/constructors.
 Variable    = (name)          -> {type: Variable, name}
@@ -8,7 +8,7 @@ Application = (left, right)   -> {type: Application, left, right}
 Macro       = (name, term)    -> {type: Macro, name, term}
 
 # Parses an input program string and returns an array of terms to be reduced.
-parse = (str) ->
+parse = timed 'parse', (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
 
@@ -270,7 +270,7 @@ defaultOptions =
   maxSteps: 100
 
 # Reduces a term up to its normal form and returns TODO What does it return?
-reduceTerm = (term, options) ->
+reduceTerm = timed 'reduce', (term, options) ->
   {maxSteps} = extend {}, defaultOptions, options
   initial = termStr term
   steps = []

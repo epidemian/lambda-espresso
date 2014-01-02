@@ -1,6 +1,7 @@
 # Script for index.html
 lambda = require './lambda'
 examples = require './examples'
+{timed} = require './helpers'
 
 $input           = $ '.input'
 $output          = $ '.output'
@@ -58,49 +59,51 @@ run = ->
   program = $input.val()
   try
     reductions = lambda.reduceProgram program, getOptions()
-    result = ''
-    for {initial, final, steps} in reductions
-      result += '<div class="reduction">'
+    renderReductions reductions
+  catch err
+    $error.text err.message
 
-      # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-      collapsed = if not steps.length
-        termHtml initial
-      else
-        (termHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
-        (termHtml final)
-      result += "<div class=\"collapsed\">#{collapsed}</div>"
+  $outputContainer.toggle not err?
+  $errorContainer.toggle err?
 
-      # Expanded form.
-      result += '<div class="expanded">'
-      if not steps.length
-        result += termHtml initial
-      else
-        for {type, before, after} in steps
-          result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
-            (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
-      result += '</div>' # /.expanded
+renderReductions = timed 'render html', (reductions) ->
+  result = ''
+  for {initial, final, steps} in reductions
+    result += '<div class="reduction">'
 
-      result += '</div>' # /.reduction
-    $output.empty().html result
-    updateOutputExpansions()
-    ($ '.reduction', $output).click ->
-      preserveScrollPosition =>
-        ($ '.collapsed, .expanded', @).toggle()
-    ($ '.expanded .step', $output).hover ->
-      $step = $ @
-      $step.addClass 'highlight'
-      $step.prevAll('.step:eq(0)').find('.after').hide()
-    , ->
-      $step = $ @
-      $step.removeClass 'highlight'
-      # Hide the previous step's after term.
-      $step.prevAll('.step:eq(0)').find('.after').show()
+    # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
+    collapsed = if not steps.length
+      termHtml initial
+    else
+      (termHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
+      (termHtml final)
+    result += "<div class=\"collapsed\">#{collapsed}</div>"
 
-  catch e
-    $error.text e.message
+    # Expanded form.
+    result += '<div class="expanded">'
+    if not steps.length
+      result += termHtml initial
+    else
+      for {type, before, after} in steps
+        result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
+        (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
+    result += '</div>' # /.expanded
 
-  $outputContainer.toggle result?
-  $errorContainer.toggle not result?
+    result += '</div>' # /.reduction
+  $output.empty().html result
+  updateOutputExpansions()
+  ($ '.reduction', $output).click ->
+    preserveScrollPosition =>
+      ($ '.collapsed, .expanded', @).toggle()
+  ($ '.expanded .step', $output).hover ->
+    $step = $ @
+    $step.addClass 'highlight'
+    $step.prevAll('.step:eq(0)').find('.after').hide()
+  , ->
+    $step = $ @
+    $step.removeClass 'highlight'
+    # Hide the previous step's after term.
+    $step.prevAll('.step:eq(0)').find('.after').show()
 
 $input.val """
   ; Write some λ-expressions here. Use "\\" to enter "λ" ;)

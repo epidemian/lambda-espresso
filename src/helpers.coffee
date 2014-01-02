@@ -13,3 +13,10 @@ exports.compose = (fns...) ->
     for fn in fns
       args = [fn args...]
     args[0]
+
+exports.timed = (name, fn) ->
+  (args...) ->
+    console.time name
+    res = fn args...
+    console.timeEnd name
+    res
