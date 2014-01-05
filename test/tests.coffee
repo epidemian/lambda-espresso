@@ -1,5 +1,5 @@
 assert = require 'assert'
-{parseTerm, reduceTerm} = require '../lib/lambda'
+{parseTerm, reduceTerm, termTreeStr} = require '../lib/lambda'
 
 shouldParse = (expr, expected) ->
   assert.strictEqual (parseTerm expr), expected
@@ -104,6 +104,21 @@ describe 'reduceTerm()', ->
       # because it would make y bind to an inner abstraction; not renamed to y3
       # or y6 because they are free in the substitution term.
       shouldReduce '(λx.λy.λy2.λy5.x y y1 y4) (y y3 y6)', 'λy7.λy2.λy5.y y3 y6 y7 y1 y4'
+
+describe 'termTreeStr()', ->
+  it 'does its thing', ->
+    assert.strictEqual (termTreeStr 'a b c λd.e f'), '''
+      @
+      ├─@
+      │ ├─@
+      │ │ ├─a
+      │ │ ╰─b
+      │ ╰─c
+      ╰─λd
+        ╰─@
+          ├─e
+          ╰─f
+    '''
 
 # TODO Add a test of a beta-reduction that requires more than one
 # alpha-conversion, like (λx.(λy.x)(λz.x)) (y z)

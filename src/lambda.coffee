@@ -34,9 +34,7 @@ parse = timed 'parse', (str) ->
   parser.parse str
 
 # Returns the string representation for a given term t.
-# l is the number of terms "at the left" of t and r the number of term "at the
-# right"; they are used for parenthesization.
-termStr = (t, l = 0, r = 0) ->
+termStr = (t, appParens = no, absParens = no) ->
   str = switch t.type
     when Variable, Macro
       t.name
@@ -44,28 +42,31 @@ termStr = (t, l = 0, r = 0) ->
       lambda = "λ#{t.varName}"
       lambda = t.highlightVar lambda if t.highlightVar
       str = "#{lambda}.#{termStr t.body}"
-      if r > 0 then "(#{str})" else str
+      if absParens then "(#{str})" else str
     when Application
-      str = "#{termStr t.left, 0, 1} #{termStr t.right, 1, r}"
-      if l > 0 then "(#{str})" else str
+      str = "#{termStr t.left, no, yes} #{termStr t.right, yes, absParens}"
+      if appParens then "(#{str})" else str
   if t.highlight
     str = t.highlight str
   str
 
-# Print a given term in an tree format; intended for debugging purposes.
-logTerm = (t, ind = 0) ->
-  log = (msg) ->
-    console.log (repeatStr '| ', ind) + msg
-  switch t.type
-    when Variable, Macro
-      log t.name
-    when Abstraction
-      log "λ#{t.varName}"
-      logTerm t.body, ind + 1
-    when Application
-      log "@"
-      logTerm t.left, ind + 1
-      logTerm t.right, ind + 1
+# Show a term in a tree format. Useful for debugging.
+termTreeStr = do ->
+  makeLines = (t) ->
+    switch t.type
+      when Variable, Macro
+        [t.name]
+      when Abstraction
+        ["λ#{t.varName}", (indentLines (makeLines t.body), '╰─', '  ')...]
+      when Application
+        ["@", (indentLines (makeLines t.left),  '├─', '│ ')...
+              (indentLines (makeLines t.right), '╰─', '  ')...]
+
+  indentLines = (lines, first, next) ->
+    "#{if n is 0 then first else next}#{line}" for line, n in lines
+
+  (t) ->
+    (makeLines t).join '\n'
 
 # TODO: move this into an options object.
 highlightStepMatch = (str) ->
@@ -373,8 +374,8 @@ parseTerm = (str) ->
   throw Error "program has #{terms.length} terms" if terms.length isnt 1
   terms[0]
 
-exports.logTerm = (str) ->
-  logTerm parseTerm str
+exports.termTreeStr = (str) ->
+  termTreeStr parseTerm str
 
 # Parse a program with only one term.
 exports.parseTerm = (str) ->
