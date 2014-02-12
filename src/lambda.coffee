@@ -78,42 +78,6 @@ highlightAbstractionVar = (t, x, fn) ->
   ht = substitute t, x, hx
   extend (Abstraction x, ht), highlightVar: fn
 
-# A computation step, be it a β-reduction, an α-conversion or a macro expansion.
-Step = (type, before, after, term) ->
-  type:   type
-  before: highlight before, highlightStep
-  after:  highlight after, highlightStep
-  term:   term
-
-BetaReductionStep = (t, x, s) ->
-  hs = highlight s, highlightSubstitutionTerm
-  before = Application (highlightAbstractionVar t, x), hs
-  after = substitute t, x, hs
-  term = substitute t, x, s
-  Step 'beta', before, after, term
-
-AlphaConversionStep = (abst, renamedAbst) ->
-  before = highlightAbstractionVar abst.body, abst.varName, highlightSubstituted
-  after = highlightAbstractionVar renamedAbst.body, renamedAbst.varName, highlightSubstitutionTerm
-  Step 'alpha', before, after, renamedAbst
-
-MacroExpansionStep = (t) ->
-  before = highlight t, highlightSubstituted
-  after = highlight t.term, highlightSubstitutionTerm
-  Step 'macro', before, after, t.term
-
-# "Wraps" a step with a given function. The function must take a term and return
-# a term.
-# This operation is used to "go back" from recursive functions that return a
-# step, wrapping that step as the recursion stack unwraps.
-# Side-effect waring: this operation modifies the given step!
-wrapStep = (step, fn) ->
-  if step
-    step.term   = fn step.term
-    step.before = fn step.before
-    step.after  = fn step.after
-  step
-
 composeAbs = (fn, x) -> (b) -> fn Abstraction x, b
 composeAppL = (fn, l) -> (r) -> fn Application l, r
 composeAppR = (fn, r) -> (l) -> fn Application l, r
@@ -151,107 +115,14 @@ reduceCallByName = (t, cb) ->
       reduceCallByName t.term, cb
 
 apply = (abs, subst, cb) ->
-  applied = substitute2 abs.body, abs.varName, subst, cb
+  applied = substitute abs.body, abs.varName, subst, cb
   cb markStep 'beta', (Application abs, subst), applied
   applied
 
-# Reduces term t by one step and returns that step, or returns null.
-reduceStep = (t) ->
-  switch t.type
-    when Variable
-      # Variables cannot be reduced.
-      null
-    when Abstraction
-      wrapStep (reduceStep t.body), (body) -> Abstraction t.varName, body
-    when Application
-      if applied = applyStep t.left, t.right
-        # An application step is a reduction step.
-        return applied
-
-      # Reduce left one step; maybe next step it can be applied.
-      if leftStep = reduceStep t.left
-        return wrapStep leftStep, (left) -> Application left, t.right
-
-      # Left is irreducible; try reducing right.
-      wrapStep (reduceStep t.right), (right) -> Application t.left, right
-    when Macro
-      # Only if the inner term can be reduced the macro is reduced, and the
-      # reduction consists on substituting the macro with the actual term.
-      (reduceStep t.term) and MacroExpansionStep t
-
-# Applies term s into term t by one step.
-applyStep = (t, s) ->
-  switch t.type
-    when Variable, Application
-      null
-    when Abstraction
-      {varName, body} = t
-      if renameBodyStep = renameStep body, varName, s
-        return wrapStep renameBodyStep, (body) ->
-          Application (Abstraction varName, body), s
-      BetaReductionStep body, varName, s
-    when Macro
-      # Same logic as reduceStep. If the inner term can be applied, create a new
-      # application as the macro expansion.
-      if applyStep t.term, s
-        wrapStep (MacroExpansionStep t), (macro) -> (Application macro, s)
-
-# Makes an α-convertion step (renaming) needed to make the substitution
-# T[x := S] and returns that step, or null in case no renaming is needed.
-# See `substitute` for the logic of substitution.
-renameStep = (t, x, s) ->
-  switch t.type
-    when Variable, Macro
-      null
-    when Abstraction
-      return null if t.varName is x
-      # (λy.E)[x := S] = λy'.(E[y := y'][x := S]) if y is free in S and x is
-      # free in E.
-      # The abstraction variable must be renamed in order to avoid the free
-      # occurence of y in S to become bound once S is applied into E.
-      if (freeIn t.varName, s) and (freeIn x, t.body)
-        newVarName = renameVar t.varName, t.body, s
-        newBody = substitute t.body, t.varName, (Variable newVarName)
-        AlphaConversionStep t, (Abstraction newVarName, newBody)
-      else
-        wrapStep (renameStep t.body, x, s), (body) ->
-          Abstraction t.varName, body
-    when Application
-      if leftStep = renameStep t.left, x, s
-        return wrapStep leftStep, (left) -> Application left, t.right
-      if rightStep = renameStep t.right, x, s
-        return wrapStep rightStep, (right) -> Application t.left, right
-
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
 # Returns the substituted term.
-substitute = (t, x, s) ->
-  switch t.type
-    when Variable
-      # x[x := S] = S
-      # y[x := S] = y
-      if t.name is x then s else t
-    when Abstraction
-      # (λx.E)[x := S] = λx.E
-      # (λx creates a new context for x so no further substitution is needed)
-      return t if t.varName is x
-      # (λy.E)[x := S] = λy.(E[x := S]) given x != y and y not free in S
-      # The "y not free in S" condition should be guaranteed by the renameStep
-      # calls before beta-reduction.
-      Abstraction t.varName, (substitute t.body, x, s)
-    when Application
-      # (U V)[x := S] = (U[x := S]) (V[x := S])
-      Application (substitute t.left, x, s), (substitute t.right, x, s)
-    when Macro
-      if freeIn x, t.term
-        throw Error "Logical error: #{x} is free in #{t.name}." +
-          "Macros cannot have free variables"
-      t
-
-# Applies the substitution T[x := S]
-# I.e., substitutes the variable x for the term S in the term T.
-# Returns the substituted term.
-substitute2 = (t, x, s, cb) ->
+substitute = (t, x, s, cb) ->
   switch t.type
     when Variable
     # x[x := S] = S
@@ -269,16 +140,16 @@ substitute2 = (t, x, s, cb) ->
         newVarName = renameVar t.varName, t.body, s
         # Note: not passing cb as no further alpha-renames should be performed
         # on these two substitutions (so cb shouldn't be called).
-        renamedBody = substitute2 t.body, t.varName, Variable newVarName
+        renamedBody = substitute t.body, t.varName, Variable newVarName
         cb markStep 'alpha', t, (Abstraction newVarName, renamedBody)
-        Abstraction newVarName, (substitute2 renamedBody, x, s)
+        Abstraction newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
-        Abstraction t.varName, (substitute2 t.body, x, s, (cb and composeAbs cb, t.varName))
+        Abstraction t.varName, (substitute t.body, x, s, (cb and composeAbs cb, t.varName))
     when Application
       # (U V)[x := S] = (U[x := S]) (V[x := S])
-      l = substitute2 t.left, x, s, (cb and composeAppR cb, t.right)
-      r = substitute2 t.right, x, s, (cb and composeAppL cb, t.left)
+      l = substitute t.left, x, s, (cb and composeAppR cb, t.right)
+      r = substitute t.right, x, s, (cb and composeAppL cb, t.left)
       Application l, r
     when Macro
       if freeIn x, t.term
@@ -339,16 +210,6 @@ varRenameCollides = (t, oldName, newName) ->
 markStep = (type, before, after) ->
   extend {}, after, step: {type, before}
 
-#findStepType = (t) ->
-#  return t.step.type if t.step
-#  switch t.type
-#    when Abstraction
-#      findStepType t.body
-#    when Application
-#      (findStepType t.left) or (findStepType t.right)
-#    when Macro
-#      findStepType t.term
-
 find = (t, fn) ->
   return t if fn t
   switch t.type
@@ -359,18 +220,18 @@ find = (t, fn) ->
     when Application
       (find t.left, fn) or (find t.right, fn)
 
-replace = (t, replaced, replacement) ->
-  return replacement if t is replaced
+replace = (t, from, to) ->
+  return to if t is from
   switch t.type
     when Variable, Macro
       t
     when Abstraction
-      body = replace t.body, replaced, replacement
+      body = replace t.body, from, to
       if t.body is body then t else Abstraction t.varName, body
     when Application
-      l = replace t.left, replaced, replacement
+      l = replace t.left, from, to
       if t.left is l
-        r = replace t.right, replaced, replacement
+        r = replace t.right, from, to
         if t.right is r then t else Application l, r
       else
         Application l, t.right
