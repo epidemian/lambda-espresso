@@ -61,7 +61,7 @@ footer {
   box-shadow: 0px 1px 3px 1px #D2D2D2;
 }
 
-.step.highlight .subst-var {
+.step.highlight .former-term {
   color: rgb(227, 0, 217);
   text-shadow: 0 0 2px white,0 0 1em rgba(227, 0, 217, 0.5);
 }
@@ -84,7 +84,8 @@ footer {
 }
 
 /* Highlight last term of a reduction */
-.term:last-child {
+.collapsed .term:last-child,
+.expanded .step:last-child .term.after {
   /* FIXME! */
-  /*font-weight: bold;*/
+  font-weight: bold;
 }

@@ -59,8 +59,8 @@ describe 'reduceTerm()', ->
     shouldReduce '(λx.x y) (λz.z z)', 'y y'
 
   it 'should do at most maxStep reduction steps', ->
-    {steps} = reduceTerm '(λx.x x) (λx.x x)', maxSteps: 42
-    assert steps.length is 42
+    {totalSteps} = reduceTerm '(λx.x x) (λx.x x)', maxSteps: 42
+    assert totalSteps is 42
 
   it 'indicates when a reduction terminates', ->
     {terminates} = reduceTerm '(λx.x) y'

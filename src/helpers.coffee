@@ -14,3 +14,7 @@ exports.timed = (name, fn) ->
     res = fn args...
     console.timeEnd name
     res
+
+exports.compose = (f, g) -> (x) -> f g x
+
+exports.identity = (x) -> x

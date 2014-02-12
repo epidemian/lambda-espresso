@@ -1,5 +1,5 @@
 # λ calculus parser
-{repeatStr, extend, timed} = require './helpers'
+{repeatStr, extend, timed, compose, identity} = require './helpers'
 
 # Term types/constructors.
 Variable    = (name)          -> {type: Variable, name}
@@ -68,22 +68,12 @@ termTreeStr = do ->
   (t) ->
     (makeLines t).join '\n'
 
-# TODO: move this into an options object.
-highlightStepMatch = (str) ->
-  "<span class=\"match\">#{str}</span>"
-
-highlightSubstitutionVariable = (str) ->
-  "<span class=\"subst-var\">#{str}</span>"
-
-highlightSubstitutionTerm = (str) ->
-  "<span class=\"subst-term\">#{str}</span>"
-
 highlight = (t, fn) ->
   if t.highlight
     fn = compose fn, t.highlight
   extend {}, t, highlight: fn
 
-highlightAbstractionVar = (t, x, fn = highlightSubstitutionVariable) ->
+highlightAbstractionVar = (t, x, fn) ->
   hx = highlight (Variable x), fn
   ht = substitute t, x, hx
   extend (Abstraction x, ht), highlightVar: fn
@@ -91,8 +81,8 @@ highlightAbstractionVar = (t, x, fn = highlightSubstitutionVariable) ->
 # A computation step, be it a β-reduction, an α-conversion or a macro expansion.
 Step = (type, before, after, term) ->
   type:   type
-  before: highlight before, highlightStepMatch
-  after:  highlight after, highlightStepMatch
+  before: highlight before, highlightStep
+  after:  highlight after, highlightStep
   term:   term
 
 BetaReductionStep = (t, x, s) ->
@@ -103,12 +93,12 @@ BetaReductionStep = (t, x, s) ->
   Step 'beta', before, after, term
 
 AlphaConversionStep = (abst, renamedAbst) ->
-  before = highlightAbstractionVar abst.body, abst.varName, highlightSubstitutionVariable
+  before = highlightAbstractionVar abst.body, abst.varName, highlightSubstituted
   after = highlightAbstractionVar renamedAbst.body, renamedAbst.varName, highlightSubstitutionTerm
   Step 'alpha', before, after, renamedAbst
 
 MacroExpansionStep = (t) ->
-  before = highlight t, highlightSubstitutionVariable
+  before = highlight t, highlightSubstituted
   after = highlight t.term, highlightSubstitutionTerm
   Step 'macro', before, after, t.term
 
@@ -127,7 +117,6 @@ wrapStep = (step, fn) ->
 composeAbs = (fn, x) -> (b) -> fn Abstraction x, b
 composeAppL = (fn, l) -> (r) -> fn Application l, r
 composeAppR = (fn, r) -> (l) -> fn Application l, r
-composeMacro = (fn, n) -> (t) -> fn Macro n, t
 
 reduceNormal = (t, cb) ->
   switch t.type
@@ -144,8 +133,8 @@ reduceNormal = (t, cb) ->
         r = reduceNormal t.right, (composeAppL cb, l)
         Application l, r
     when Macro
-      cb t.term
-      reduceNormal t.term, (composeMacro cb, t.name)
+      cb markStep 'macro', t, t.term
+      reduceNormal t.term, cb
 
 reduceCallByName = (t, cb) ->
   switch t.type
@@ -158,12 +147,12 @@ reduceCallByName = (t, cb) ->
       else
         t
     when Macro
-      cb t.term
-      reduceCallByName t.term, (composeMacro cb, t.name)
+      cb markStep 'macro', t, t.term
+      reduceCallByName t.term, cb
 
 apply = (abs, subst, cb) ->
   applied = substitute2 abs.body, abs.varName, subst, cb
-  cb applied
+  cb markStep 'beta', (Application abs, subst), applied
   applied
 
 # Reduces term t by one step and returns that step, or returns null.
@@ -281,7 +270,7 @@ substitute2 = (t, x, s, cb) ->
         # Note: not passing cb as no further alpha-renames should be performed
         # on these two substitutions (so cb shouldn't be called).
         renamedBody = substitute2 t.body, t.varName, Variable newVarName
-        cb Abstraction newVarName, renamedBody
+        cb markStep 'alpha', t, (Abstraction newVarName, renamedBody)
         Abstraction newVarName, (substitute2 renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
@@ -296,7 +285,6 @@ substitute2 = (t, x, s, cb) ->
         throw Error "Logical error: #{x} is free in #{t.name}." +
         "Macros cannot have free variables"
       t
-
 
 # Renames a variable to avoid naming conflicts when doing a substitution.
 renameVar = (oldName, t, s) ->
@@ -348,6 +336,76 @@ varRenameCollides = (t, oldName, newName) ->
     when Macro
       varRenameCollides t.term, oldName, newName
 
+markStep = (type, before, after) ->
+  extend {}, after, step: {type, before}
+
+#findStepType = (t) ->
+#  return t.step.type if t.step
+#  switch t.type
+#    when Abstraction
+#      findStepType t.body
+#    when Application
+#      (findStepType t.left) or (findStepType t.right)
+#    when Macro
+#      findStepType t.term
+
+find = (t, fn) ->
+  return t if fn t
+  switch t.type
+    when Variable, Macro
+      null
+    when Abstraction
+      find t.body, fn
+    when Application
+      (find t.left, fn) or (find t.right, fn)
+
+replace = (t, replaced, replacement) ->
+  return replacement if t is replaced
+  switch t.type
+    when Variable, Macro
+      t
+    when Abstraction
+      body = replace t.body, replaced, replacement
+      if t.body is body then t else Abstraction t.varName, body
+    when Application
+      l = replace t.left, replaced, replacement
+      if t.left is l
+        r = replace t.right, replaced, replacement
+        if t.right is r then t else Application l, r
+      else
+        Application l, t.right
+
+expandStep = (t, options = {}) ->
+  stepTerm = find t, (subT) -> subT.step
+  type = stepTerm.step.type
+  before = stepTerm.step.before
+  after = stepTerm
+
+  highlightFormer = options.highlightFormerTerm or identity
+  highlightSubst = options.highlightSubstitutionTerm or identity
+  highlightStep = options.highlightStep or identity
+
+  switch type
+    when 'alpha'
+      before = highlightAbstractionVar before.body, before.varName, highlightFormer
+      after = highlightAbstractionVar after.body, after.varName, highlightSubst
+    when 'beta'
+      hs = highlight before.right, highlightSubst
+      ha = highlightAbstractionVar before.left.body, before.left.varName, highlightFormer
+      before = Application ha, hs
+      after = substitute before.left.body, before.left.varName, hs
+    when 'macro'
+      before = highlight before, highlightFormer
+      after = highlight after, highlightSubst
+
+  before = highlight before, highlightStep
+  after = highlight after, highlightStep
+
+  before = termStr replace t, stepTerm, before
+  after = termStr replace t, stepTerm, after
+
+  {type, before, after}
+
 defaultOptions =
   maxSteps: 100
 
@@ -367,7 +425,10 @@ reduceTerm = timed 'reduce', (term, options) ->
 
   initial = termStr term
   final = termStr steps[steps.length - 1] or term
-  {initial, final, terminates, steps}
+  totalSteps = steps.length
+  renderStep = (i, options) ->
+    expandStep steps[i], options
+  {initial, final, terminates, totalSteps, renderStep}
 
 parseTerm = (str) ->
   terms = parse str

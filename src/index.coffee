@@ -68,42 +68,59 @@ run = ->
 
 renderReductions = timed 'render html', (reductions) ->
   result = ''
-  for {initial, final, steps} in reductions
+  for {initial, final, totalSteps} in reductions
     result += '<div class="reduction">'
 
     # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-    collapsed = if not steps.length
+    collapsed = if not totalSteps
       termHtml initial
     else
-      (termHtml initial) + ' ' + (arrowHtml '→', "(#{steps.length})") + ' ' +
+      (termHtml initial) + ' ' + (arrowHtml '→', "(#{totalSteps})") + ' ' +
       (termHtml final)
     result += "<div class=\"collapsed\">#{collapsed}</div>"
 
-#    # Expanded form.
-#    result += '<div class="expanded">'
-#    if not steps.length
-#      result += termHtml initial
-#    else
-#      for {type, before, after} in steps
-#        result += '<span class="step">' + (termHtml before, 'before') + '<br>' +
-#        (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
-#    result += '</div>' # /.expanded
-
     result += '</div>' # /.reduction
+
   $output.empty().html result
-  updateOutputExpansions()
-  ($ '.reduction', $output).click ->
-    preserveScrollPosition =>
-      ($ '.collapsed, .expanded', @).toggle()
-  ($ '.expanded .step', $output).hover ->
+  $output.off()
+  $output.on 'click', '.reduction', ->
+    $reduction = $ @
+    if not ($reduction.children '.expanded')[0]
+      reduction = reductions[$reduction.index()]
+      $reduction.append renderExpandedReduction reduction
+      ($ '.collapsed', $reduction).hide()
+    else
+      ($ '.collapsed, .expanded', $reduction).toggle()
+  $output.on 'mouseenter', '.expanded .step', ->
     $step = $ @
     $step.addClass 'highlight'
+    # Hide the previous step's after term.
     $step.prevAll('.step:eq(0)').find('.after').hide()
-  , ->
+  $output.on 'mouseleave', '.expanded .step', ->
     $step = $ @
     $step.removeClass 'highlight'
-    # Hide the previous step's after term.
     $step.prevAll('.step:eq(0)').find('.after').show()
+
+renderExpandedReduction = ({totalSteps, initial, renderStep}) ->
+  expanded = '<div class="expanded">'
+  if totalSteps is 0
+    expanded += termHtml initial
+  else
+    for i in [0...totalSteps]
+      {type, before, after} = renderStep i, renderStepOptions
+      expanded += '<span class="step">' + (termHtml before, 'before') + '<br>' +
+      (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
+  expanded += '</div>'
+  expanded
+
+renderStepOptions =
+  highlightStep: (str) ->
+    "<span class=\"match\">#{str}</span>"
+  highlightFormerTerm: (str) ->
+    "<span class=\"former-term\">#{str}</span>"
+  highlightSubstitutionTerm: (str) ->
+    "<span class=\"subst-term\">#{str}</span>"
+
 
 $input.val """
   ; Write some λ-expressions here. Use "\\" to enter "λ" ;)
@@ -132,17 +149,3 @@ updateInputFromHash = ->
 
 ($ window).on 'hashchange', updateInputFromHash
 updateInputFromHash()
-
-options =
-  expandOutput: no
-
-updateOutputExpansions = ->
-  preserveScrollPosition ->
-    expand = options.expandOutput
-    ($ '.expand-all, .reduction .collapsed').toggle not expand
-    ($ '.collapse-all, .reduction .expanded').toggle expand
-
-($ '.expand-all, .collapse-all'). click ->
-  options.expandOutput = not options.expandOutput
-  updateOutputExpansions()
-
