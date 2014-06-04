@@ -4,7 +4,7 @@
     "url": "git://github.com/epidemian/lambda-espresso.git"
   },
   "dependencies": {
-    "coffee-script": "~1.6.3",
+    "coffee-script": "~1.7.1",
     "jison": "~0.4.13",
     "mocha": "~1.13.0",
     "browserify": "2.34.3"
