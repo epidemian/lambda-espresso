@@ -819,7 +819,7 @@ if (typeof module !== 'undefined' && require.main === module) {
     for (_i = 0, _len = reductions.length; _i < _len; _i++) {
       _ref = reductions[_i], initial = _ref.initial, final = _ref.final, finalSynonyms = _ref.finalSynonyms, totalSteps = _ref.totalSteps;
       result += '<div class="reduction">';
-      collapsed = !totalSteps ? termHtml(initial) : (termHtml(initial)) + ' ' + (arrowHtml('→', "(" + totalSteps + ")")) + ' ' + (termHtml(final));
+      collapsed = totalSteps === 0 ? termHtml(initial) : (termHtml(initial)) + ' ' + (arrowHtml('→', "(" + totalSteps + ")")) + ' ' + (termHtml(final));
       collapsed += synonymsHtml(finalSynonyms);
       result += "<div class=\"collapsed\">" + collapsed + "</div>";
       result += '</div>';
@@ -833,11 +833,11 @@ if (typeof module !== 'undefined' && require.main === module) {
       if (reduction.totalSteps === 0) {
         return;
       }
-      if (!($reduction.children('.expanded'))[0]) {
+      if (($reduction.children('.expanded'))[0]) {
+        return ($('.collapsed, .expanded', $reduction)).toggle();
+      } else {
         $reduction.append(renderExpandedReduction(reduction));
         return ($('.collapsed', $reduction)).hide();
-      } else {
-        return ($('.collapsed, .expanded', $reduction)).toggle();
       }
     });
     $output.on('mouseenter', '.expanded .step', function() {

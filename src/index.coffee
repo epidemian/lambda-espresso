@@ -78,7 +78,7 @@ renderReductions = timed 'render html', (reductions) ->
     result += '<div class="reduction">'
 
     # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-    collapsed = if not totalSteps
+    collapsed = if totalSteps is 0
       termHtml initial
     else
       (termHtml initial) + ' ' + (arrowHtml '→', "(#{totalSteps})") + ' ' +
@@ -95,11 +95,11 @@ renderReductions = timed 'render html', (reductions) ->
     $reduction = $ @
     reduction = reductions[$reduction.index()]
     return if reduction.totalSteps is 0
-    if not ($reduction.children '.expanded')[0]
+    if ($reduction.children '.expanded')[0]
+      ($ '.collapsed, .expanded', $reduction).toggle()
+    else
       $reduction.append renderExpandedReduction reduction
       ($ '.collapsed', $reduction).hide()
-    else
-      ($ '.collapsed, .expanded', $reduction).toggle()
   $output.on 'mouseenter', '.expanded .step', ->
     $step = $ @
     $step.addClass 'highlight'
