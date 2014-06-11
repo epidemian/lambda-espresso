@@ -29,7 +29,7 @@ parse = timed 'parse', (str) ->
       throw Error "#{name} not defined" unless macros[name]
       macros[name]
     parseTermEvaluation: (term) -> terms.push term
-    getProgram: -> terms
+    getProgram: -> {macros, terms}
 
   parser.parse str
 
@@ -122,6 +122,7 @@ apply = (abs, subst, cb) ->
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
 # Returns the substituted term.
+# TODO Make sure cb is optional here!
 substitute = (t, x, s, cb) ->
   switch t.type
     when Variable
@@ -141,7 +142,7 @@ substitute = (t, x, s, cb) ->
         # Note: not passing cb as no further alpha-renames should be performed
         # on these two substitutions (so cb shouldn't be called).
         renamedBody = substitute t.body, t.varName, Variable newVarName
-        cb markStep 'alpha', t, (Abstraction newVarName, renamedBody)
+        cb markStep 'alpha', t, (Abstraction newVarName, renamedBody) if cb
         Abstraction newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
@@ -267,11 +268,29 @@ expandStep = (t, options = {}) ->
 
   {type, before, after}
 
+alphaEq = (t1, t2) ->
+  return alphaEq t1.term, t2 if t1.type is Macro
+  return alphaEq t1, t2.term if t2.type is Macro
+  return no unless t1.type is t2.type
+  switch t1.type
+    when Variable
+      t1.name is t2.name
+    when Abstraction
+      if t1.varName is t2.varName
+        alphaEq t1.body, t2.body
+      else
+        alphaEq t1.body, (substitute t2.body, t2.varName, Variable(t1.varName))
+    when Application
+      (alphaEq t1.left, t2.left) and (alphaEq t1.right, t2.right)
+
+findSynonyms = (term, macros) ->
+  name for name, macro of macros when alphaEq term, macro
+
 defaultOptions =
   maxSteps: 100
 
 # Reduces a term up to its normal form and returns TODO What does it return?
-reduceTerm = timed 'reduce', (term, options) ->
+reduceTerm = timed 'reduce', (term, macros, options) ->
   {maxSteps} = extend {}, defaultOptions, options
   enough = {}
   steps = []
@@ -284,15 +303,18 @@ reduceTerm = timed 'reduce', (term, options) ->
     throw e if e isnt enough
     terminates = no
 
-  initial = termStr term
-  final = termStr steps[steps.length - 1] or term
+  initial = term
+  final = steps[steps.length - 1] or term
+  finalSynonyms = findSynonyms final, macros
+  initial = termStr initial
+  final = termStr final
   totalSteps = steps.length
   renderStep = (i, options) ->
     expandStep steps[i], options
-  {initial, final, terminates, totalSteps, renderStep}
+  {initial, final, finalSynonyms, terminates, totalSteps, renderStep}
 
 parseTerm = (str) ->
-  terms = parse str
+  {terms} = parse str
   throw Error "program has #{terms.length} terms" if terms.length isnt 1
   terms[0]
 
@@ -305,9 +327,9 @@ exports.parseTerm = (str) ->
 
 # Reduce a program with only one term.
 exports.reduceTerm = (str, options = {}) ->
-  reduceTerm (parseTerm str), options
+  reduceTerm (parseTerm str), {}, options
 
 # Reduce a program that might have multiple terms.
 exports.reduceProgram = (expr, options = {}) ->
-  terms = parse expr
-  reduceTerm term, options for term in terms
+  {terms, macros} = parse expr
+  reduceTerm term, macros, options for term in terms

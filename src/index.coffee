@@ -66,9 +66,15 @@ run = ->
   $outputContainer.toggle not err?
   $errorContainer.toggle err?
 
+synonymsHtml = (synonyms) ->
+  if synonyms.length
+    " (#{synonyms.join ', '})"
+  else
+    ''
+
 renderReductions = timed 'render html', (reductions) ->
   result = ''
-  for {initial, final, totalSteps} in reductions
+  for {initial, final, finalSynonyms, totalSteps} in reductions
     result += '<div class="reduction">'
 
     # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
@@ -77,6 +83,8 @@ renderReductions = timed 'render html', (reductions) ->
     else
       (termHtml initial) + ' ' + (arrowHtml '→', "(#{totalSteps})") + ' ' +
       (termHtml final)
+    collapsed += synonymsHtml finalSynonyms
+
     result += "<div class=\"collapsed\">#{collapsed}</div>"
 
     result += '</div>' # /.reduction
@@ -101,15 +109,17 @@ renderReductions = timed 'render html', (reductions) ->
     $step.removeClass 'highlight'
     $step.prevAll('.step:eq(0)').find('.after').show()
 
-renderExpandedReduction = ({totalSteps, initial, renderStep}) ->
+renderExpandedReduction = ({totalSteps, initial, renderStep, finalSynonyms}) ->
   expanded = '<div class="expanded">'
   if totalSteps is 0
-    expanded += termHtml initial
+    expanded += (termHtml initial) + (synonymsHtml finalSynonyms)
   else
     for i in [0...totalSteps]
       {type, before, after} = renderStep i, renderStepOptions
-      expanded += '<span class="step">' + (termHtml before, 'before') + '<br>' +
-      (arrowHtmlByType type) + (termHtml after, 'after') + '</span>'
+      step = (termHtml before, 'before') + '<br>' +
+        (arrowHtmlByType type) + (termHtml after, 'after')
+      step += synonymsHtml finalSynonyms if i is totalSteps - 1
+      expanded += "<span class=step>#{step}</span>"
   expanded += '</div>'
   expanded
 
