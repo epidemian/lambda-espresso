@@ -829,8 +829,11 @@ if (typeof module !== 'undefined' && require.main === module) {
     $output.on('click', '.reduction', function() {
       var $reduction, reduction;
       $reduction = $(this);
+      reduction = reductions[$reduction.index()];
+      if (reduction.totalSteps === 0) {
+        return;
+      }
       if (!($reduction.children('.expanded'))[0]) {
-        reduction = reductions[$reduction.index()];
         $reduction.append(renderExpandedReduction(reduction));
         return ($('.collapsed', $reduction)).hide();
       } else {
@@ -855,17 +858,13 @@ if (typeof module !== 'undefined' && require.main === module) {
     var after, before, expanded, finalSynonyms, i, initial, renderStep, step, totalSteps, type, _i, _ref;
     totalSteps = _arg.totalSteps, initial = _arg.initial, renderStep = _arg.renderStep, finalSynonyms = _arg.finalSynonyms;
     expanded = '<div class="expanded">';
-    if (totalSteps === 0) {
-      expanded += (termHtml(initial)) + (synonymsHtml(finalSynonyms));
-    } else {
-      for (i = _i = 0; 0 <= totalSteps ? _i < totalSteps : _i > totalSteps; i = 0 <= totalSteps ? ++_i : --_i) {
-        _ref = renderStep(i, renderStepOptions), type = _ref.type, before = _ref.before, after = _ref.after;
-        step = (termHtml(before, 'before')) + '<br>' + (arrowHtmlByType(type)) + (termHtml(after, 'after'));
-        if (i === totalSteps - 1) {
-          step += synonymsHtml(finalSynonyms);
-        }
-        expanded += "<span class=step>" + step + "</span>";
+    for (i = _i = 0; 0 <= totalSteps ? _i < totalSteps : _i > totalSteps; i = 0 <= totalSteps ? ++_i : --_i) {
+      _ref = renderStep(i, renderStepOptions), type = _ref.type, before = _ref.before, after = _ref.after;
+      step = (termHtml(before, 'before')) + '<br>' + (arrowHtmlByType(type)) + (termHtml(after, 'after'));
+      if (i === totalSteps - 1) {
+        step += synonymsHtml(finalSynonyms);
       }
+      expanded += "<span class=step>" + step + "</span>";
     }
     expanded += '</div>';
     return expanded;

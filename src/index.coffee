@@ -93,8 +93,9 @@ renderReductions = timed 'render html', (reductions) ->
   $output.off()
   $output.on 'click', '.reduction', ->
     $reduction = $ @
+    reduction = reductions[$reduction.index()]
+    return if reduction.totalSteps is 0
     if not ($reduction.children '.expanded')[0]
-      reduction = reductions[$reduction.index()]
       $reduction.append renderExpandedReduction reduction
       ($ '.collapsed', $reduction).hide()
     else
@@ -111,15 +112,12 @@ renderReductions = timed 'render html', (reductions) ->
 
 renderExpandedReduction = ({totalSteps, initial, renderStep, finalSynonyms}) ->
   expanded = '<div class="expanded">'
-  if totalSteps is 0
-    expanded += (termHtml initial) + (synonymsHtml finalSynonyms)
-  else
-    for i in [0...totalSteps]
-      {type, before, after} = renderStep i, renderStepOptions
-      step = (termHtml before, 'before') + '<br>' +
-        (arrowHtmlByType type) + (termHtml after, 'after')
-      step += synonymsHtml finalSynonyms if i is totalSteps - 1
-      expanded += "<span class=step>#{step}</span>"
+  for i in [0...totalSteps]
+    {type, before, after} = renderStep i, renderStepOptions
+    step = (termHtml before, 'before') + '<br>' +
+      (arrowHtmlByType type) + (termHtml after, 'after')
+    step += synonymsHtml finalSynonyms if i is totalSteps - 1
+    expanded += "<span class=step>#{step}</span>"
   expanded += '</div>'
   expanded
 
