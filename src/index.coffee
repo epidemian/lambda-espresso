@@ -31,23 +31,25 @@ $input.keyup (e) ->
 
 ($ '.run').click -> run()
 
-termHtml = (term, className = '') ->
+renderTerm = (term, className = '') ->
   "<span class='term #{className}'>#{term}</span>"
 
-arrowHtml = (symbol, label) ->
+renderArrow = (symbol, label) ->
   "<span class=arrow>#{symbol}<small>#{label}</small></span>"
 
-arrowSymbol = (type) ->
-  if type is 'macro' then '≡' else '→'
-
-arrowLabel = (type) ->
-  switch type
+renderArrowByType = (type) ->
+  symbol = if type is 'macro' then '≡' else '→'
+  label = switch type
     when 'alpha' then 'α'
     when 'beta' then 'β'
     else ''
+  renderArrow symbol, label
 
-arrowHtmlByType = (type) ->
-  arrowHtml (arrowSymbol type), (arrowLabel type)
+renderSynonyms = (synonyms) ->
+  if synonyms.length
+    "(#{synonyms.join ', '})"
+  else
+    ''
 
 getOptions = ->
   options = {}
@@ -77,7 +79,7 @@ renderReductions = timed 'render html', (reductions) ->
     if ($reduction.children '.expanded')[0]
       ($ '.collapsed, .expanded', $reduction).toggle()
     else
-      $reduction.append renderExpandedReduction reduction
+      $reduction.append renderExpandedReductionForm reduction
       ($ '.collapsed', $reduction).hide()
   $output.on 'mouseenter', '.expanded .step', ->
     $step = $ @
@@ -89,31 +91,31 @@ renderReductions = timed 'render html', (reductions) ->
     $step.removeClass 'highlight'
     $step.prevAll('.step:eq(0)').find('.after').show()
 
-renderCollapsedReduction = ({initial, final, finalSynonyms, totalSteps}) ->
-  finalHtml = if totalSteps > 0
-    "#{arrowHtml '→', "(#{totalSteps})"} #{termHtml final}"
+renderCollapsedReduction = (reduction) ->
+  "<div class=reduction>#{renderCollapsedReductionForm reduction}</div>"
+
+renderCollapsedReductionForm = (reduction) ->
+  initial = renderTerm reduction.initial
+  arrowAndFinal = if reduction.totalSteps > 0
+    arrow = renderArrow '→', "(#{reduction.totalSteps})"
+    final = renderTerm reduction.final
+    "#{arrow} #{final}"
   else
     ''
-  collapsed = "#{termHtml initial} #{finalHtml} #{synonymsHtml finalSynonyms}"
+  synonyms = renderSynonyms reduction.finalSynonyms
+  "<div class=collapsed>#{initial} #{arrowAndFinal} #{synonyms}</div>"
 
-  "<div class=reduction><div class=collapsed>#{collapsed}</div></div>"
-
-renderExpandedReduction = ({totalSteps, initial, renderStep, finalSynonyms}) ->
-  steps = for i in [0...totalSteps]
-    step = renderStep i, renderStepOptions
-    beforeHtml = termHtml step.before, 'before'
-    afterHtml = termHtml step.after, 'after'
-    arrow = arrowHtmlByType step.type
-    synonyms = if i is totalSteps - 1 then synonymsHtml finalSynonyms else ''
-    "<span class=step>#{beforeHtml}<br>#{arrow} #{afterHtml} #{synonyms}</span>"
+renderExpandedReductionForm = (reduction) ->
+  steps = for i in [0...reduction.totalSteps]
+    step = reduction.renderStep i, renderStepOptions
+    before = renderTerm step.before, 'before'
+    after = renderTerm step.after, 'after'
+    arrow = renderArrowByType step.type
+    lastStep = i is reduction.totalSteps - 1
+    synonyms = if lastStep then renderSynonyms reduction.finalSynonyms else ''
+    "<span class=step>#{before}<br>#{arrow} #{after} #{synonyms}</span>"
 
   "<div class=expanded>#{steps.join ''}</div>"
-
-synonymsHtml = (synonyms) ->
-  if synonyms.length
-    "(#{synonyms.join ', '})"
-  else
-    ''
 
 renderStepOptions =
   highlightStep: (str) ->
