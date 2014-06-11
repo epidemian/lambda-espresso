@@ -32,10 +32,10 @@ $input.keyup (e) ->
 ($ '.run').click -> run()
 
 termHtml = (term, className = '') ->
-  "<span class=\"term #{className}\">#{term}</span>"
+  "<span class='term #{className}'>#{term}</span>"
 
 arrowHtml = (symbol, label) ->
-  "<span class=\"arrow\">#{symbol}<small>#{label}</small></span>"
+  "<span class=arrow>#{symbol}<small>#{label}</small></span>"
 
 arrowSymbol = (type) ->
   if type is 'macro' then '≡' else '→'
@@ -66,30 +66,9 @@ run = ->
   $outputContainer.toggle not err?
   $errorContainer.toggle err?
 
-synonymsHtml = (synonyms) ->
-  if synonyms.length
-    " (#{synonyms.join ', '})"
-  else
-    ''
-
 renderReductions = timed 'render html', (reductions) ->
-  result = ''
-  for {initial, final, finalSynonyms, totalSteps} in reductions
-    result += '<div class="reduction">'
-
-    # Collapsed form (TODO Maybe use Bootstrap's Collapse component).
-    collapsed = if totalSteps is 0
-      termHtml initial
-    else
-      (termHtml initial) + ' ' + (arrowHtml '→', "(#{totalSteps})") + ' ' +
-      (termHtml final)
-    collapsed += synonymsHtml finalSynonyms
-
-    result += "<div class=\"collapsed\">#{collapsed}</div>"
-
-    result += '</div>' # /.reduction
-
-  $output.empty().html result
+  html = (reductions.map renderCollapsedReduction).join ''
+  $output.empty().html html
   $output.off()
   $output.on 'click', '.reduction', ->
     $reduction = $ @
@@ -110,24 +89,39 @@ renderReductions = timed 'render html', (reductions) ->
     $step.removeClass 'highlight'
     $step.prevAll('.step:eq(0)').find('.after').show()
 
+renderCollapsedReduction = ({initial, final, finalSynonyms, totalSteps}) ->
+  finalHtml = if totalSteps > 0
+    "#{arrowHtml '→', "(#{totalSteps})"} #{termHtml final}"
+  else
+    ''
+  collapsed = "#{termHtml initial} #{finalHtml} #{synonymsHtml finalSynonyms}"
+
+  "<div class=reduction><div class=collapsed>#{collapsed}</div></div>"
+
 renderExpandedReduction = ({totalSteps, initial, renderStep, finalSynonyms}) ->
-  expanded = '<div class="expanded">'
-  for i in [0...totalSteps]
-    {type, before, after} = renderStep i, renderStepOptions
-    step = (termHtml before, 'before') + '<br>' +
-      (arrowHtmlByType type) + (termHtml after, 'after')
-    step += synonymsHtml finalSynonyms if i is totalSteps - 1
-    expanded += "<span class=step>#{step}</span>"
-  expanded += '</div>'
-  expanded
+  steps = for i in [0...totalSteps]
+    step = renderStep i, renderStepOptions
+    beforeHtml = termHtml step.before, 'before'
+    afterHtml = termHtml step.after, 'after'
+    arrow = arrowHtmlByType step.type
+    synonyms = if i is totalSteps - 1 then synonymsHtml finalSynonyms else ''
+    "<span class=step>#{beforeHtml}<br>#{arrow} #{afterHtml} #{synonyms}</span>"
+
+  "<div class=expanded>#{steps.join ''}</div>"
+
+synonymsHtml = (synonyms) ->
+  if synonyms.length
+    "(#{synonyms.join ', '})"
+  else
+    ''
 
 renderStepOptions =
   highlightStep: (str) ->
-    "<span class=\"match\">#{str}</span>"
+    "<span class=match>#{str}</span>"
   highlightFormerTerm: (str) ->
-    "<span class=\"former-term\">#{str}</span>"
+    "<span class=former-term>#{str}</span>"
   highlightSubstitutionTerm: (str) ->
-    "<span class=\"subst-term\">#{str}</span>"
+    "<span class=subst-term>#{str}</span>"
 
 
 $input.val """
