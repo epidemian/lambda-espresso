@@ -9,11 +9,6 @@ $outputContainer = $ '.output-container'
 $error           = $ '.error'
 $errorContainer  = $ '.error-container'
 
-preserveScrollPosition = (fn) ->
-  top = document.body.scrollTop
-  fn()
-  document.body.scrollTop = top
-
 # Run code on ctrl+enter.
 ($ document).keyup (e) ->
   run() if e.keyCode is 13 and e.ctrlKey
