@@ -115,43 +115,77 @@ reduceCallByName = (t, cb) ->
       reduceCallByName t.term, cb
 
 apply = (abs, subst, cb) ->
-  applied = substitute abs.body, abs.varName, subst, cb
-  cb markStep 'beta', (Application abs, subst), applied
+  renameCb = composeAbs (composeAppR cb, subst), abs.varName
+  renamedBody = renameForSubstitution abs.body, abs.varName, subst, renameCb
+  renamed = Application (Abstraction abs.varName, renamedBody), subst
+  applied = applySubstitution renamedBody, abs.varName, subst
+  cb markStep 'beta', renamed, applied
   applied
 
 # Applies the substitution T[x := S]
 # I.e., substitutes the variable x for the term S in the term T.
-# Returns the substituted term.
-# TODO Make sure cb is optional here!
-substitute = (t, x, s, cb) ->
+substitute = (t, x, s) ->
   switch t.type
     when Variable
-    # x[x := S] = S
-    # y[x := S] = y
+      # x[x := S] = S
+      # y[x := S] = y
       if t.name is x then s else t
     when Abstraction
-    # (λx.E)[x := S] = λx.E
-    # (λx creates a new context for x so no further substitution is needed)
+      # (λx.E)[x := S] = λx.E
+      # λx creates a new context for x so no further substitution is needed.
       return t if t.varName is x
       # (λy.E)[x := S] with x != y
-      # if y is free in S and x is free in E, then must α-convert λy.E to avoid
+      # If y is free in S and x is free in E, then must α-convert λy.E to avoid
       # name conflicts.
       if (freeIn t.varName, s) and (freeIn x, t.body)
         # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
         newVarName = renameVar t.varName, t.body, s
-        # Note: not passing cb as no further alpha-renames should be performed
-        # on these two substitutions (so cb shouldn't be called).
-        renamedBody = substitute t.body, t.varName, Variable newVarName
-        cb markStep 'alpha', t, (Abstraction newVarName, renamedBody) if cb
+        renamedBody = applySubstitution t.body, t.varName, Variable newVarName
         Abstraction newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
-        Abstraction t.varName, (substitute t.body, x, s, (cb and composeAbs cb, t.varName))
+        Abstraction t.varName, (substitute t.body, x, s)
     when Application
       # (U V)[x := S] = (U[x := S]) (V[x := S])
-      l = substitute t.left, x, s, (cb and composeAppR cb, t.right)
-      r = substitute t.right, x, s, (cb and composeAppL cb, t.left)
+      Application (substitute t.left, x, s), (substitute t.right, x, s)
+    when Macro
+      if freeIn x, t.term
+        # TODO delete. Check for free variables on macros when (or after) parsing.
+        throw Error "Logical error: #{x} is free in #{t.name}." +
+          "Macros cannot have free variables"
+      t
+
+# Performs the α-conversions necessary for the substitution T[x := S], but does
+# not perform the substitution itself.
+# Records the α-conversions by calling cb.
+renameForSubstitution = (t, x, s, cb) ->
+  switch t.type
+    when Variable, Macro
+      t
+    when Abstraction
+      return t if t.varName is x
+      if (freeIn t.varName, s) and (freeIn x, t.body)
+        newVarName = renameVar t.varName, t.body, s
+        renamedBody = applySubstitution t.body, t.varName, Variable newVarName
+        cb markStep 'alpha', t, (t = Abstraction newVarName, renamedBody)
+      Abstraction t.varName, (renameForSubstitution t.body, x, s, (composeAbs cb, t.varName))
+    when Application
+      l = renameForSubstitution t.left, x, s, (composeAppR cb, t.right)
+      r = renameForSubstitution t.right, x, s, (composeAppL cb, l)
       Application l, r
+
+# Applies the substitution T[x := S] directly, without performing α-conversions.
+applySubstitution = (t, x, s) ->
+  switch t.type
+    when Variable
+      if t.name is x then s else t
+    when Abstraction
+      if t.varName is x
+        t
+      else
+        Abstraction t.varName, (applySubstitution t.body, x, s)
+    when Application
+      Application (applySubstitution t.left, x, s), (applySubstitution t.right, x, s)
     when Macro
       if freeIn x, t.term
         throw Error "Logical error: #{x} is free in #{t.name}." +
