@@ -1,4 +1,3 @@
-- Add reduction strategy option: normal or applicative.
 - Add Eta-reduction option.
 - Add collapse/expand reduction steps option.
 - Add expand macro (lazy|eager) option.
@@ -19,7 +18,13 @@
 - Let macros be defined after their usage.
 - Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
+- Use trampolining to avoid "too much recursion" errors
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
 - Use CoffeeScript to deifne the grammar instead of a Jison grammar file
+
+- Add references to nice intro material to Lambda Calculus:
+  - [http://codon.com/programming-with-nothing](http://codon.com/programming-with-nothing)
+  - [Ruby Conf 12 - Y Not- Adventures in Functional Programming by Jim Weirich](https://www.youtube.com/watch?v=FITJMJjASUs)
+  - Lambda Calculus page on Wikipedia

@@ -17,14 +17,19 @@
       <div class="span3">
         <div class="well well-small">
           <legend>Options<small>(not working yet)</small></legend>
-          <label>
-            Reduction strategy<br>
-            <label class="radio inline" title="Use normal order; should reduce all reducible expressions">
-              <input type="radio" name="reduction-strategy" value="normal" checked disabled>Normal
-            </label>
-            <label class="radio inline" title="Use applicative order; some reducible expressions might not terminate">
-              <input type="radio" name="reduction-strategy" value="applicative" disabled>Applicative
-            </label>
+          <label>Reduction strategy</label>
+          <label class="radio inline" title="Use normal order; should reduce all reducible expressions">
+            <input type="radio" name="strategy" value="normal" checked>Normal
+          </label>
+          <label class="radio inline" title="Use applicative order; some reducible expressions might not terminate">
+            <input type="radio" name="strategy" value="applicative">Applicative
+          </label>
+          <br>
+          <label class="radio inline" title="Use call by name reduction strategy">
+            <input type="radio" name="strategy" value="cbn">Call by name
+          </label>
+          <label class="radio inline" title="Use call by value; some reducible expressions might not terminate">
+            <input type="radio" name="strategy" value="cbv">Call by value
           </label>
           <label>
             Max. reduction steps<br>

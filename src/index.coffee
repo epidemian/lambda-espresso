@@ -47,10 +47,9 @@ renderSynonyms = (synonyms) ->
     ''
 
 getOptions = ->
-  options = {}
-  maxSteps = parseInt ($ 'input[name=max-steps]').val()
-  options.maxSteps = maxSteps unless isNaN maxSteps
-  options
+  maxSteps = parseInt ($ 'input[name=max-steps]').val() or 0
+  strategy = ($ 'input:radio[name=strategy]:checked').val()
+  {maxSteps, strategy}
 
 run = ->
   program = $input.val()

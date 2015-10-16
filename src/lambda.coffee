@@ -82,6 +82,23 @@ composeAbs = (fn, x) -> (b) -> fn Abstraction x, b
 composeAppL = (fn, l) -> (r) -> fn Application l, r
 composeAppR = (fn, r) -> (l) -> fn Application l, r
 
+reduceCallByName = (t, cb) ->
+  switch t.type
+    when Variable, Abstraction
+      t
+    when Application
+      l = reduceCallByName t.left, (composeAppR cb, t.right)
+      if l.type is Abstraction
+        reduceCallByName (apply l, t.right, cb), cb
+      else
+        # TODO This is suspicious. If some reductions were made in previous
+        # l = reduceCallByName ... call, then we are losing the result of those
+        # reductions, but we have recorded them with cb.
+        Application l, t.right
+    when Macro
+      cb markStep 'macro', t, t.term
+      reduceCallByName t.term, cb
+
 reduceNormal = (t, cb) ->
   switch t.type
     when Variable
@@ -100,19 +117,39 @@ reduceNormal = (t, cb) ->
       cb markStep 'macro', t, t.term
       reduceNormal t.term, cb
 
-reduceCallByName = (t, cb) ->
+reduceCallByValue = (t, cb) ->
   switch t.type
     when Variable, Abstraction
       t
     when Application
-      l = reduceCallByName t.left, (composeAppR cb, t.right)
+      l = reduceCallByValue t.left, (composeAppR cb, t.right)
+      r = reduceCallByValue t.right, (composeAppL cb, l)
       if l.type is Abstraction
-        reduceCallByName (apply l, t.right, cb), cb
+        reduceCallByValue (apply l, r, cb), cb
       else
-        t
+        Application l, r
     when Macro
       cb markStep 'macro', t, t.term
       reduceCallByName t.term, cb
+
+reduceApplicative = (t, cb) ->
+  switch t.type
+    when Variable
+      t
+    when Abstraction
+      Abstraction t.varName, (reduceApplicative t.body, (composeAbs cb, t.varName))
+    when Application
+      l = reduceCallByValue t.left, (composeAppR cb, t.right)
+      if l.type is Abstraction
+        r = reduceCallByValue t.right, (composeAppL cb, l)
+        reduceApplicative (apply l, r, cb), cb
+      else
+        l = reduceApplicative l, (composeAppR cb, t.right)
+        r = reduceApplicative t.right, (composeAppL cb, l)
+        Application l, r
+    when Macro
+      cb markStep 'macro', t, t.term
+      reduceApplicative t.term, cb
 
 apply = (abs, subst, cb) ->
   renameCb = composeAbs (composeAppR cb, subst), abs.varName
@@ -322,14 +359,22 @@ findSynonyms = (term, macros) ->
 
 defaultOptions =
   maxSteps: 100
+  strategy: 'normal'
+
+reduceFunctions =
+  normal: reduceNormal
+  applicative: reduceApplicative
+  cbn: reduceCallByName
+  cbv: reduceCallByValue
 
 # Reduces a term up to its normal form and returns TODO What does it return?
 reduceTerm = timed 'reduce', (term, macros, options) ->
-  {maxSteps} = extend {}, defaultOptions, options
+  {maxSteps, strategy} = extend {}, defaultOptions, options
+  reduce = reduceFunctions[strategy]
   enough = {}
   steps = []
   try
-    reduceNormal term, (t) ->
+    reduce term, (t) ->
       throw enough if steps.length >= maxSteps
       steps.push t
     terminates = yes
