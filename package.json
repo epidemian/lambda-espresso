@@ -9,7 +9,8 @@
     "coffeeify": "^1.1.0",
     "exorcist": "^0.4.0",
     "jison": "^0.4.15",
-    "mocha": "^2.3.3"
+    "mocha": "^2.3.3",
+    "uglify-js": "^2.5.0"
   },
   "browser": {
     "fs": false,

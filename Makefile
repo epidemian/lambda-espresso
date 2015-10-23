@@ -1,22 +1,25 @@
 coffee_files = $(wildcard src/*.coffee)
 bin_dir = node_modules/.bin
-js_grammar = src/grammar.js
 js_bundle = assets/index.js
+min_js_bundle = assets/index.min.js
 
 all: build
 
-$(js_grammar): src/grammar.jison
+src/grammar.js: src/grammar.jison
 	$(bin_dir)/jison -o $@ $<
 
-$(js_bundle): $(coffee_files) $(js_grammar)
+$(js_bundle): $(coffee_files) src/grammar.js
 	$(bin_dir)/browserify -t coffeeify --extension=".coffee" --debug src/index.coffee | $(bin_dir)/exorcist --base . $@.map > $@
+
+$(min_js_bundle): $(js_bundle)
+	$(bin_dir)/uglifyjs --in-source-map $(js_bundle).map --source-map $@.map --source-map-url index.min.js.map $(js_bundle) > $@
 
 .PHONY: build clean test watch
 
-build: $(js_grammar) $(js_bundle)
+build: $(min_js_bundle)
 
 clean:
-	rm $(js_grammar) $(js_bundle)
+	rm -f src/grammar.js $(js_bundle) $(min_js_bundle)
 
 test: build
 	$(bin_dir)/mocha --growl --colors >/dev/null
