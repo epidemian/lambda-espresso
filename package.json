@@ -3,9 +3,11 @@
     "type": "git",
     "url": "git://github.com/epidemian/lambda-espresso.git"
   },
-  "dependencies": {
-    "browserify": "2.34.3",
+  "devDependencies": {
+    "browserify": "^11.2.0",
     "coffee-script": "^1.10.0",
+    "coffeeify": "^1.1.0",
+    "exorcist": "^0.4.0",
     "jison": "^0.4.15",
     "mocha": "^2.3.3"
   },
