@@ -5,9 +5,6 @@ examples = require './examples'
 
 $input           = $ '.input'
 $output          = $ '.output'
-$outputContainer = $ '.output-container'
-$error           = $ '.error'
-$errorContainer  = $ '.error-container'
 
 # Run code on ctrl+enter.
 ($ document).keyup (e) ->
@@ -57,10 +54,9 @@ run = ->
     reductions = lambda.reduceProgram program, getOptions()
     renderReductions reductions
   catch err
-    $error.text err.message
+    $output.text err.message
 
-  $outputContainer.toggle not err?
-  $errorContainer.toggle err?
+  $output.toggleClass 'error', err?
 
 renderReductions = timed 'render html', (reductions) ->
   html = (reductions.map renderCollapsedReduction).join ''
@@ -126,13 +122,13 @@ $input.val """
 """
 $input.focus()
 
-$examplesMenu = $ '.examples.dropdown-menu'
-for example, i in examples
-  hash = ">#{example.code}".replace /\n/g, '%0A'
-  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
-$examplesMenu.on 'click', 'li', (e) ->
-  e.preventDefault() # Don't change the location.hash
-  $input.val examples[($ @).index()].code
+#$examplesMenu = $ '.examples.dropdown-menu'
+#for example, i in examples
+#  hash = ">#{example.code}".replace /\n/g, '%0A'
+#  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
+#$examplesMenu.on 'click', 'li', (e) ->
+#  e.preventDefault() # Don't change the location.hash
+#  $input.val examples[($ @).index()].code
 
 ($ 'button.link').click ->
   code = $input.val()

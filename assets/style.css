@@ -2,30 +2,99 @@
     box-sizing: border-box;
 }
 
-.input {
-  width:100%;
-  display: block;
+html {
+  color: #333;
 }
 
-.error-container {
-  color: red;
+body {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+
+  padding: 0 15px;
 }
 
-.output-container, .error-container {
+header {
+  display: flex;
+}
+
+h1 {
+  flex: 1;
+  white-space: nowrap;
+  font-size: 1.25rem;
+}
+
+nav {
+  margin: auto;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+aside {
   display: none;
 }
 
-body,html {
-  height:100%;
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-body > div.container {
-  height:100%;
-  padding-bottom: 40px; /* Space for footer */
+.input,
+.output {
+  flex: 1;
+  border: 1px solid #ccc;
+  min-height: 150px;
+  margin-bottom: 15px;
 }
 
-footer {
-  margin-top: -40px;
+.input {
+  display: inline-block;
+}
+
+/* Styles for bigger screens (mobile first!). */
+@media(min-width: 480px) {
+  /* More generous body padding. */
+  body {
+    padding: 0 5%;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+
+  /* Make two-column layout. */
+  .container {
+    flex-direction: row-reverse;
+  }
+
+  aside {
+    display: flex;
+    flex-direction: column;
+
+    margin-right: 15px;
+  }
+
+  .options {
+    flex: 1;
+  }
+
+  footer {
+    font-size: 0.9rem;
+    padding: 15px 0;
+  }
+}
+
+.error {
+  color: red;
+}
+
+input[name=max-steps] {
+  width: 100px;
 }
 
 .reduction {
