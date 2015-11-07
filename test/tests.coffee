@@ -1,5 +1,5 @@
 assert = require 'assert'
-{parseTerm, reduceTerm, termTreeStr} = require '../lib/lambda'
+{parseTerm, reduceTerm, termTreeStr} = require '../src/lambda'
 
 shouldParse = (expr, expected) ->
   assert.strictEqual (parseTerm expr), expected
