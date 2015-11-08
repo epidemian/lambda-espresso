@@ -10,28 +10,58 @@ body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-
-  padding: 0 15px;
 }
 
 header {
   display: flex;
+
+  background: #eee;
+  border: 1px solid #ccc;
 }
 
 h1 {
   flex: 1;
   white-space: nowrap;
   font-size: 1.25rem;
+
+  margin: auto;
 }
 
 nav {
-  margin: auto;
+  display: flex;
+}
+
+.nav-btn {
+  padding: 6px;
+  border: none;
+  background: none;
+  color: #333;
+  text-decoration: none;
+  margin: 6px 0;
+  border-radius: 5px;
+}
+
+.nav-btn:hover {
+  background: #ddd;
+}
+
+.lg-screen-text {
+  display: none;
+}
+
+[class^="icon-"]:before{
+  vertical-align: middle;
 }
 
 .container {
   flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.container,
+header {
+  padding: 0 15px;
 }
 
 aside {
@@ -42,6 +72,7 @@ main {
   flex: 1;
   display: flex;
   flex-direction: column;
+  margin: 15px 0;
 }
 
 .input,
@@ -49,22 +80,29 @@ main {
   flex: 1;
   border: 1px solid #ccc;
   min-height: 150px;
-  margin-bottom: 15px;
 }
 
 .input {
   display: inline-block;
+  margin-bottom: 15px;
 }
 
 /* Styles for bigger screens (mobile first!). */
 @media(min-width: 480px) {
-  /* More generous body padding. */
-  body {
+
+  h1 {
+    font-size: 1.5em;
+  }
+
+  /* More generous padding. */
+  .container {
     padding: 0 5%;
   }
 
-  h1 {
-    font-size: 2em;
+  header {
+    margin: 10px 5% 0;
+    padding: 0 15px;
+    border-radius: 5px;
   }
 
   /* Make two-column layout. */
@@ -86,6 +124,10 @@ main {
   footer {
     font-size: 0.9rem;
     padding: 15px 0;
+  }
+
+  .lg-screen-text {
+    display: inline;
   }
 }
 

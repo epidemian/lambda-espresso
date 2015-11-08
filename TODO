@@ -19,6 +19,7 @@
 - Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
 - Use trampolining to avoid "too much recursion" errors
+- Add "about" page/dialog with a brief description of what this is and how it was done.
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
