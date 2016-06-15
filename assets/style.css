@@ -47,13 +47,12 @@ nav {
 }
 
 .nav-btn {
-  padding: 6px 8px;
+  padding: 12px 8px;
   border: none;
   background: none;
   font-weight: bold;
   color: #EBDDC0;
   text-decoration: none;
-  margin: 6px 0;
   border-radius: 5px;
 }
 
@@ -61,12 +60,13 @@ nav {
   color: #fff;
 }
 
-.examples-dropdown {
-  position: relative;
-}
-
+.nav-btn:active,
 .examples-dropdown.active {
   background: #763a00;
+}
+
+.examples-dropdown {
+  position: relative;
 }
 
 .examples-dropdown.active .examples-menu {
@@ -77,18 +77,19 @@ nav {
   display: none;
   position: absolute;
   list-style: none;
-  padding: 0.25em 0;
+  padding: 0.5em 0;
   color: #ebddc0;
   background: #894200;
   border: 1px solid #763a00;
   right: 0;
   min-width: 160px;
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 16px 1px rgba(68, 48, 30, 0.4);
+  z-index: 1;
 }
 
 .examples-menu a {
   text-decoration: none;
-  padding: 0.1em 1em;
+  padding: 0.5em 1em;
   display: block;
 }
 
