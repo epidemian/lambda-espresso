@@ -2,6 +2,11 @@
     box-sizing: border-box;
 }
 
+/* Remove focus outline on all inputs and buttons. */
+*:focus {
+  outline: none;
+}
+
 html {
   color: #2C1901;
   font-size: 16px;
