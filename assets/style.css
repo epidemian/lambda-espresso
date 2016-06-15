@@ -274,6 +274,12 @@ input[name=max-steps] {
   font-weight: bold;
 }
 
+.synonyms {
+  color: #7c8a81;;
+  font-style: italic;
+  font-size: 0.875em;
+}
+
 .hidden {
   display: none !important;
 }

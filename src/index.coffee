@@ -65,7 +65,7 @@ renderArrowByType = (type) ->
 
 renderSynonyms = (synonyms) ->
   if synonyms.length
-    "(#{synonyms.join ', '})"
+    "<span class=synonyms>(#{synonyms.join ', '})</span>"
   else
     ''
 
