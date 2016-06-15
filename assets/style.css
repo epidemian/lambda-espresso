@@ -213,3 +213,8 @@ input[name=max-steps] {
 .expanded .step:last-child .term.after {
   font-weight: bold;
 }
+
+noscript {
+  text-align: center;
+  margin: 1em;
+}
