@@ -7,6 +7,11 @@
   outline: none;
 }
 
+html,
+body {
+  height: 100%;
+}
+
 html {
   color: #2C1901;
   font-size: 16px;
@@ -14,7 +19,6 @@ html {
 
 body {
   display: flex;
-  min-height: 100vh;
   flex-direction: column;
   background: #E4CB93;
 }
@@ -211,9 +215,9 @@ input[name=max-steps] {
 }
 
 .arrow > small {
-  font-size: 80%;
+  font-size: 0.7em;
   position: absolute;
-  top: 0.65em;
+  top: 0.7em;
   left: 0;
   width: 20px;
   text-align: center;
