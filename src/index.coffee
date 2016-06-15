@@ -3,25 +3,51 @@ lambda = require './lambda'
 examples = require './examples'
 {timed} = require './helpers'
 
-$input           = $ '.input'
-$output          = $ '.output'
+# Recreate some of jQuery's interface.
+$ = document.querySelector.bind document
+
+Node.prototype.on = Node.prototype.addEventListener
+
+# Like jQuery.fn.on(type, selector, handler)
+Node.prototype.delegate = (eventType, selector, handler) ->
+  @on eventType, (event) ->
+    element = event.target
+    # Try to find matching element bubbling up from event target.
+    while element isnt @
+      if element.matches selector
+        handler.apply element, arguments
+        break
+      element = element.parentNode
+
+# Like jQuery.fn.one
+Node.prototype.once = (eventType, handler) ->
+  onceListener = ->
+    handler.apply @, arguments
+    @removeEventListener eventType, onceListener
+  @on eventType, onceListener
+
+Node.prototype.index = ->
+  Array.prototype.indexOf.call @parentNode.childNodes, @
+
+input = $ '.input'
+output = $ '.output'
 
 # Run code on ctrl+enter.
-($ document).keyup (e) ->
+document.on 'keyup', (e) ->
   run() if e.keyCode is 13 and e.ctrlKey
 
-$input.keyup (e) ->
+input.on 'keyup', (e) ->
   # Replace every "\" with "λ" while typing.
-  code = $input.val()
+  code = input.value
   code = code.replace /\\/g, 'λ'
   # Preserve selection
-  start = $input[0].selectionStart
-  end   = $input[0].selectionEnd
-  $input.val code
-  $input[0].selectionStart = start
-  $input[0].selectionEnd   = end
+  start = input.selectionStart
+  end   = input.selectionEnd
+  input.value = code
+  input.selectionStart = start
+  input.selectionEnd   = end
 
-($ '.run').click -> run()
+($ '.run').on 'click', -> run()
 
 renderTerm = (term, className = '') ->
   "<span class='term #{className}'>#{term}</span>"
@@ -44,42 +70,45 @@ renderSynonyms = (synonyms) ->
     ''
 
 getOptions = ->
-  maxSteps = parseInt ($ 'input[name=max-steps]').val() or 0
-  strategy = ($ 'input:radio[name=strategy]:checked').val()
+  maxSteps = parseInt ($ 'input[name=max-steps]').value or 0
+  strategy = ($ 'input[name=strategy]:checked').value
   {maxSteps, strategy}
 
+reductions = null
 run = ->
-  program = $input.val()
+  program = input.value
   try
     reductions = lambda.reduceProgram program, getOptions()
-    renderReductions reductions
+    renderReductions()
   catch err
-    $output.text err.message
+    output.textContent = err.message
 
-  $output.toggleClass 'error', err?
+  output.classList.toggle 'error', err?
 
-renderReductions = timed 'render html', (reductions) ->
+renderReductions = timed 'render html',  ->
   html = (reductions.map renderCollapsedReduction).join ''
-  $output.empty().html html
-  $output.off()
-  $output.on 'click', '.reduction', ->
-    $reduction = $ @
-    reduction = reductions[$reduction.index()]
-    return if reduction.totalSteps is 0
-    if ($reduction.children '.expanded')[0]
-      ($ '.collapsed, .expanded', $reduction).toggle()
-    else
-      $reduction.append renderExpandedReductionForm reduction
-      ($ '.collapsed', $reduction).hide()
-  $output.on 'mouseenter', '.expanded .step', ->
-    $step = $ @
-    $step.addClass 'highlight'
-    # Hide the previous step's after term.
-    $step.prevAll('.step:eq(0)').find('.after').hide()
-  $output.on 'mouseleave', '.expanded .step', ->
-    $step = $ @
-    $step.removeClass 'highlight'
-    $step.prevAll('.step:eq(0)').find('.after').show()
+  output.innerHTML = html
+
+output.delegate 'click', '.reduction', ->
+  reduction = reductions[@index()]
+  return if reduction.totalSteps is 0
+  expanded = @querySelector '.expanded'
+  collapsed = @querySelector '.collapsed'
+  if expanded
+    expanded.classList.toggle 'hidden'
+    collapsed.classList.toggle 'hidden'
+  else
+    collapsed.classList.add 'hidden'
+    @innerHTML += renderExpandedReductionForm reduction
+
+output.delegate 'mouseover', '.expanded .step', ->
+  @classList.add 'highlight'
+  # Hide the previous step's after term.
+  @previousElementSibling?.querySelector('.after').classList.add 'hidden'
+
+output.delegate 'mouseout', '.expanded .step', ->
+  @classList.remove 'highlight'
+  @previousElementSibling?.querySelector('.after').classList.remove 'hidden'
 
 renderCollapsedReduction = (reduction) ->
   "<div class=reduction>#{renderCollapsedReductionForm reduction}</div>"
@@ -116,30 +145,31 @@ renderStepOptions =
     "<span class=subst-term>#{str}</span>"
 
 
-$input.val """
+input.value = """
   ; Write some λ-expressions here and hit Run. Use "\\" to enter "λ" ;)
   (λx.λy.λz.z y x) a b c
 """
-$input.focus()
+input.focus()
 
-$examplesMenu = $ '.examples-menu'
-for example, i in examples
+examplesMenu = $ '.examples-menu'
+examplesHtml = for example, i in examples
   hash = ">#{example.code}".replace /\n/g, '%0A'
-  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
-$examplesMenu.on 'click', 'li', (e) ->
+  "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
+examplesMenu.innerHTML = examplesHtml.join ''
+examplesMenu.delegate 'click', 'li', (e) ->
   e.preventDefault() # Don't change the location.hash
-  $input.val examples[($ @).index()].code
+  input.value = examples[@index()].code
 
-$examplesDropdown = $ '.examples-dropdown'
-$examplesDropdown.on 'click', (e) ->
-  return if $examplesDropdown.hasClass 'active'
+examplesDropdown = $ '.examples-dropdown'
+examplesDropdown.on 'click', (e) ->
+  return if examplesDropdown.classList.contains 'active'
   e.stopPropagation()
-  $examplesDropdown.addClass 'active'
-  ($ document).one 'click', ->
-    $examplesDropdown.removeClass 'active'
+  examplesDropdown.classList.add 'active'
+  document.once 'click', ->
+    examplesDropdown.classList.remove 'active'
 
-($ 'button.link').click ->
-  code = $input.val()
+($ 'button.link').on 'click', ->
+  code = input.value
   location.hash = ">#{code}"
 
 updateInputFromHash = ->
@@ -147,7 +177,7 @@ updateInputFromHash = ->
   codeStart = hash.indexOf '>'
   if codeStart isnt -1
     code = hash.slice codeStart + 1
-    $input.val code
+    input.value = code
 
-($ window).on 'hashchange', updateInputFromHash
+window.addEventListener 'hashchange', updateInputFromHash
 updateInputFromHash()

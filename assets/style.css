@@ -259,6 +259,10 @@ input[name=max-steps] {
   font-weight: bold;
 }
 
+.hidden {
+  display: none !important;
+}
+
 noscript {
   text-align: center;
   margin: 1em;
