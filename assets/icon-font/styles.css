@@ -38,18 +38,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-.icon-github:before {
-  content: "b";
-}
-.icon-share:before {
-  content: "c";
-}
 .icon-caret-down:before {
-  content: "e";
+  content: "\e000";
 }
 .icon-play:before {
-  content: "a";
+  content: "\e001";
 }
 .icon-cup:before {
-  content: "d";
+  content: "\e002";
+}
+.icon-github:before {
+  content: "\e003";
+}
+.icon-share:before {
+  content: "\e004";
 }

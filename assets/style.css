@@ -3,20 +3,25 @@
 }
 
 html {
-  color: #333;
+  color: #2C1901;
 }
 
 body {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
+  background: #E4CB93;
+}
+
+a {
+  color: inherit;
 }
 
 header {
   display: flex;
-
-  background: #eee;
-  border: 1px solid #ccc;
+  color: #EBDDC0;
+  background: #894200;
+  border: 1px solid #763A00;
 }
 
 h1 {
@@ -32,17 +37,18 @@ nav {
 }
 
 .nav-btn {
-  padding: 6px;
+  padding: 6px 8px;
   border: none;
   background: none;
-  color: #333;
+  font-weight: bold;
+  color: #EBDDC0;
   text-decoration: none;
   margin: 6px 0;
   border-radius: 5px;
 }
 
 .nav-btn:hover {
-  background: #ddd;
+  color: #fff;
 }
 
 .lg-screen-text {
@@ -78,8 +84,9 @@ main {
 .input,
 .output {
   flex: 1;
-  border: 1px solid #ccc;
-  min-height: 150px;
+  border: 1px solid #CCA858;
+  padding: 6px;
+  background: #F6F1E7;
 }
 
 .input {
@@ -167,21 +174,20 @@ input[name=max-steps] {
 
 .step .match {
   box-sizing: border-box;
-  border-radius: 3px;
 }
 
 .step.highlight .match {
-  box-shadow: 0px 1px 3px 1px #D2D2D2;
+  box-shadow: 0 1px 0 0 #2C1901;
 }
 
 .step.highlight .former-term {
   color: rgb(227, 0, 217);
-  text-shadow: 0 0 2px white,0 0 1em rgba(227, 0, 217, 0.5);
+  text-shadow: 0 0 1px white, 1px 1px 1px rgba(227, 0, 217, 0.4);
 }
 
 .step.highlight .subst-term {
   color: rgb(0, 184, 1);
-  text-shadow: 0 0 2px white, 0 0 1em rgba(0, 184, 1, 0.4);
+  text-shadow: 0 0 1px white, 1px 1px 1px rgba(0, 184, 1, 0.4);
 }
 
 .step .before {

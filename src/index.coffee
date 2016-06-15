@@ -117,7 +117,7 @@ renderStepOptions =
 
 
 $input.val """
-  ; Write some λ-expressions here. Use "\\" to enter "λ" ;)
+  ; Write some λ-expressions here and hit Run. Use "\\" to enter "λ" ;)
   (λx.λy.λz.z y x) a b c
 """
 $input.focus()
