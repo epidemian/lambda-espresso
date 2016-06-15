@@ -84,6 +84,7 @@ main {
 .input,
 .output {
   flex: 1;
+  overflow-y: auto;
   border: 1px solid #CCA858;
   padding: 6px;
   background: #F6F1E7;
@@ -92,6 +93,7 @@ main {
 .input {
   display: inline-block;
   margin-bottom: 15px;
+  resize: none;
 }
 
 /* Styles for bigger screens (mobile first!). */
