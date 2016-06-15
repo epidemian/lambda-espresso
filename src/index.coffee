@@ -122,13 +122,21 @@ $input.val """
 """
 $input.focus()
 
-#$examplesMenu = $ '.examples.dropdown-menu'
-#for example, i in examples
-#  hash = ">#{example.code}".replace /\n/g, '%0A'
-#  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
-#$examplesMenu.on 'click', 'li', (e) ->
-#  e.preventDefault() # Don't change the location.hash
-#  $input.val examples[($ @).index()].code
+$examplesMenu = $ '.examples-menu'
+for example, i in examples
+  hash = ">#{example.code}".replace /\n/g, '%0A'
+  $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
+$examplesMenu.on 'click', 'li', (e) ->
+  e.preventDefault() # Don't change the location.hash
+  $input.val examples[($ @).index()].code
+
+$examplesDropdown = $ '.examples-dropdown'
+$examplesDropdown.on 'click', (e) ->
+  return if $examplesDropdown.hasClass 'active'
+  e.stopPropagation()
+  $examplesDropdown.addClass 'active'
+  ($ document).one 'click', ->
+    $examplesDropdown.removeClass 'active'
 
 ($ 'button.link').click ->
   code = $input.val()
