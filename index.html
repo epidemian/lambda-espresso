@@ -1,91 +1,95 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <title>☕ λ-Espresso ☕</title>
-  <meta name="description" content="An online λ calculus interpreter written in CoffeeScript" />
+  <meta charset="utf-8"/>
+  <title>λ-Espresso ☕</title>
+  <meta name="description" content="An online λ calculus interpreter written in CoffeeScript"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link href="assets/style.css" rel="stylesheet" />
-  <link href="assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="assets/vendor/bootstrap/css/bootstrap-responsive.min.css" rel="stylesheet" />
+  <link href="assets/vendor/normalize.css" rel="stylesheet"/>
+  <link href="assets/icon-font/styles.css" rel="stylesheet"/>
+  <link href="assets/style.css" rel="stylesheet"/>
   <script src="https://code.jquery.com/jquery-1.8.0.min.js"></script>
-  <script src="assets/vendor/bootstrap/js/bootstrap.min.js"></script>
 </head>
 <body>
-  <div class="container">
-    <h1 class="page-header">☕ λ-Espresso ☕</h1>
-    <div class="row">
-      <div class="span3">
-        <div class="well well-small">
-          <legend>Options<small>(not working yet)</small></legend>
-          <label>Reduction strategy</label>
-          <label class="radio inline" title="Use normal order; should reduce all reducible expressions">
+  <header>
+    <h1>λ <i class="icon-cup"></i></h1>
+    <nav>
+      <button class="nav-btn run" title="Ctrl+Enter"><i class="icon-play"></i> <span class="lg-screen-text">Run</span></button>
+      <button class="nav-btn link" title="Get a URL to share some code with your friends!"><i class="icon-share"></i> <span class="lg-screen-text">Share</span></button>
+      <div class="examples-dropdown">
+        <button class="nav-btn"><i class="icon-caret-down"></i>Examples</button>
+        <li class="examples-menu"></li>
+      </div>
+      <a class="nav-btn" href="https://github.com/epidemian/lambda-espresso/"><i class="icon-github"></i> <span class="lg-screen-text">Code</span></a>
+    </nav>
+  </header>
+  <noscript>
+    <b>This application needs JavaScript to work :(</b><br>
+    You can enable JavaScript on your browser following
+    <a href="http://www.enable-javascript.com/" target="_blank">these instructions</a>.
+  </noscript>
+  <section class="container">
+    <main>
+      <textarea class="input" spellcheck="false"></textarea>
+      <div class="output"></div>
+    </main>
+    <aside>
+      <div class="options">
+        <h2>Options</h2>
+        <div class="option">
+          Reduction strategy<br>
+          <label title="Use normal order; should reduce all reducible expressions">
             <input type="radio" name="strategy" value="normal" checked>Normal
-          </label>
-          <label class="radio inline" title="Use applicative order; some reducible expressions might not terminate">
+          </label><br>
+          <label title="Use applicative order; some reducible expressions might not terminate">
             <input type="radio" name="strategy" value="applicative">Applicative
-          </label>
-          <br>
-          <label class="radio inline" title="Use call by name reduction strategy">
+          </label><br>
+          <label title="Use call by name reduction strategy">
             <input type="radio" name="strategy" value="cbn">Call by name
-          </label>
-          <label class="radio inline" title="Use call by value; some reducible expressions might not terminate">
+          </label><br>
+          <label title="Use call by value; some reducible expressions might not terminate">
             <input type="radio" name="strategy" value="cbv">Call by value
-          </label>
+          </label><br>
+        </div>
+        <div class="option">
           <label>
             Max. reduction steps<br>
-            <input type="number" name="max-steps" class="input-mini" value="5000" min="0" step="1">
+            <input type="number" name="max-steps" value="5000" min="0" step="1">
           </label>
-          <label class="checkbox" title="Enable η-reductions (e.g. λx.f x → f)">
+        </div>
+        <div class="option">
+          <label title="Enable η-reductions (e.g. λx.f x → f)">
             <input type="checkbox" checked disabled>η-reductions
           </label>
-          <label>
-            Expand macros<br>
-            <label class="radio inline" title="Expand macros only when necessary; might require more reduction steps">
-              <input type="radio" name="expand-macros" value="lazy" checked disabled>Lazy
-            </label>
-            <label class="radio inline" title="Expand all macros at start">
-              <input type="radio" name="expand-macros" value="eager" disabled>Eager
-            </label>
+        </div>
+        <div class="option">
+          Expand macros<br>
+          <label title="Expand macros only when necessary; might require more reduction steps">
+            <input type="radio" name="expand-macros" value="lazy" checked disabled>Lazy
+          </label>
+          <label title="Expand all macros at start">
+            <input type="radio" name="expand-macros" value="eager" disabled>Eager
           </label>
         </div>
       </div>
-      <div class="span9">
-        <textarea class="input" spellcheck="false" rows="12"></textarea>
-        <div class="btn-toolbar">
-          <button class="run btn btn-primary" title="Ctrl+Enter"><i class="icon-play icon-white"></i> Run</button>
-          <button class="btn link" title="Get a URL to share some code with your friends!">Link</button>
-          <div class="btn-group">
-            <button class="btn dropdown-toggle" data-toggle="dropdown">
-              Examples
-              <span class="caret"></span>
-            </button>
-            <ul class="dropdown-menu examples"></ul>
-          </div>
-        </div>
-        <div class="output-container">
-          <div class="output"></div>
-        </div>
-        <div class="error-container">
-          <legend>Error:</legend>
-          <pre class="error"></pre>
-        </div>
-      </div>
-    </div>
-  </div>
-  <footer class="container">
-    Brewed by <a href="https://twitter.com/epidemian" target="_blank">@epidemian</a> |
-    <a href="https://github.com/epidemian/lambda-espresso/">Code</a>
-  </footer>
+      <footer>
+        Brewed by
+        <a href="https://twitter.com/epidemian" target="_blank">@epidemian</a>
+      </footer>
+    </aside>
+  </section>
   <script src="assets/index.min.js"></script>
   <script type="text/javascript">
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-35084691-1']);
     _gaq.push(['_trackPageview']);
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    (function () {
+      var ga = document.createElement('script');
+      ga.type = 'text/javascript';
+      ga.async = true;
       ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(ga, s);
     })();
   </script>
 </body>

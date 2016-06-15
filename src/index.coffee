@@ -5,9 +5,6 @@ examples = require './examples'
 
 $input           = $ '.input'
 $output          = $ '.output'
-$outputContainer = $ '.output-container'
-$error           = $ '.error'
-$errorContainer  = $ '.error-container'
 
 # Run code on ctrl+enter.
 ($ document).keyup (e) ->
@@ -57,10 +54,9 @@ run = ->
     reductions = lambda.reduceProgram program, getOptions()
     renderReductions reductions
   catch err
-    $error.text err.message
+    $output.text err.message
 
-  $outputContainer.toggle not err?
-  $errorContainer.toggle err?
+  $output.toggleClass 'error', err?
 
 renderReductions = timed 'render html', (reductions) ->
   html = (reductions.map renderCollapsedReduction).join ''
@@ -121,18 +117,26 @@ renderStepOptions =
 
 
 $input.val """
-  ; Write some λ-expressions here. Use "\\" to enter "λ" ;)
+  ; Write some λ-expressions here and hit Run. Use "\\" to enter "λ" ;)
   (λx.λy.λz.z y x) a b c
 """
 $input.focus()
 
-$examplesMenu = $ '.examples.dropdown-menu'
+$examplesMenu = $ '.examples-menu'
 for example, i in examples
   hash = ">#{example.code}".replace /\n/g, '%0A'
   $examplesMenu.append "<li><a href='##{hash}'>#{i} - #{example.name}</a></li>"
 $examplesMenu.on 'click', 'li', (e) ->
   e.preventDefault() # Don't change the location.hash
   $input.val examples[($ @).index()].code
+
+$examplesDropdown = $ '.examples-dropdown'
+$examplesDropdown.on 'click', (e) ->
+  return if $examplesDropdown.hasClass 'active'
+  e.stopPropagation()
+  $examplesDropdown.addClass 'active'
+  ($ document).one 'click', ->
+    $examplesDropdown.removeClass 'active'
 
 ($ 'button.link').click ->
   code = $input.val()
