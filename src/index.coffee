@@ -1,7 +1,9 @@
 # Script for index.html
-lambda = require './lambda'
+{reduceProgram} = require './lambda'
 examples = require './examples'
-{timed} = require './helpers'
+{timed, enableLogTimings} = require './helpers'
+
+enableLogTimings()
 
 # Recreate some of jQuery's interface.
 $ = document.querySelector.bind document
@@ -78,7 +80,7 @@ reductions = null
 run = ->
   program = input.value
   try
-    reductions = lambda.reduceProgram program, getOptions()
+    reductions = reduceProgram program, getOptions()
     renderReductions()
   catch err
     output.textContent = err.message

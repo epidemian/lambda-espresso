@@ -7,7 +7,8 @@ Fun = (param, body) -> {type: Fun, param, body}
 App = (left, right) -> {type: App, left, right}
 Def = (name, term) -> {type: Def, name, term}
 
-# Parses an input program string and returns an array of terms to be reduced.
+# Parses an input program string and returns an object with the terms and
+# definitions of the program.
 parse = timed 'parse', (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
@@ -392,23 +393,14 @@ reduceTerm = timed 'reduce', (term, defs, options) ->
     expandStep steps[i], options
   {initial, final, finalSynonyms, terminates, totalSteps, renderStep}
 
-parseTerm = (str) ->
-  {terms} = parse str
-  throw Error "program has #{terms.length} terms" if terms.length isnt 1
-  terms[0]
-
-exports.termTreeStr = (str) ->
-  termTreeStr parseTerm str
-
-# Parse a program with only one term.
-exports.parseTerm = (str) ->
-  termStr parseTerm str
-
-# Reduce a program with only one term.
-exports.reduceTerm = (str, options = {}) ->
-  reduceTerm (parseTerm str), {}, options
-
-# Reduce a program that might have multiple terms.
-exports.reduceProgram = (expr, options = {}) ->
-  {terms, defs} = parse expr
+# Reduce a program and return with the reduction for each term in the program.
+reduceProgram = (program, options = {}) ->
+  {terms, defs} = parse program
   reduceTerm term, defs, options for term in terms
+
+module.exports = {
+  Var, Fun, App, Def
+  parse
+  termStr
+  reduceProgram
+}
