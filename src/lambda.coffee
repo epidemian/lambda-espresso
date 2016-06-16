@@ -1,96 +1,6 @@
-# λ calculus parser
 {extend, timed, compose, identity} = require './helpers'
-
-# Term types/constructors.
-Var = (name) -> {type: Var, name}
-Fun = (param, body) -> {type: Fun, param, body}
-App = (left, right) -> {type: App, left, right}
-Def = (name, term) -> {type: Def, name, term}
-Ref = (name) -> {type: Ref, name}
-
-# Parses an input program string and returns an object with the top-level terms
-# and definitions of the program.
-parse = timed 'parse', (str) ->
-  # A custom Jison parser.
-  parser = new (require './grammar').Parser
-
-  # A definition table with the definitions by their names.
-  defs = {}
-  # The terms of the program.
-  terms = []
-
-  # Add some handy functions so the parser can build the AST.
-  parser.yy =
-    parseFunction: Fun
-    parseApplication: App
-    parseDefinition: (name, term) ->
-      throw Error "#{name} already defined" if defs[name]
-      defs[name] = Def name, term
-    parseTopLevelTerm: (term) -> terms.push term
-    parseIdentifier: Ref
-
-  parser.parse str
-
-  resolveReferences defs, terms
-
-resolveReferences = (defs, terms) ->
-  for t in terms
-    resolveTermRefs t, defs
-
-  defRefs = {}
-  for name, def of defs
-    resolveDefRefs name, def.term, defs, defRefs
-  {defs, terms}
-
-resolveTermRefs = (t, defs, boundNames = []) ->
-  switch t.type
-    when Ref
-      free = t.name not in boundNames
-      if t.name of defs and free
-        t.type = Def
-        t.term = defs[t.name].term
-      else
-        t.type = Var
-    when App
-      resolveTermRefs t.left, defs, boundNames
-      resolveTermRefs t.right, defs, boundNames
-    when Fun
-      resolveTermRefs t.body, defs, boundNames.concat(t.param)
-  undefined
-
-resolveDefRefs = (defName, t, defs, defRefs, boundNames = []) ->
-  switch t.type
-    when Ref
-      bound = t.name in boundNames
-      if bound
-        t.type = Var
-      else if t.name of defs
-        (defRefs[defName] or= []).push t.name
-        checkForCircularRefs defName, t.name, defRefs
-        t.type = Def
-        t.term = defs[t.name].term
-      else
-        throw Error "Illegal free variable \"#{t.name}\" in \"#{defName}\".
-          Definitions cannot have free variables"
-    when App
-      resolveDefRefs defName, t.left, defs, defRefs, boundNames
-      resolveDefRefs defName, t.right, defs, defRefs, boundNames
-    when Fun
-      resolveDefRefs defName, t.body, defs, defRefs, boundNames.concat(t.param)
-  undefined
-
-checkForCircularRefs = (name, refName, defRefs, path = []) ->
-  if name is refName
-    circularNote = path.length and "In this case the definition does not
-      reference itself directly, but through other definitions:
-      #{[name, path..., name].join ' → '}. "
-    message = "Illegal recursive reference in \"#{name}\". Definitions cannot
-      reference themselves; they are just simple find&replace mechanisms. " +
-      (circularNote or '') +
-      'If you want to write a recursive function, look for "Y combinator" ;)'
-    throw Error message
-  for nextRef in defRefs[refName] or {}
-    checkForCircularRefs name, nextRef, defRefs, [path..., refName]
+{Var, Fun, App, Def} = require './core'
+{parse} = require './parser'
 
 # Returns the string representation for a given term t.
 termStr = (t, appParens = no, funParens = no) ->
@@ -119,7 +29,7 @@ highlightFunctionVar = (t, x, fn) ->
   ht = substitute t, x, hx
   extend (Fun x, ht), highlightVar: fn
 
-composeAbs = (fn, x) -> (b) -> fn Fun x, b
+composeFun = (fn, x) -> (b) -> fn Fun x, b
 composeAppL = (fn, l) -> (r) -> fn App l, r
 composeAppR = (fn, r) -> (l) -> fn App l, r
 
@@ -145,7 +55,7 @@ reduceNormal = (t, cb) ->
     when Var
       t
     when Fun
-      Fun t.param, (reduceNormal t.body, (composeAbs cb, t.param))
+      Fun t.param, (reduceNormal t.body, (composeFun cb, t.param))
     when App
       l = reduceCallByName t.left, (composeAppR cb, t.right)
       if l.type is Fun
@@ -178,7 +88,7 @@ reduceApplicative = (t, cb) ->
     when Var
       t
     when Fun
-      Fun t.param, (reduceApplicative t.body, (composeAbs cb, t.param))
+      Fun t.param, (reduceApplicative t.body, (composeFun cb, t.param))
     when App
       l = reduceCallByValue t.left, (composeAppR cb, t.right)
       if l.type is Fun
@@ -193,7 +103,7 @@ reduceApplicative = (t, cb) ->
       reduceApplicative t.term, cb
 
 apply = (fun, subst, cb) ->
-  renameCb = composeAbs (composeAppR cb, subst), fun.param
+  renameCb = composeFun (composeAppR cb, subst), fun.param
   renamedBody = renameForSubstitution fun.body, fun.param, subst, renameCb
   renamed = App (Fun fun.param, renamedBody), subst
   applied = applySubstitution renamedBody, fun.param, subst
@@ -242,7 +152,7 @@ renameForSubstitution = (t, x, s, cb) ->
         newVarName = renameVar t.param, t.body, s
         renamedBody = applySubstitution t.body, t.param, Var newVarName
         cb markStep 'alpha', t, (t = Fun newVarName, renamedBody)
-      Fun t.param, (renameForSubstitution t.body, x, s, (composeAbs cb, t.param))
+      Fun t.param, (renameForSubstitution t.body, x, s, (composeFun cb, t.param))
     when App
       l = renameForSubstitution t.left, x, s, (composeAppR cb, t.right)
       r = renameForSubstitution t.right, x, s, (composeAppL cb, l)
