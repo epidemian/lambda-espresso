@@ -7,7 +7,7 @@
 "."                 { return '.'; }
 "="                 { return '='; }
 [a-z][a-z0-9-_]*    { return 'VAR'; }
-[A-Z][A-Z0-9-_]*\'* { return 'MACRO'; }
+[A-Z][A-Z0-9-_]*\'* { return 'DEF'; }
 [\n]                { return 'SEPARATOR'; }
 [ \t]+              { /* ignore whitespace */ }
 ";".*               { /* ignore line comments */ }
@@ -16,7 +16,7 @@
 
 
 %right LAMBDA
-%left MACRO
+%left DEF
 %left VAR
 %left '('
 %left APPLY
@@ -35,20 +35,20 @@ program
   ;
 
 line
-  : term           { $$ = yy.parseTermEvaluation($term); }
-  | macro '=' term { $$ = yy.parseMacroDefinition($macro, $term); }
+  : term         { $$ = yy.parseTermEvaluation($term); }
+  | def '=' term { $$ = yy.parseDefinition($def, $term); }
   ;
 
 term
-  : LAMBDA var '.' term   { $$ = yy.parseAbstraction($var, $term); }
+  : LAMBDA var '.' term   { $$ = yy.parseFunction($var, $term); }
   | term term %prec APPLY { $$ = yy.parseApplication($term1, $term2); }
   | var                   { $$ = yy.parseVariable($var); }
-  | macro                 { $$ = yy.parseMacroUsage($macro); }
+  | def                   { $$ = yy.parseDefinitionUse($def); }
   | "(" term ")"          { $$ = $term; }
   ;
 
-macro
-  : MACRO { $$ = yytext; }
+def
+  : DEF { $$ = yytext; }
   ;
 
 var

@@ -2,49 +2,49 @@
 {repeatStr, extend, timed, compose, identity} = require './helpers'
 
 # Term types/constructors.
-Variable    = (name)          -> {type: Variable, name}
-Abstraction = (varName, body) -> {type: Abstraction, varName, body}
-Application = (left, right)   -> {type: Application, left, right}
-Macro       = (name, term)    -> {type: Macro, name, term}
+Var = (name) -> {type: Var, name}
+Fun = (param, body) -> {type: Fun, param, body}
+App = (left, right) -> {type: App, left, right}
+Def = (name, term) -> {type: Def, name, term}
 
 # Parses an input program string and returns an array of terms to be reduced.
 parse = timed 'parse', (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
 
-  # A macro table with the macros by their names.
-  macros = {}
+  # A definition table with the definitions by their names.
+  defs = {}
   # The terms of the program.
   terms = []
 
   # Add some handy functions so the parser can build the AST.
   parser.yy =
-    parseAbstraction: Abstraction
-    parseApplication: Application
-    parseVariable: Variable
-    parseMacroDefinition: (name, term) ->
-      throw Error "#{name} already defined" if macros[name]
-      macros[name] = Macro name, term
-    parseMacroUsage: (name) ->
-      throw Error "#{name} not defined" unless macros[name]
-      macros[name]
+    parseFunction: Fun
+    parseApplication: App
+    parseVariable: Var
+    parseDefinition: (name, term) ->
+      throw Error "#{name} already defined" if defs[name]
+      defs[name] = Def name, term
+    parseDefinitionUse: (name) ->
+      throw Error "#{name} not defined" unless defs[name]
+      defs[name]
     parseTermEvaluation: (term) -> terms.push term
-    getProgram: -> {macros, terms}
+    getProgram: -> {defs, terms}
 
   parser.parse str
 
 # Returns the string representation for a given term t.
-termStr = (t, appParens = no, absParens = no) ->
+termStr = (t, appParens = no, funParens = no) ->
   str = switch t.type
-    when Variable, Macro
+    when Var, Def
       t.name
-    when Abstraction
-      lambda = "λ#{t.varName}"
+    when Fun
+      lambda = "λ#{t.param}"
       lambda = t.highlightVar lambda if t.highlightVar
       str = "#{lambda}.#{termStr t.body}"
-      if absParens then "(#{str})" else str
-    when Application
-      str = "#{termStr t.left, no, yes} #{termStr t.right, yes, absParens}"
+      if funParens then "(#{str})" else str
+    when App
+      str = "#{termStr t.left, no, yes} #{termStr t.right, yes, funParens}"
       if appParens then "(#{str})" else str
   if t.highlight
     str = t.highlight str
@@ -54,11 +54,11 @@ termStr = (t, appParens = no, absParens = no) ->
 termTreeStr = do ->
   makeLines = (t) ->
     switch t.type
-      when Variable, Macro
+      when Var, Def
         [t.name]
-      when Abstraction
-        ["λ#{t.varName}", (indentLines (makeLines t.body), '╰─', '  ')...]
-      when Application
+      when Fun
+        ["λ#{t.param}", (indentLines (makeLines t.body), '╰─', '  ')...]
+      when App
         ["@", (indentLines (makeLines t.left),  '├─', '│ ')...
               (indentLines (makeLines t.right), '╰─', '  ')...]
 
@@ -73,89 +73,89 @@ highlight = (t, fn) ->
     fn = compose fn, t.highlight
   extend {}, t, highlight: fn
 
-highlightAbstractionVar = (t, x, fn) ->
-  hx = highlight (Variable x), fn
+highlightFunctionVar = (t, x, fn) ->
+  hx = highlight (Var x), fn
   ht = substitute t, x, hx
-  extend (Abstraction x, ht), highlightVar: fn
+  extend (Fun x, ht), highlightVar: fn
 
-composeAbs = (fn, x) -> (b) -> fn Abstraction x, b
-composeAppL = (fn, l) -> (r) -> fn Application l, r
-composeAppR = (fn, r) -> (l) -> fn Application l, r
+composeAbs = (fn, x) -> (b) -> fn Fun x, b
+composeAppL = (fn, l) -> (r) -> fn App l, r
+composeAppR = (fn, r) -> (l) -> fn App l, r
 
 reduceCallByName = (t, cb) ->
   switch t.type
-    when Variable, Abstraction
+    when Var, Fun
       t
-    when Application
+    when App
       l = reduceCallByName t.left, (composeAppR cb, t.right)
-      if l.type is Abstraction
+      if l.type is Fun
         reduceCallByName (apply l, t.right, cb), cb
       else
         # TODO This is suspicious. If some reductions were made in previous
         # l = reduceCallByName ... call, then we are losing the result of those
         # reductions, but we have recorded them with cb.
-        Application l, t.right
-    when Macro
-      cb markStep 'macro', t, t.term
+        App l, t.right
+    when Def
+      cb markStep 'def', t, t.term
       reduceCallByName t.term, cb
 
 reduceNormal = (t, cb) ->
   switch t.type
-    when Variable
+    when Var
       t
-    when Abstraction
-      Abstraction t.varName, (reduceNormal t.body, (composeAbs cb, t.varName))
-    when Application
+    when Fun
+      Fun t.param, (reduceNormal t.body, (composeAbs cb, t.param))
+    when App
       l = reduceCallByName t.left, (composeAppR cb, t.right)
-      if l.type is Abstraction
+      if l.type is Fun
         reduceNormal (apply l, t.right, cb), cb
       else
         l = reduceNormal l, (composeAppR cb, t.right) # Finish reducing l.
         r = reduceNormal t.right, (composeAppL cb, l)
-        Application l, r
-    when Macro
-      cb markStep 'macro', t, t.term
+        App l, r
+    when Def
+      cb markStep 'def', t, t.term
       reduceNormal t.term, cb
 
 reduceCallByValue = (t, cb) ->
   switch t.type
-    when Variable, Abstraction
+    when Var, Fun
       t
-    when Application
+    when App
       l = reduceCallByValue t.left, (composeAppR cb, t.right)
       r = reduceCallByValue t.right, (composeAppL cb, l)
-      if l.type is Abstraction
+      if l.type is Fun
         reduceCallByValue (apply l, r, cb), cb
       else
-        Application l, r
-    when Macro
-      cb markStep 'macro', t, t.term
+        App l, r
+    when Def
+      cb markStep 'def', t, t.term
       reduceCallByName t.term, cb
 
 reduceApplicative = (t, cb) ->
   switch t.type
-    when Variable
+    when Var
       t
-    when Abstraction
-      Abstraction t.varName, (reduceApplicative t.body, (composeAbs cb, t.varName))
-    when Application
+    when Fun
+      Fun t.param, (reduceApplicative t.body, (composeAbs cb, t.param))
+    when App
       l = reduceCallByValue t.left, (composeAppR cb, t.right)
-      if l.type is Abstraction
+      if l.type is Fun
         r = reduceCallByValue t.right, (composeAppL cb, l)
         reduceApplicative (apply l, r, cb), cb
       else
         l = reduceApplicative l, (composeAppR cb, t.right)
         r = reduceApplicative t.right, (composeAppL cb, l)
-        Application l, r
-    when Macro
-      cb markStep 'macro', t, t.term
+        App l, r
+    when Def
+      cb markStep 'def', t, t.term
       reduceApplicative t.term, cb
 
-apply = (abs, subst, cb) ->
-  renameCb = composeAbs (composeAppR cb, subst), abs.varName
-  renamedBody = renameForSubstitution abs.body, abs.varName, subst, renameCb
-  renamed = Application (Abstraction abs.varName, renamedBody), subst
-  applied = applySubstitution renamedBody, abs.varName, subst
+apply = (fun, subst, cb) ->
+  renameCb = composeAbs (composeAppR cb, subst), fun.param
+  renamedBody = renameForSubstitution fun.body, fun.param, subst, renameCb
+  renamed = App (Fun fun.param, renamedBody), subst
+  applied = applySubstitution renamedBody, fun.param, subst
   cb markStep 'beta', renamed, applied
   applied
 
@@ -163,33 +163,33 @@ apply = (abs, subst, cb) ->
 # I.e., substitutes the variable x for the term S in the term T.
 substitute = (t, x, s) ->
   switch t.type
-    when Variable
+    when Var
       # x[x := S] = S
       # y[x := S] = y
       if t.name is x then s else t
-    when Abstraction
+    when Fun
       # (λx.E)[x := S] = λx.E
       # λx creates a new context for x so no further substitution is needed.
-      return t if t.varName is x
+      return t if t.param is x
       # (λy.E)[x := S] with x != y
       # If y is free in S and x is free in E, then must α-convert λy.E to avoid
       # name conflicts.
-      if (freeIn t.varName, s) and (freeIn x, t.body)
+      if (freeIn t.param, s) and (freeIn x, t.body)
         # (λy.E)[x := S] = λy'.(E[y := y'][x := S])
-        newVarName = renameVar t.varName, t.body, s
-        renamedBody = applySubstitution t.body, t.varName, Variable newVarName
-        Abstraction newVarName, (substitute renamedBody, x, s)
+        newVarName = renameVar t.param, t.body, s
+        renamedBody = applySubstitution t.body, t.param, Var newVarName
+        Fun newVarName, (substitute renamedBody, x, s)
       else
         # (λy.E)[x := S] = λy.(E[x := S])
-        Abstraction t.varName, (substitute t.body, x, s)
-    when Application
+        Fun t.param, (substitute t.body, x, s)
+    when App
       # (U V)[x := S] = (U[x := S]) (V[x := S])
-      Application (substitute t.left, x, s), (substitute t.right, x, s)
-    when Macro
+      App (substitute t.left, x, s), (substitute t.right, x, s)
+    when Def
       if freeIn x, t.term
-        # TODO delete. Check for free variables on macros when (or after) parsing.
+        # TODO delete. Check for free variables on defs when (or after) parsing.
         throw Error "Logical error: #{x} is free in #{t.name}." +
-          "Macros cannot have free variables"
+          "Definitions cannot have free variables"
       t
 
 # Performs the α-conversions necessary for the substitution T[x := S], but does
@@ -197,36 +197,36 @@ substitute = (t, x, s) ->
 # Records the α-conversions by calling cb.
 renameForSubstitution = (t, x, s, cb) ->
   switch t.type
-    when Variable, Macro
+    when Var, Def
       t
-    when Abstraction
-      return t if t.varName is x
-      if (freeIn t.varName, s) and (freeIn x, t.body)
-        newVarName = renameVar t.varName, t.body, s
-        renamedBody = applySubstitution t.body, t.varName, Variable newVarName
-        cb markStep 'alpha', t, (t = Abstraction newVarName, renamedBody)
-      Abstraction t.varName, (renameForSubstitution t.body, x, s, (composeAbs cb, t.varName))
-    when Application
+    when Fun
+      return t if t.param is x
+      if (freeIn t.param, s) and (freeIn x, t.body)
+        newVarName = renameVar t.param, t.body, s
+        renamedBody = applySubstitution t.body, t.param, Var newVarName
+        cb markStep 'alpha', t, (t = Fun newVarName, renamedBody)
+      Fun t.param, (renameForSubstitution t.body, x, s, (composeAbs cb, t.param))
+    when App
       l = renameForSubstitution t.left, x, s, (composeAppR cb, t.right)
       r = renameForSubstitution t.right, x, s, (composeAppL cb, l)
-      Application l, r
+      App l, r
 
 # Applies the substitution T[x := S] directly, without performing α-conversions.
 applySubstitution = (t, x, s) ->
   switch t.type
-    when Variable
+    when Var
       if t.name is x then s else t
-    when Abstraction
-      if t.varName is x
+    when Fun
+      if t.param is x
         t
       else
-        Abstraction t.varName, (applySubstitution t.body, x, s)
-    when Application
-      Application (applySubstitution t.left, x, s), (applySubstitution t.right, x, s)
-    when Macro
+        Fun t.param, (applySubstitution t.body, x, s)
+    when App
+      App (applySubstitution t.left, x, s), (applySubstitution t.right, x, s)
+    when Def
       if freeIn x, t.term
         throw Error "Logical error: #{x} is free in #{t.name}." +
-        "Macros cannot have free variables"
+        "Definitions cannot have free variables"
       t
 
 # Renames a variable to avoid naming conflicts when doing a substitution.
@@ -242,20 +242,20 @@ renameVar = (oldName, t, s) ->
       not (freeIn newName, s) and
       # Avoid name collisions with free variables in body.
       not (freeIn newName, t) and
-      # Avoid name collisions with inner abstractions.
+      # Avoid name collisions with inner functions.
       not (varRenameCollides t, oldName, newName)
     return newName if isValid
 
 # Whether the variable x is free in the term t.
 freeIn = (x, t) ->
   switch t.type
-    when Variable
+    when Var
       t.name is x
-    when Abstraction
-      t.varName isnt x and freeIn x, t.body
-    when Application
+    when Fun
+      t.param isnt x and freeIn x, t.body
+    when App
       (freeIn x, t.left) or (freeIn x, t.right)
-    when Macro
+    when Def
       freeIn x, t.term
 
 # Whether a variable rename collides in a given term. That is, if changing the
@@ -263,20 +263,20 @@ freeIn = (x, t) ->
 # (i.e. not be α-equivalent).
 varRenameCollides = (t, oldName, newName) ->
   switch t.type
-    when Variable
+    when Var
       no
-    when Abstraction
-      # A variable rename collides with this abstraction if the old variable
-      # was free in the abstraction and the new name for the variable is the
-      # same as the varName of the abstraction, thus changing old free variable
+    when Fun
+      # A variable rename collides with this function if the old variable
+      # was free in the function and the new name for the variable is the
+      # same as the param of the function, thus changing old free variable
       # binding.
-      collisionHere = t.varName is newName and (freeIn oldName, t)
-      # Or if the renaming collides in the body of the abstraction...
+      collisionHere = t.param is newName and (freeIn oldName, t)
+      # Or if the renaming collides in the body of the function...
       collisionHere or varRenameCollides t.body, oldName, newName
-    when Application
+    when App
       (varRenameCollides t.left, oldName, newName) or
       (varRenameCollides t.right, oldName, newName)
-    when Macro
+    when Def
       varRenameCollides t.term, oldName, newName
 
 markStep = (type, before, after) ->
@@ -285,28 +285,28 @@ markStep = (type, before, after) ->
 find = (t, fn) ->
   return t if fn t
   switch t.type
-    when Variable, Macro
+    when Var, Def
       null
-    when Abstraction
+    when Fun
       find t.body, fn
-    when Application
+    when App
       (find t.left, fn) or (find t.right, fn)
 
 replace = (t, from, to) ->
   return to if t is from
   switch t.type
-    when Variable, Macro
+    when Var, Def
       t
-    when Abstraction
+    when Fun
       body = replace t.body, from, to
-      if t.body is body then t else Abstraction t.varName, body
-    when Application
+      if t.body is body then t else Fun t.param, body
+    when App
       l = replace t.left, from, to
       if t.left is l
         r = replace t.right, from, to
-        if t.right is r then t else Application l, r
+        if t.right is r then t else App l, r
       else
-        Application l, t.right
+        App l, t.right
 
 expandStep = (t, options = {}) ->
   stepTerm = find t, (subT) -> subT.step
@@ -320,14 +320,14 @@ expandStep = (t, options = {}) ->
 
   switch type
     when 'alpha'
-      before = highlightAbstractionVar before.body, before.varName, highlightFormer
-      after = highlightAbstractionVar after.body, after.varName, highlightSubst
+      before = highlightFunctionVar before.body, before.param, highlightFormer
+      after = highlightFunctionVar after.body, after.param, highlightSubst
     when 'beta'
       hs = highlight before.right, highlightSubst
-      ha = highlightAbstractionVar before.left.body, before.left.varName, highlightFormer
-      before = Application ha, hs
-      after = substitute before.left.body, before.left.varName, hs
-    when 'macro'
+      ha = highlightFunctionVar before.left.body, before.left.param, highlightFormer
+      before = App ha, hs
+      after = substitute before.left.body, before.left.param, hs
+    when 'def'
       before = highlight before, highlightFormer
       after = highlight after, highlightSubst
 
@@ -340,22 +340,22 @@ expandStep = (t, options = {}) ->
   {type, before, after}
 
 alphaEq = (t1, t2) ->
-  return alphaEq t1.term, t2 if t1.type is Macro
-  return alphaEq t1, t2.term if t2.type is Macro
+  return alphaEq t1.term, t2 if t1.type is Def
+  return alphaEq t1, t2.term if t2.type is Def
   return no unless t1.type is t2.type
   switch t1.type
-    when Variable
+    when Var
       t1.name is t2.name
-    when Abstraction
-      if t1.varName is t2.varName
+    when Fun
+      if t1.param is t2.param
         alphaEq t1.body, t2.body
       else
-        alphaEq t1.body, (substitute t2.body, t2.varName, Variable(t1.varName))
-    when Application
+        alphaEq t1.body, (substitute t2.body, t2.param, Var(t1.param))
+    when App
       (alphaEq t1.left, t2.left) and (alphaEq t1.right, t2.right)
 
-findSynonyms = (term, macros) ->
-  name for name, macro of macros when alphaEq term, macro
+findSynonyms = (term, defs) ->
+  name for name, def of defs when alphaEq term, def
 
 defaultOptions =
   maxSteps: 100
@@ -368,7 +368,7 @@ reduceFunctions =
   cbv: reduceCallByValue
 
 # Reduces a term up to its normal form and returns TODO What does it return?
-reduceTerm = timed 'reduce', (term, macros, options) ->
+reduceTerm = timed 'reduce', (term, defs, options) ->
   {maxSteps, strategy} = extend {}, defaultOptions, options
   reduce = reduceFunctions[strategy]
   enough = {}
@@ -384,7 +384,7 @@ reduceTerm = timed 'reduce', (term, macros, options) ->
 
   initial = term
   final = steps[steps.length - 1] or term
-  finalSynonyms = findSynonyms final, macros
+  finalSynonyms = findSynonyms final, defs
   initial = termStr initial
   final = termStr final
   totalSteps = steps.length
@@ -410,5 +410,5 @@ exports.reduceTerm = (str, options = {}) ->
 
 # Reduce a program that might have multiple terms.
 exports.reduceProgram = (expr, options = {}) ->
-  {terms, macros} = parse expr
-  reduceTerm term, macros, options for term in terms
+  {terms, defs} = parse expr
+  reduceTerm term, defs, options for term in terms

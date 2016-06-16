@@ -5,13 +5,14 @@ module.exports = [
     ; You should check http://en.wikipedia.org/wiki/Lambda_calculus for that :)
     ; As you can see, these are comments. You can run this example clicking the Run
     ; button below or pressing Ctrl+Enter.
-    ; So, the three basic types of λ expressions are variables:
+    ; So, the three basic types of λ expressions are:
+    ; Variables:
     x
     ; Applications:
     x y
-    ; And abstractions (also known as functions):
+    ; And lambda abstractions (also known as functions):
     λx.x
-    ; If the left side of an application is an abstraction, then a reduction takes place:
+    ; If the left-side of an application is an abstraction, then a reduction takes place:
     (λx.x) y
     ; That little abstraction at the left is the identity, a very simple function that
     ; just reduces to whatever you apply to it. We can give it a name (in ALLCAPS) like so:

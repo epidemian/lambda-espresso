@@ -56,7 +56,7 @@ renderArrow = (symbol, label) ->
   "<span class=arrow>#{symbol}<small>#{label}</small></span>"
 
 renderArrowByType = (type) ->
-  symbol = if type is 'macro' then '≡' else '→'
+  symbol = if type is 'def' then '≡' else '→'
   label = switch type
     when 'alpha' then 'α'
     when 'beta' then 'β'
