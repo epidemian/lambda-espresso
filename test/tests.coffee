@@ -1,5 +1,5 @@
 assert = require 'assert'
-{Var, App, Fun, parse, termStr, reduceProgram} = require '../src/lambda'
+{Var, App, Fun, Def, parse, termStr, reduceProgram} = require '../src/lambda'
 
 parseTerm = (str) ->
   {terms, defs} = parse str
@@ -12,9 +12,12 @@ assertParse = (str, expected) ->
   assert.deepEqual term, expected
 
 describe 'parse()', ->
-  
   it 'parses single variables', ->
     assertParse 'x', Var 'x'
+    assertParse 'Y', Var 'Y'
+    assertParse '42', Var '42'
+    assertParse "optimus'", Var "optimus'"
+    assertParse "WAT!?", Var "WAT!?"
     assertParse 'foo42_bar-baz', Var 'foo42_bar-baz'
 
   it 'parses applications', ->
@@ -25,12 +28,21 @@ describe 'parse()', ->
 
   it 'does not parse invalid variables', ->
     # TODO make variables names more flexible so these are all possible!
-    assert.throws -> parseTerm 'X'
-    assert.throws -> parseTerm '42c'
     assert.throws -> parseTerm 'español'
     assert.throws -> parseTerm '💩'
 
-  it 'does not care about unnecessary parentheses', ->
+  it 'ignores whitespace', ->
+    assertParse '  x  ', Var 'x'
+    assertParse '  x  y  ', (App (Var 'x'), (Var 'y'))
+    assertParse '  λx  .  x  ', (Fun 'x', (Var 'x'))
+
+  it 'ignores comments', ->
+    assertParse '''
+      ; This is a comment
+      x ; The variable x
+    ''', Var 'x'
+
+  it 'ignores unnecessary parentheses', ->
     assertParse '(x)', Var 'x'
     assertParse '(((x)))', Var 'x'
 
@@ -50,10 +62,88 @@ describe 'parse()', ->
     assertParse 'λx.λy.λz.w',     (Fun 'x', (Fun 'y', (Fun 'z', Var 'w')))
     assertParse 'λx.(λy.(λz.w))', (Fun 'x', (Fun 'y', (Fun 'z', Var 'w')))
 
-  it 'does not care about unnecessary whitespace', ->
-    assertParse '  x  ', Var 'x'
-    assertParse '  x  y  ', (App (Var 'x'), (Var 'y'))
-    assertParse '  λx  .  x  ', (Fun 'x', (Var 'x'))
+  it 'parses definitions', ->
+    {defs, terms} = parse '''
+      id = λx.x
+      id y
+    '''
+    idDef = Def 'id', (Fun 'x', (Var 'x'))
+
+    assert.deepEqual ['id'], (Object.keys defs)
+    assert.deepEqual defs.id, idDef
+
+    assert.equal 1, terms.length
+    assert.deepEqual terms[0], (App idDef, Var 'y')
+
+  it 'allows using a definition before it is declared', ->
+    {defs, terms} = parse '''
+      id y
+      id = λx.x
+    '''
+    idDef = Def 'id', (Fun 'x', (Var 'x'))
+
+    assert.deepEqual ['id'], (Object.keys defs)
+    assert.deepEqual defs.id, idDef
+
+    assert.equal 1, terms.length
+    assert.deepEqual terms[0], (App idDef, Var 'y')
+
+  it 'allows a definition referencing other definition(s)', ->
+    {defs, terms} = parse '''
+      id = λx.x
+      id2 = id id
+    '''
+    idDef = Def 'id', (Fun 'x', (Var 'x'))
+
+    assert.deepEqual ['id', 'id2'], (Object.keys defs)
+    assert.deepEqual defs.id, idDef
+    assert.deepEqual defs.id2, (Def 'id2', (App idDef, idDef))
+
+    assert.equal 0, terms.length
+
+  it 'disallows redefinitions', ->
+    assert.throws (->
+      parse '''
+        foo = λx.x
+        bar = λy.y
+        foo = λz.z
+      '''),
+      /^Error: foo already defined$/
+
+  it 'disallows recursive definitions', ->
+    assert.throws (-> parse 'walk = (λx.x) walk'),
+      /^Error: Illegal recursive reference in "walk"\./
+
+  it 'disallows mutually-recursive definitions', ->
+    assert.throws (->
+      parse '''
+        foo = (λx.x) bar
+        bar = baz qux
+        baz = qux foo
+        qux = λx.x
+      '''),
+      /^Error: Illegal recursive reference in "baz"\..*baz → foo → bar → baz/
+
+  it 'disallows free variables on definitions', ->
+    assert.throws (->
+      parse '''
+        foo = λx.x bar
+      '''),
+      /^Error: Illegal free variable "bar" in "foo"\./
+
+  it 'does not confuse definitions with bound variables', ->
+    {defs, terms} = parse '''
+      x = λx.x
+      λy.x λx.x y
+    '''
+
+    assert.equal 1, terms.length
+    assert.deepEqual terms[0], (Fun 'y', (
+      App (Def 'x', (Fun 'x', (Var 'x'))), (Fun 'x', (App (Var 'x'), (Var 'y')))
+    ))
+
+  it 'parses a whole program' # TODO program with more than one def and term
+
 
 assertTermStr = (str, expected) ->
   term = parseTerm str

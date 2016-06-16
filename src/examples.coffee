@@ -15,21 +15,21 @@ module.exports = [
     ; If the left-side of an application is an abstraction, then a reduction takes place:
     (λx.x) y
     ; That little abstraction at the left is the identity, a very simple function that
-    ; just reduces to whatever you apply to it. We can give it a name (in ALLCAPS) like so:
-    ID = λx.x
+    ; just reduces to whatever you apply to it. We can give it a name like so:
+    id = λx.x
     ; And then just refer it by that name:
-    ID a
+    id a
     ; You can apply any kind of λ expression to an abstraction, like another function:
-    ID λb.c
+    id λb.c
     ; Or an application:
-    ID (x y)
+    id (x y)
     ; Or even the identity function itself:
-    ID ID
+    id id
     ; That means you can apply identity to itself as many times as you want and it'll still
     ; be identity:
-    ID ID ID ID ID
+    id id id id id
     ; Notice that applications are left-associative, so the line above is equivalent to:
-    ((((ID ID) ID) ID) ID)
+    ((((id id) id) id) id)
 
     ; TODO: explain applicative and normal order...
   '''
@@ -39,30 +39,30 @@ module.exports = [
     ; Church booleans
 
     ; The booleans and their operations can be encoded as the following λ-terms:
-    TRUE = λt.λf.t
-    FALSE = λt.λf.f
-    NOT = λp.p FALSE TRUE
-    AND = λp.λq.p q p
-    OR = λp.λq.p p q
-    IF = λp.p
+    true = λt.λf.t
+    false = λt.λf.f
+    not = λp.p false true
+    and = λp.λq.p q p
+    or = λp.λq.p p q
+    if = λp.p
 
-    ; Print truth tables for NOT, AND and OR:
-    NOT TRUE
-    NOT FALSE
-    AND FALSE FALSE
-    AND FALSE TRUE
-    AND TRUE FALSE
-    AND TRUE TRUE
-    OR FALSE FALSE
-    OR FALSE TRUE
-    OR TRUE FALSE
-    OR TRUE TRUE
+    ; Print truth tables for not, and and or:
+    not true
+    not false
+    and false false
+    and false true
+    and true false
+    and true true
+    or false false
+    or false true
+    or true false
+    or true true
 
     ; Terms can be nested as much as we want:
-    IF (NOT NOT FALSE) (OR FALSE (IF TRUE TRUE FALSE)) FALSE
+    if (not not false) (or false (if true true false)) false
 
     ; There's nothing special about "operators", we can treat them as any other value:
-    (IF FALSE OR AND) TRUE FALSE
+    (if false or and) true false
   '''
 ,
   name: 'Numbers'
@@ -70,73 +70,73 @@ module.exports = [
     ; Church numerals
 
     ; The first few numbers are:
-    ZERO = λs.λz.z
-    ONE = λs.λz.s z
-    TWO = λs.λz.s (s z)
-    THREE = λs.λz.s (s (s z))
+    zero = λs.λz.z
+    one = λs.λz.s z
+    two = λs.λz.s (s z)
+    three = λs.λz.s (s (s z))
     ; In general, any natural number n can be encoded as:
     ; N = λs.λz.s (s (s ... (s (s z)) ... ))
     ; with s applied n times.
 
     ; When we get tired of writing numbers like that, we can define a successor function:
-    SUCC = λn.λs.λz.s (n s z)
-    SUCC THREE
+    succ = λn.λs.λz.s (n s z)
+    succ three
 
     ; We can think of Church numerals as functions that apply a given function s to a
     ; given value z a number of times. Zero will apply it 0 times (i.e. it'll give
     ; us z back untouched) and three will call it 3 times.
     ; So, we can represent the addition of numbers m and n as first applying n times s to z,
     ; and then applying m times s to that:
-    ADD = λm.λn.λs.λz.m s (n s z)
-    ADD TWO THREE
+    add = λm.λn.λs.λz.m s (n s z)
+    add two three
     ; ...or, more succinctly, as applying n times the successor function on m (or vice versa):
-    ADD' = λm.λn.n SUCC m
-    ADD' TWO THREE
+    add' = λm.λn.n succ m
+    add' two three
     ; Conversely, we could define the successor function as adding one:
-    SUCC' = ADD ONE
-    SUCC' THREE
+    succ' = add one
+    succ' three
 
     ; Multiplication of m by n is applying m times a function that applies s n times:
-    MULT = λm.λn.λs.m (n s)
-    MULT THREE THREE
+    mult = λm.λn.λs.m (n s)
+    mult three three
     ; ...or applying m times the addition of n to zero:
-    MULT' = λm.λn.m (ADD n) ZERO
-    MULT' THREE THREE
+    mult' = λm.λn.m (add n) zero
+    mult' three three
 
     ; Exponentiation n^m has a simple encoding: applying the base m to the exponent n,
     ; which can be understood as applying m successively n times:
-    EXP = λm.λn.n m
-    EXP TWO THREE
+    exp = λm.λn.n m
+    exp two three
     ; ...or, alternatively, applying m times the multiplication by n to one:
-    EXP' = λm.λn.m (MULT n) ONE
-    EXP' TWO THREE
+    exp' = λm.λn.m (mult n) one
+    exp' two three
 
     ; The encoding for the predecessor function is quite complex.
     ; The Wikipedia article on Church encoding has a good explanation for this term ;-)
-    PRED = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
-    PRED THREE
+    pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+    pred three
 
     ; But given the predecessor function is then easy to define the subtraction:
-    SUB = λm.λn.n PRED m
-    SUB THREE TWO
+    sub = λm.λn.n pred m
+    sub three two
 
     ; To build some predicate functions, we'll use some known boolean terms:
-    TRUE = λt.λf.t
-    FALSE = λt.λf.f
-    AND = λp.λq.p q p
+    true = λt.λf.t
+    false = λt.λf.f
+    and = λp.λq.p q p
 
     ; To know if a number n is zero we can pass true as the base value and a function
     ; that always returns false:
-    ISZERO = λn.n (λx.FALSE) TRUE
-    ISZERO ZERO
-    ISZERO TWO
+    zero? = λn.n (λx.false) true
+    zero? zero
+    zero? two
 
     ; Given the "= 0" predicate, numeric equality between m and n can be defined as
     ; m - n = 0 and n - m = 0
-    EQ = λm.λn.AND (ISZERO (SUB m n)) (ISZERO (SUB n m))
+    eq = λm.λn.and (zero? (sub m n)) (zero? (sub n m))
 
     ; Throw everyting into the mix:
-    EQ (EXP TWO THREE) (PRED (EXP THREE TWO))
+    eq (exp two three) (pred (exp three two))
   '''
   # TODO bump up the max-steps for this example (and try to use applicative order).
 ,
@@ -145,36 +145,36 @@ module.exports = [
     ; Recursion
 
     ; Borrow some terms from previous examples:
-    TRUE = λt.λf.t
-    FALSE = λt.λf.f
-    IF = λp.p
+    true = λt.λf.t
+    false = λt.λf.f
+    if = λp.p
 
-    ZERO = λs.λz.z
-    ONE = λs.λz.s z
-    TWO = λs.λz.s (s z)
-    THREE = λs.λz.s (s (s z))
-    FOUR = λs.λz.s (s (s (s z)))
+    zero = λs.λz.z
+    one = λs.λz.s z
+    two = λs.λz.s (s z)
+    three = λs.λz.s (s (s z))
+    four = λs.λz.s (s (s (s z)))
 
-    PRED = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
-    MULT = λm.λn.λs.m (n s)
-    ISZERO = λn.n (λx.FALSE) TRUE
+    pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+    mult = λm.λn.λs.m (n s)
+    zero? = λn.n (λx.false) true
 
     ; We'd like to be able to define a factorial function as:
-    ; FACT = λn.IF (ISZERO n) ONE (MULT n (FACT (PRED n)))
+    ; fact = λn.if (zero? n) one (mult n (fact (pred n)))
     ; But we can't use a term in its own definition.
     ; To achieve recursion, we can instead define a function that will receive itself
     ; as a parameter r, and then recur by calling r with itself and n - 1:
-    FACT_REC = λr.λn.IF (ISZERO n) ONE (MULT n (r r (PRED n)))
+    fact-rec = λr.λn.if (zero? n) one (mult n (r r (pred n)))
     ; The real factorial function would then be:
-    FACT = FACT_REC FACT_REC
-    FACT FOUR
+    fact = fact-rec fact-rec
+    fact four
 
     ; Another way to recur is to use a general purpose fixed-point combinator.
     ; The almighty Y Combinator:
     Y = λf.(λx.f (x x)) (λx.f (x x))
 
     ; And then there's no need to define a separate function:
-    FACT' = Y λr.λn.IF (ISZERO n) ONE (MULT n (r (PRED n)))
-    FACT' FOUR
+    fact' = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
+    fact' four
   '''
 ]

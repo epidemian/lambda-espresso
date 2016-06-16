@@ -1,30 +1,28 @@
 %lex
 %%
 
-"("                 { return '('; }
-")"                 { return ')'; }
-"\\"|"λ"            { return 'LAMBDA'; }
-"."                 { return '.'; }
-"="                 { return '='; }
-[a-z][a-z0-9-_]*    { return 'VAR'; }
-[A-Z][A-Z0-9-_]*\'* { return 'DEF'; }
-[\n]                { return 'SEPARATOR'; }
-[ \t]+              { /* ignore whitespace */ }
-";".*               { /* ignore line comments */ }
-<<EOF>>             { return 'EOF'; }
+"("                  { return '('; }
+")"                  { return ')'; }
+"\\"|"λ"             { return 'LAMBDA'; }
+"."                  { return '.'; }
+"="                  { return '='; }
+[\n]                 { return 'SEPARATOR'; }
+[ \t]+               { /* ignore whitespace */ }
+";".*                { /* ignore line comments */ }
+[a-zA-Z0-9-_\'\!\?]+ { return 'IDENT'; }
+<<EOF>>              { return 'EOF'; }
 /lex
 
 
 %right LAMBDA
-%left DEF
-%left VAR
+%left IDENT
 %left '('
 %left APPLY
 
 %%
 
 root
-  : program EOF { return yy.getProgram(); }
+  : program EOF { /* do nothing; terms and definitions already collected */ }
   ;
 
 program
@@ -35,22 +33,17 @@ program
   ;
 
 line
-  : term         { $$ = yy.parseTermEvaluation($term); }
-  | def '=' term { $$ = yy.parseDefinition($def, $term); }
+  : term           { $$ = yy.parseTopLevelTerm($term); }
+  | ident '=' term { $$ = yy.parseDefinition($ident, $term); }
   ;
 
 term
-  : LAMBDA var '.' term   { $$ = yy.parseFunction($var, $term); }
+  : LAMBDA ident '.' term { $$ = yy.parseFunction($ident, $term); }
   | term term %prec APPLY { $$ = yy.parseApplication($term1, $term2); }
-  | var                   { $$ = yy.parseVariable($var); }
-  | def                   { $$ = yy.parseDefinitionUse($def); }
+  | ident                 { $$ = yy.parseIdentifier($ident); }
   | "(" term ")"          { $$ = $term; }
   ;
 
-def
-  : DEF { $$ = yytext; }
-  ;
-
-var
-  : VAR { $$ = yytext; }
+ident
+  : IDENT { $$ = yytext; }
   ;

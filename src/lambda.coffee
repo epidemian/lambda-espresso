@@ -1,14 +1,15 @@
 # λ calculus parser
-{repeatStr, extend, timed, compose, identity} = require './helpers'
+{extend, timed, compose, identity} = require './helpers'
 
 # Term types/constructors.
 Var = (name) -> {type: Var, name}
 Fun = (param, body) -> {type: Fun, param, body}
 App = (left, right) -> {type: App, left, right}
 Def = (name, term) -> {type: Def, name, term}
+Ref = (name) -> {type: Ref, name}
 
-# Parses an input program string and returns an object with the terms and
-# definitions of the program.
+# Parses an input program string and returns an object with the top-level terms
+# and definitions of the program.
 parse = timed 'parse', (str) ->
   # A custom Jison parser.
   parser = new (require './grammar').Parser
@@ -22,17 +23,74 @@ parse = timed 'parse', (str) ->
   parser.yy =
     parseFunction: Fun
     parseApplication: App
-    parseVariable: Var
     parseDefinition: (name, term) ->
       throw Error "#{name} already defined" if defs[name]
       defs[name] = Def name, term
-    parseDefinitionUse: (name) ->
-      throw Error "#{name} not defined" unless defs[name]
-      defs[name]
-    parseTermEvaluation: (term) -> terms.push term
-    getProgram: -> {defs, terms}
+    parseTopLevelTerm: (term) -> terms.push term
+    parseIdentifier: Ref
 
   parser.parse str
+
+  resolveReferences defs, terms
+
+resolveReferences = (defs, terms) ->
+  for t in terms
+    resolveTermRefs t, defs
+
+  defRefs = {}
+  for name, def of defs
+    resolveDefRefs name, def.term, defs, defRefs
+  {defs, terms}
+
+resolveTermRefs = (t, defs, boundNames = []) ->
+  switch t.type
+    when Ref
+      free = t.name not in boundNames
+      if t.name of defs and free
+        t.type = Def
+        t.term = defs[t.name].term
+      else
+        t.type = Var
+    when App
+      resolveTermRefs t.left, defs, boundNames
+      resolveTermRefs t.right, defs, boundNames
+    when Fun
+      resolveTermRefs t.body, defs, boundNames.concat(t.param)
+  undefined
+
+resolveDefRefs = (defName, t, defs, defRefs, boundNames = []) ->
+  switch t.type
+    when Ref
+      bound = t.name in boundNames
+      if bound
+        t.type = Var
+      else if t.name of defs
+        (defRefs[defName] or= []).push t.name
+        checkForCircularRefs defName, t.name, defRefs
+        t.type = Def
+        t.term = defs[t.name].term
+      else
+        throw Error "Illegal free variable \"#{t.name}\" in \"#{defName}\".
+          Definitions cannot have free variables"
+    when App
+      resolveDefRefs defName, t.left, defs, defRefs, boundNames
+      resolveDefRefs defName, t.right, defs, defRefs, boundNames
+    when Fun
+      resolveDefRefs defName, t.body, defs, defRefs, boundNames.concat(t.param)
+  undefined
+
+checkForCircularRefs = (name, refName, defRefs, path = []) ->
+  if name is refName
+    circularNote = path.length and "In this case the definition does not
+      reference itself directly, but through other definitions:
+      #{[name, path..., name].join ' → '}. "
+    message = "Illegal recursive reference in \"#{name}\". Definitions cannot
+      reference themselves; they are just simple find&replace mechanisms. " +
+      (circularNote or '') +
+      'If you want to write a recursive function, look for "Y combinator" ;)'
+    throw Error message
+  for nextRef in defRefs[refName] or {}
+    checkForCircularRefs name, nextRef, defRefs, [path..., refName]
 
 # Returns the string representation for a given term t.
 termStr = (t, appParens = no, funParens = no) ->
@@ -50,24 +108,6 @@ termStr = (t, appParens = no, funParens = no) ->
   if t.highlight
     str = t.highlight str
   str
-
-# Show a term in a tree format. Useful for debugging.
-termTreeStr = do ->
-  makeLines = (t) ->
-    switch t.type
-      when Var, Def
-        [t.name]
-      when Fun
-        ["λ#{t.param}", (indentLines (makeLines t.body), '╰─', '  ')...]
-      when App
-        ["@", (indentLines (makeLines t.left),  '├─', '│ ')...
-              (indentLines (makeLines t.right), '╰─', '  ')...]
-
-  indentLines = (lines, first, next) ->
-    "#{if n is 0 then first else next}#{line}" for line, n in lines
-
-  (t) ->
-    (makeLines t).join '\n'
 
 highlight = (t, fn) ->
   if t.highlight
@@ -187,10 +227,6 @@ substitute = (t, x, s) ->
       # (U V)[x := S] = (U[x := S]) (V[x := S])
       App (substitute t.left, x, s), (substitute t.right, x, s)
     when Def
-      if freeIn x, t.term
-        # TODO delete. Check for free variables on defs when (or after) parsing.
-        throw Error "Logical error: #{x} is free in #{t.name}." +
-          "Definitions cannot have free variables"
       t
 
 # Performs the α-conversions necessary for the substitution T[x := S], but does
@@ -225,9 +261,6 @@ applySubstitution = (t, x, s) ->
     when App
       App (applySubstitution t.left, x, s), (applySubstitution t.right, x, s)
     when Def
-      if freeIn x, t.term
-        throw Error "Logical error: #{x} is free in #{t.name}." +
-        "Definitions cannot have free variables"
       t
 
 # Renames a variable to avoid naming conflicts when doing a substitution.
