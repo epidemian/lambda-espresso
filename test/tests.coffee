@@ -12,24 +12,23 @@ assertParse = (str, expected) ->
   assert.deepEqual term, expected
 
 describe 'parse()', ->
-  it 'parses single variables', ->
+  it 'parses variables', ->
     assertParse 'x', Var 'x'
+
+  it 'parses almost anything as a variable', ->
     assertParse 'Y', Var 'Y'
     assertParse '42', Var '42'
     assertParse "optimus'", Var "optimus'"
     assertParse "WAT!?", Var "WAT!?"
-    assertParse 'foo42_bar-baz', Var 'foo42_bar-baz'
+    assertParse 'ñ²', Var 'ñ²'
+    assertParse "~>", Var "~>"
+    assertParse '💩', Var '💩'
 
   it 'parses applications', ->
     assertParse 'a b', App (Var 'a'), (Var 'b')
 
   it 'parses lambda abstractions', ->
     assertParse 'λx.x', (Fun 'x', (Var 'x'))
-
-  it 'does not parse invalid variables', ->
-    # TODO make variables names more flexible so these are all possible!
-    assert.throws -> parseTerm 'español'
-    assert.throws -> parseTerm '💩'
 
   it 'ignores whitespace', ->
     assertParse '  x  ', Var 'x'
