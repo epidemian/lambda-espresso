@@ -66,37 +66,35 @@ describe 'parse()', ->
       id = λx.x
       id y
     '''
-    idDef = Def 'id', (Fun 'x', (Var 'x'))
 
     assert.deepEqual ['id'], (Object.keys defs)
-    assert.deepEqual defs.id, idDef
+    assert.deepEqual defs.id, (Fun 'x', (Var 'x'))
 
     assert.equal 1, terms.length
-    assert.deepEqual terms[0], (App idDef, Var 'y')
+    assert.deepEqual terms[0], (App (Def 'id', (Fun 'x', (Var 'x'))), Var 'y')
 
   it 'allows using a definition before it is declared', ->
     {defs, terms} = parse '''
       id y
       id = λx.x
     '''
-    idDef = Def 'id', (Fun 'x', (Var 'x'))
 
     assert.deepEqual ['id'], (Object.keys defs)
-    assert.deepEqual defs.id, idDef
+    assert.deepEqual defs.id, (Fun 'x', (Var 'x'))
 
     assert.equal 1, terms.length
-    assert.deepEqual terms[0], (App idDef, Var 'y')
+    assert.deepEqual terms[0], (App (Def 'id', (Fun 'x', (Var 'x'))), Var 'y')
 
   it 'allows a definition referencing other definition(s)', ->
     {defs, terms} = parse '''
       id = λx.x
       id2 = id id
     '''
-    idDef = Def 'id', (Fun 'x', (Var 'x'))
+    id = Fun 'x', (Var 'x')
 
     assert.deepEqual ['id', 'id2'], (Object.keys defs)
-    assert.deepEqual defs.id, idDef
-    assert.deepEqual defs.id2, (Def 'id2', (App idDef, idDef))
+    assert.deepEqual defs.id, id
+    assert.deepEqual defs.id2, (App (Def 'id', id), (Def 'id', id))
 
     assert.equal 0, terms.length
 

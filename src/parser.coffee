@@ -7,7 +7,7 @@ exports.parse = timed 'parse', (str) ->
 # A custom Jison parser.
   parser = new (require './grammar').Parser
 
-  # A definition table with the definitions by their names.
+  # A definition table with the definition term by their names.
   defs = {}
   # The terms of the program.
   terms = []
@@ -18,7 +18,7 @@ exports.parse = timed 'parse', (str) ->
     parseApplication: App
     parseDefinition: (name, term) ->
       throw Error "#{name} already defined" if defs[name]
-      defs[name] = Def name, term
+      defs[name] = term
     parseTopLevelTerm: (term) -> terms.push term
     parseIdentifier: Ref
 
@@ -28,8 +28,8 @@ exports.parse = timed 'parse', (str) ->
     resolveTermRefs t, defs
 
   refNames = {}
-  for name, def of defs
-    resolveDefRefs name, def.term, defs, refNames
+  for name, term of defs
+    resolveDefRefs name, term, defs, refNames
 
   {defs, terms}
 
@@ -47,7 +47,7 @@ resolveTermRefs = (t, defs, boundNames = []) ->
       free = t.name not in boundNames
       if t.name of defs and free
         t.type = Def
-        t.term = defs[t.name].term
+        t.term = defs[t.name]
       else
         t.type = Var
     when App
@@ -68,7 +68,7 @@ resolveDefRefs = (defName, t, defs, refNames, boundNames = []) ->
         (refNames[defName] or= []).push t.name
         checkForCircularRefs defName, t.name, refNames
         t.type = Def
-        t.term = defs[t.name].term
+        t.term = defs[t.name]
       else
         throw Error "Illegal free variable \"#{t.name}\" in \"#{defName}\".
           Definitions cannot have free variables"

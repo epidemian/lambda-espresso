@@ -299,7 +299,7 @@ alphaEq = (t1, t2) ->
       (alphaEq t1.left, t2.left) and (alphaEq t1.right, t2.right)
 
 findSynonyms = (term, defs) ->
-  name for name, def of defs when alphaEq term, def
+  name for name, defTerm of defs when alphaEq term, defTerm
 
 defaultOptions =
   maxSteps: 100
