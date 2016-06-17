@@ -14,16 +14,18 @@ $(js_bundle): $(coffee_files) src/grammar.js
 $(min_js_bundle): $(js_bundle)
 	$(bin_dir)/uglifyjs --in-source-map $(js_bundle).map --source-map $@.map --source-map-url index.min.js.map $(js_bundle) > $@
 
-.PHONY: build clean test watch
-
+.PHONY: build
 build: $(min_js_bundle)
 
+.PHONY: clean
 clean:
 	rm -f src/grammar.js $(js_bundle) $(min_js_bundle)
 
+.PHONY: test
 test: build
 	$(bin_dir)/mocha --growl --colors >/dev/null
 
+.PHONY: watch
 watch: test
 	@while true; do \
 	  inotifywait \
@@ -32,3 +34,7 @@ watch: test
 	    src test; \
 	  make --no-print-directory test; \
 	done
+
+.PHONY: bench
+bench:
+	$(bin_dir)/coffee src/benchmark.coffee

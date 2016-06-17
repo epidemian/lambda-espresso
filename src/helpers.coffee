@@ -1,9 +1,4 @@
-exports.repeatStr = (str, n) ->
-  res = ''
-  res += str while n--
-  res
-
-exports.extend = (obj, srcs...) ->
+exports.extend = Object.assign or (obj, srcs...) ->
   for src in srcs
     obj[k] = v for k, v of src
   obj
@@ -18,7 +13,6 @@ exports.timed = (name, fn) ->
 
 exports.enableLogTimings = -> logTimings = yes
 exports.disableLogTimings = -> logTimings = no
-
 
 exports.compose = (f, g) -> (x) -> f g x
 
