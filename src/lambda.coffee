@@ -81,7 +81,7 @@ reduceCallByValue = (t, cb) ->
         App l, r
     when Def
       cb markStep 'def', t, t.term
-      reduceCallByName t.term, cb
+      reduceCallByValue t.term, cb
 
 reduceApplicative = (t, cb) ->
   switch t.type
