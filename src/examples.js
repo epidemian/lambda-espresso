@@ -62,7 +62,7 @@ module.exports = [{
     or true true
 
     ; Terms can be nested as much as we want:
-    if (not not false) (or false (if true true false)) false
+    if (not (not true)) (or false (if true true false)) false
 
     ; There's nothing special about "operators", we can treat them as any other value:
     (if false or and) true false
