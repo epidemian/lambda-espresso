@@ -4,27 +4,22 @@ let {parse} = require('./parser')
 
 // Returns the string representation for a given term t.
 let termStr = (t, appParens = false, funParens = false) => {
-  let str
+  let h = t.highlight || identity
   switch (t.type) {
   case Var:
   case Def:
-    str = t.name
-    break
+    return h(t.name)
   case Fun:
     let lambda = `λ${t.param}`
     if (t.highlightVar) lambda = t.highlightVar(lambda)
-    str = `${lambda}.${termStr(t.body)}`
-    str = funParens ? `(${str})` : str
-    break
+    let funStr = `${lambda}.${termStr(t.body)}`
+    return h(funParens ? `(${funStr})` : funStr)
   case App:
     let lStr = termStr(t.left, false, true)
     let rStr = termStr(t.right, true, funParens)
-    str = `${lStr} ${rStr}`
-    str = appParens ? `(${str})` : str
+    let appStr = `${lStr} ${rStr}`
+    return h(appParens ? `(${appStr})` : appStr)
   }
-  if (t.highlight)
-    str = t.highlight(str)
-  return str
 }
 
 let highlight = (t, fn) => {
