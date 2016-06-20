@@ -1,8 +1,11 @@
 {
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/epidemian/lambda-espresso.git"
+  "name": "lambda-espresso",
+  "version": "0.0.1",
+  "description": "A lambda calculus interpreter",
+  "directories": {
+    "test": "test"
   },
+  "dependencies": {},
   "devDependencies": {
     "browserify": "^11.2.0",
     "eslint": "^2.13.0",
@@ -11,9 +14,21 @@
     "mocha": "^2.5.3",
     "uglify-js": "^2.6.2"
   },
+  "scripts": {
+    "test": "make test lint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epidemian/lambda-espresso.git"
+  },
+  "author": "Demian Ferreiro",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/epidemian/lambda-espresso/issues"
+  },
+  "homepage": "https://epidemian.github.io/lambda-espresso/",
   "browser": {
     "fs": false,
     "path": false
-  },
-  "license": "Unlicense"
+  }
 }
