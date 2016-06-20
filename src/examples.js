@@ -1,6 +1,8 @@
-module.exports = [
-  name: 'Basics'
-  code: '''
+let {dedent} = require('./helpers')
+
+module.exports = [{
+  name: 'Basics',
+  code: dedent(`
     ; This example is not intend to be a tutorial nor an introduction to λ Calculus.
     ; You should check http://en.wikipedia.org/wiki/Lambda_calculus for that :)
     ; As you can see, these are comments. You can run this example clicking the Run
@@ -32,10 +34,10 @@ module.exports = [
     ((((id id) id) id) id)
 
     ; TODO: explain applicative and normal order...
-  '''
-,
-  name: 'Booleans'
-  code: '''
+  `)
+}, {
+  name: 'Booleans',
+  code: dedent(`
     ; Church booleans
 
     ; The booleans and their operations can be encoded as the following λ-terms:
@@ -63,10 +65,10 @@ module.exports = [
 
     ; There's nothing special about "operators", we can treat them as any other value:
     (if false or and) true false
-  '''
-,
-  name: 'Numbers'
-  code: '''
+  `)
+}, {
+  name: 'Numbers',
+  code: dedent(`
     ; Church numerals
 
     ; The first few numbers are:
@@ -137,11 +139,11 @@ module.exports = [
 
     ; Throw everyting into the mix:
     eq (exp two three) (pred (exp three two))
-  '''
-  # TODO bump up the max-steps for this example (and try to use applicative order).
-,
-  name: 'Factorial'
-  code: '''
+  `)
+}, {
+  // TODO bump up the max-steps for this example (and try to use applicative order)
+  name: 'Factorial',
+  code: dedent(`
     ; Recursion
 
     ; Borrow some terms from previous examples:
@@ -176,5 +178,5 @@ module.exports = [
     ; And then there's no need to define a separate function:
     fact' = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
     fact' four
-  '''
-]
+  `)
+}]

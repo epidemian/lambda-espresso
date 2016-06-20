@@ -1,7 +1,5 @@
 - Add Eta-reduction option.
-- Add collapse/expand reduction steps option.
 - Add expand macro (lazy|eager) option.
-- Add macros tests.
 - Add step-by-step reduction tests.
 - Add highlighting to the step-by-step reduction so the GUI can show which variables and terms where substituted =D
 - Improve index.html
@@ -13,9 +11,6 @@
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
 - Add options to generated links.
-- Substitute reduction result by macro name if it is α-equivalent to some macro.
-  If more than one macro is α-equivalent, show them all (e.g. "ZERO/FALSE")
-- Let macros be defined after their usage.
 - Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
 - Use trampolining to avoid "too much recursion" errors
@@ -23,7 +18,6 @@
 
 Minor (but fun):
 - Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
-- Use CoffeeScript to deifne the grammar instead of a Jison grammar file
 
 - Add references to nice intro material to Lambda Calculus:
   - [http://codon.com/programming-with-nothing](http://codon.com/programming-with-nothing)

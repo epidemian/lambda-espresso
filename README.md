@@ -1,6 +1,6 @@
-# :coffee: λ-Espresso :coffee:
+# λ-Espresso ☕
 
-A λ calculus interpreter written in CoffeeScript.
+An interactive λ calculus interpreter.
 
 ## Usage
 
@@ -10,7 +10,7 @@ Ideas and suggestions are welcomed, please [open an issue](https://github.com/ep
 
 ## Development
 
-λ-Espresso is written in CoffeeScript and uses [Jison](http://jison.org/) to generate the λ calculus grammar parser, [Mocha](http://visionmedia.github.com/mocha/) for unit-testing and [Browserify](http://browserify.org/) for building the browser script.
+λ-Espresso uses [Jison](http://jison.org/) to generate the λ calculus grammar parser, [Mocha](http://visionmedia.github.com/mocha/) for unit-testing and [Browserify](http://browserify.org/) for building the browser script.
 
 Assuming you have Node.js installed, clone the repo and install the dependencies with `npm install`.
 
