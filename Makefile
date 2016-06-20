@@ -24,10 +24,14 @@ clean:
 test: build
 	$(bin_dir)/mocha --growl --colors
 
+.PHONY: lint
+lint:
+	$(bin_dir)/eslint . --ignore-path .gitignore --cache
+
 .PHONY: watch
 watch:
 	@while true; do \
-	  make --no-print-directory test; \
+	  make --no-print-directory test lint; \
 	  inotifywait \
 	    --event modify,close_write,move,move_self,create,delete,delete_self \
 	    --quiet --recursive \

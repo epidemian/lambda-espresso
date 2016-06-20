@@ -24,7 +24,7 @@ exports.parse = timed('parse', str => {
     parseTopLevelTerm: (term) => {
       terms.push(term)
     },
-    parseIdentifier: Ref
+    parseIdentifier: Ref,
   }
 
   parser.parse(str)
@@ -80,18 +80,19 @@ let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
       checkForCircularRefs(defName, t.name, refNames)
       t.type = Def
       t.term = defs[t.name]
-    } else
+    } else {
       throw Error(cleanWhitespace(
         `Illegal free variable "${t.name}" in "${defName}". 
         Definitions cannot have free variables.`
       ))
+    }
     break
   case App:
     resolveDefRefs(defName, t.left, defs, refNames, boundNames)
     resolveDefRefs(defName, t.right, defs, refNames, boundNames)
     break
   case Fun:
-    let boundOnBody = boundNames.concat(t.param);
+    let boundOnBody = boundNames.concat(t.param)
     resolveDefRefs(defName, t.body, defs, refNames, boundOnBody)
     break
   }
@@ -111,7 +112,7 @@ let checkForCircularRefs = (name, refName, refNames, path = []) => {
     ))
   }
 
-  var nextRefs = refNames[refName] || [];
+  let nextRefs = refNames[refName] || []
   nextRefs.forEach(nextRef =>
     checkForCircularRefs(name, nextRef, refNames, [...path, refName])
   )

@@ -1,6 +1,6 @@
 let assert = require('assert')
 let {
-  Var, App, Fun, Def, parse, termStr, reduceProgram
+  Var, App, Fun, Def, parse, termStr, reduceProgram,
 } = require('../src/lambda')
 
 let parseTerm = str => {
@@ -24,9 +24,9 @@ describe('parse()', () => {
     assertParse('Y', Var('Y'))
     assertParse('42', Var('42'))
     assertParse("optimus'", Var("optimus'"))
-    assertParse("WAT!?", Var('WAT!?'))
+    assertParse('WAT!?', Var('WAT!?'))
     assertParse('ñ²', Var('ñ²'))
-    assertParse("~>", Var('~>'))
+    assertParse('~>', Var('~>'))
     assertParse('💩', Var('💩'))
   })
 
@@ -45,10 +45,10 @@ describe('parse()', () => {
   })
 
   it('ignores comments', () => {
-    var code = `
+    let code = `
       ; This is a comment
       x ; The variable x
-    `;
+    `
     assertParse(code, Var('x'))
   })
 
@@ -120,7 +120,7 @@ describe('parse()', () => {
       foo = λx.x
       bar = λy.y
       foo = λz.z
-    `;
+    `
     assert.throws(() => parse(code), /^Error: foo already defined$/)
   })
 
@@ -137,7 +137,7 @@ describe('parse()', () => {
       bar = baz qux
       baz = qux foo
       qux = λx.x
-    `;
+    `
     assert.throws(
       () => parse(code),
       /^Error: Illegal recursive reference in "baz"\..*baz → foo → bar → baz/
@@ -146,7 +146,7 @@ describe('parse()', () => {
 
   it('disallows free variables on definitions', () => {
     assert.throws(
-      () => parse(`foo = λx.x bar`),
+      () => parse('foo = λx.x bar'),
       /^Error: Illegal free variable "bar" in "foo"\./
     )
   })
@@ -160,11 +160,11 @@ describe('parse()', () => {
     assert.equal(1, terms.length)
     assert.deepEqual(
       terms[0],
-      Fun('y', (
+      Fun('y',
         App(
           Def('x', Fun('x', Var('x'))),
           Fun('x', App(Var('x'), Var('y'))))
-      ))
+      )
     )
   })
 
@@ -240,40 +240,51 @@ describe('reduceProgram()', () => {
       assertReduce('(λx.λy.x y) (y z)', 'λy1.y z y1')
     })
 
-    it('does not rename if y does not occur free in S but x is free in T', () => {
-      assertReduce('(λx.λy.x y) (w z)', 'λy.w z y')
-    })
+    it('does not rename if y does not occur free in S but x is free in T',
+      () => {
+        assertReduce('(λx.λy.x y) (w z)', 'λy.w z y')
+      }
+    )
 
     it('does not rename if y is free in S but x does not occur in T', () => {
       assertReduce('(λx.λy.y) (y z)', 'λy.y')
     })
 
-    it('does not rename if y is free in S but x has only bound occurrences in T', () => {
-      assertReduce('(λx.λy.y λx.x) (y z)', 'λy.y λx.x')
-      assertReduce('(λx.λy.y λx.x x y λx.x) (y z)', 'λy.y λx.x x y λx.x')
-    })
+    it('does not rename if y is free in S but x occurs always bound on T',
+      () => {
+        assertReduce('(λx.λy.y λx.x) (y z)', 'λy.y λx.x')
+        assertReduce('(λx.λy.y λx.x x y λx.x) (y z)', 'λy.y λx.x x y λx.x')
+      }
+    )
 
-    it('does not choose a name that makes an inner variable bind to another abstraction', () => {
-      // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to use
-      // [y := y1] because it would make the inner y bind to the second
-      // abstraction instead of the first one.
-      assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
-      // Same thing as above but with higher numbers.
-      assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
-      // Same idea, but in this case it has to go quite deep to find a new name.
-      assertReduce('(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5')
-    })
+    it('does not choose a name that makes an inner variable bind to another ' +
+      'abstraction',
+      () => {
+        // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to
+        // use [y := y1] because it would make the inner y bind to the second
+        // abstraction instead of the first one.
+        assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
+        // Same thing as above but with higher numbers.
+        assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
+        // Same idea, but here it has to go quite deep to find a new name.
+        assertReduce(
+          '(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5'
+        )
+      }
+    )
 
     it('does not choose a name that collides with free variables', () => {
       assertReduce('(λx.λy.x y y1) y', 'λy2.y y2 y1')
     })
 
     it('does not choose a name that collides in any form', () => {
-      // This test combines the other three criteria. y can't be renamed to y1 or
-      // y4 because it would collide with free variables; nor renamed to y2 or y5
-      // because it would make y bind to an inner abstraction; not renamed to y3
-      // or y6 because they are free in the substitution term.
-      assertReduce('(λx.λy.λy2.λy5.x y y1 y4) (y y3 y6)', 'λy7.λy2.λy5.y y3 y6 y7 y1 y4')
+      // This test combines the other three criteria. y can't be renamed to y1
+      // or y4 because it would collide with free variables; nor renamed to y2
+      // or y5 because it would make y bind to an inner abstraction; not renamed
+      // to y3 or y6 because they are free in the substitution term.
+      assertReduce(
+        '(λx.λy.λy2.λy5.x y y1 y4) (y y3 y6)', 'λy7.λy2.λy5.y y3 y6 y7 y1 y4'
+      )
     })
   })
 })

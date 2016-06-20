@@ -1,0 +1,110 @@
+env:
+  browser: true
+  commonjs: true
+  es6: true
+  node: true
+extends: 'eslint:recommended'
+rules:
+  array-bracket-spacing: error
+  arrow-body-style: error
+  arrow-spacing: error
+  block-spacing: error
+  brace-style: [error, 1tbs, allowSingleLine: true]
+  camelcase:  error
+  comma-dangle: [error, always-multiline]
+  comma-spacing: error
+  comma-style: error
+  curly: [error, multi, consistent]
+  default-case: off
+  dot-location: [error, property]
+  dot-notation: error
+  eol-last: error
+  eqeqeq: [error, allow-null]
+  func-style: [error, expression]
+  indent: [error, 2]
+  key-spacing: error
+  keyword-spacing: error
+  linebreak-style: [error, unix]
+  max-len: [2, 80, ignoreUrls: true]
+  newline-per-chained-call: error
+  no-alert: error
+  no-array-constructor: error
+  no-caller: error
+  no-catch-shadow: error
+  no-case-declarations: off
+  no-constant-condition: [error, checkLoops: false]
+  no-eq-null: error
+  no-extend-native: error
+  no-extra-bind: error
+  no-extra-parens: error
+  no-floating-decimal: error
+  no-implicit-coercion: error
+  no-implicit-globals: error
+  no-implied-eval: error
+  no-invalid-this: error
+  no-lone-blocks: error
+  no-lonely-if: error
+  no-loop-func: error
+  no-multi-spaces: off
+  no-multi-str: error
+  no-multiple-empty-lines: error
+  no-native-reassign: error
+  no-negated-condition: error
+  no-nested-ternary: error
+  no-new: error
+  no-new-func: error
+  no-new-object: error
+  no-new-require: error
+  no-new-wrappers: error
+  no-octal-escape: error
+  no-proto: error
+  no-prototype-builtins: error
+  no-return-assign: error
+  no-script-url: error
+  no-self-compare: error
+  no-sequences: error
+  no-shadow-restricted-names: error
+  no-spaced-func: error
+  no-throw-literal: error
+  no-trailing-spaces: error
+  no-undef: error
+  no-undef-init: error
+  no-undefined: error
+  no-unmodified-loop-condition: error
+  no-unsafe-finally: error
+  no-unused-vars: [2, {args: all, argsIgnorePattern: "^_"}]
+  no-useless-call: error
+  no-useless-computed-key: error
+  no-useless-concat: error
+  no-useless-constructor: error
+  no-useless-escape: error
+  no-useless-rename: error
+  no-var: error
+  no-void: error
+  no-whitespace-before-property: error
+  object-curly-spacing: error
+  object-shorthand: error
+  operator-assignment: [2, always]
+  operator-linebreak: error
+  prefer-arrow-callback: error
+  prefer-rest-params: error
+  prefer-spread: error
+  prefer-template: error
+  quote-props: [error, as-needed]
+  quotes: [error, single, avoidEscape: true]
+  radix: [error, as-needed]
+  require-yield: error
+  rest-spread-spacing: [error, never]
+  semi: [error, never]
+  space-before-blocks: error
+  space-before-function-paren: [error, never]
+  space-in-parens: [error, never]
+  space-infix-ops: error
+  space-unary-ops: error
+  spaced-comment: error
+#  strict: error
+  template-curly-spacing: error
+  yield-star-spacing: error
+  yoda: [error, never]
+
+

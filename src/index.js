@@ -11,13 +11,13 @@ let $ = document.querySelector.bind(document)
 Node.prototype.on = Node.prototype.addEventListener
 
 // Like jQuery.fn.on(type, selector, handler)
-Node.prototype.delegate = function (eventType, selector, handler) {
+Node.prototype.delegate = function(eventType, selector, handler) {
   this.on(eventType, function(event) {
     let element = event.target
     // Try to find matching element bubbling up from event target.
     while (element !== this) {
       if (element.matches(selector)) {
-        handler.apply(element, arguments)
+        handler.call(element, event)
         break
       }
       element = element.parentNode
@@ -26,9 +26,9 @@ Node.prototype.delegate = function (eventType, selector, handler) {
 }
 
 // Like jQuery.fn.one
-Node.prototype.once = function (eventType, handler) {
-  let onceListener = function() {
-    handler.apply(this, arguments)
+Node.prototype.once = function(eventType, handler) {
+  let onceListener = function(event) {
+    handler.call(this, event)
     this.removeEventListener(eventType, onceListener)
   }
   this.on(eventType, onceListener)
@@ -75,7 +75,7 @@ let renderArrowByType = type => {
 
 let arrowSymbols = {
   alpha: 'α',
-  beta: 'β'
+  beta: 'β',
 }
 
 let renderSynonyms = synonyms =>
@@ -172,7 +172,7 @@ let renderExpandedReductionForm = reduction => {
 let renderStepOptions = {
   highlightStep: str => `<span class=match>${str}</span>`,
   highlightFormerTerm: str => `<span class=former-term>${str}</span>`,
-  highlightSubstitutionTerm: str => `<span class=subst-term>${str}</span>`
+  highlightSubstitutionTerm: str => `<span class=subst-term>${str}</span>`,
 }
 
 input.value = dedent(`
@@ -194,7 +194,7 @@ examplesMenu.delegate('click', 'li', function(e) {
 })
 
 let examplesDropdown = $('.examples-dropdown')
-examplesDropdown.on('click', function(e) {
+examplesDropdown.on('click', e => {
   if (examplesDropdown.classList.contains('active')) return
   e.stopPropagation()
   examplesDropdown.classList.add('active')
@@ -209,9 +209,8 @@ $('button.link').on('click', () => {
 let updateInputFromHash = () => {
   let hash = decodeURI(location.hash)
   let codeStart = hash.indexOf('>')
-  if (codeStart >= 0) {
+  if (codeStart >= 0)
     input.value = hash.slice(codeStart + 1)
-  }
 }
 
 window.addEventListener('hashchange', updateInputFromHash)

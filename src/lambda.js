@@ -17,8 +17,8 @@ let termStr = (t, appParens = false, funParens = false) => {
     str = funParens ? `(${str})` : str
     break
   case App:
-    let lStr = termStr(t.left, false, true);
-    let rStr = termStr(t.right, true, funParens);
+    let lStr = termStr(t.left, false, true)
+    let rStr = termStr(t.right, true, funParens)
     str = `${lStr} ${rStr}`
     str = appParens ? `(${str})` : str
   }
@@ -178,9 +178,9 @@ let renameForSubstitution = (t, x, s, cb) => {
     if (freeIn(t.param, s) && freeIn(x, t.body)) {
       let newVarName = renameVar(t.param, t.body, s)
       let renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
-      cb(markStep('alpha', t, (t = Fun(newVarName, renamedBody))))
+      cb(markStep('alpha', t, t = Fun(newVarName, renamedBody)))
     }
-    let body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param));
+    let body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
     return Fun(t.param, body)
   case App:
     let l = renameForSubstitution(t.left, x, s, composeAppR(cb, t.right))
@@ -189,7 +189,7 @@ let renameForSubstitution = (t, x, s, cb) => {
   }
 }
 
-// Applies the substitution T[x := S] directly, without performing α-conversions.
+// Applies the substitution T[x := S] directly, without doing α-conversions.
 let applySubstitution = (t, x, s) => {
   switch (t.type) {
   case Var:
@@ -199,8 +199,8 @@ let applySubstitution = (t, x, s) => {
       ? t
       : Fun(t.param, applySubstitution(t.body, x, s))
   case App:
-    let l = applySubstitution(t.left, x, s);
-    let r = applySubstitution(t.right, x, s);
+    let l = applySubstitution(t.left, x, s)
+    let r = applySubstitution(t.right, x, s)
     return App(l, r)
   case Def:
     return t
@@ -320,7 +320,7 @@ let expandStep = (t, options = {}) => {
     after = highlightFunctionVar(after.body, after.param, highlightSubst)
     break
   case 'beta':
-    let fun = before.left;
+    let fun = before.left
     let hs = highlight(before.right, highlightSubst)
     let ha = highlightFunctionVar(fun.body, fun.param, highlightFormer)
     before = App(ha, hs)
@@ -368,14 +368,14 @@ let findSynonyms = (term, defs) => {
 
 let defaultOptions = {
   maxSteps: 100,
-  strategy: 'normal'
+  strategy: 'normal',
 }
 
 let reduceFunctions = {
   normal: reduceNormal,
   applicative: reduceApplicative,
   cbn: reduceCallByName,
-  cbv: reduceCallByValue
+  cbv: reduceCallByValue,
 }
 
 // Reduces a term up to its normal form and returns TODO What does it return?
@@ -416,5 +416,5 @@ module.exports = {
   Var, Fun, App, Def,
   parse,
   termStr,
-  reduceProgram
+  reduceProgram,
 }

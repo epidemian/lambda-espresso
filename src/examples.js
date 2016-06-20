@@ -1,5 +1,6 @@
 let {dedent} = require('./helpers')
 
+/* eslint-disable max-len */
 module.exports = [{
   name: 'Basics',
   code: dedent(`
@@ -34,7 +35,7 @@ module.exports = [{
     ((((id id) id) id) id)
 
     ; TODO: explain applicative and normal order...
-  `)
+  `),
 }, {
   name: 'Booleans',
   code: dedent(`
@@ -65,7 +66,7 @@ module.exports = [{
 
     ; There's nothing special about "operators", we can treat them as any other value:
     (if false or and) true false
-  `)
+  `),
 }, {
   name: 'Numbers',
   code: dedent(`
@@ -139,7 +140,7 @@ module.exports = [{
 
     ; Throw everyting into the mix:
     eq (exp two three) (pred (exp three two))
-  `)
+  `),
 }, {
   // TODO bump up the max-steps for this example (and try to use applicative order)
   name: 'Factorial',
@@ -178,5 +179,5 @@ module.exports = [{
     ; And then there's no need to define a separate function:
     fact' = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
     fact' four
-  `)
+  `),
 }]

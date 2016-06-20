@@ -3,10 +3,10 @@ let {enableLogTimings} = require('./helpers')
 
 enableLogTimings()
 
-let makeTerm = (n) =>
+let makeTerm = n =>
   `λs.λz.${'(s '.repeat(n)}z${')'.repeat(n)}`
 
-let factorial = (n) =>
+let factorial = n =>
   n === 0 ? 1 : n * factorial(n - 1)
 
 let num = 4
@@ -27,6 +27,7 @@ let code = `
   eq (fact ${makeTerm(num)}) ${makeTerm(factorial(num))}
 `
 
+/* eslint-disable no-console */
 console.log(`calculating ${num}! == ${factorial(num)}`)
 let [{totalSteps, final}] = reduceProgram(code, {maxSteps: 100000})
 

@@ -2,3 +2,4 @@ node_modules
 src/grammar.js
 assets/index.js
 assets/index.js.map
+.eslintcache
