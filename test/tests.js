@@ -3,16 +3,12 @@ let {
   Var, App, Fun, Def, parse, termStr, reduceProgram,
 } = require('../src/lambda')
 
-let parseTerm = str => {
+let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
   let {terms, defs} = parse(str)
-  assert.equal(1, terms.length)
-  assert.deepEqual({}, defs)
-  return terms[0]
-}
-
-let assertParse = (str, expected) => {
-  let term = parseTerm(str)
-  assert.deepEqual(term, expected)
+  if (!Array.isArray(expectedTerms))
+    expectedTerms = [expectedTerms]
+  assert.deepEqual(terms, expectedTerms)
+  assert.deepEqual(defs, expectedDefs)
 }
 
 describe('parse()', () => {
@@ -45,9 +41,7 @@ describe('parse()', () => {
   })
 
   it('ignores leading trailing whitespace in multi-line programs', () => {
-    let {terms} = parse('  x  \n  x y  ')
-
-    assert.deepEqual(terms, [
+    assertParse('  x  \n  x y  ', [
       Var('x'),
       App(Var('x'), Var('y')),
     ])
@@ -85,43 +79,41 @@ describe('parse()', () => {
   })
 
   it('parses definitions', () => {
-    let {defs, terms} = parse(`
+    let code = `
       id = λx.x
       id y
-    `)
+    `
+    let expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
+    let expectedDefs = {id: Fun('x', Var('x'))}
 
-    assert.deepEqual(['id'], Object.keys(defs))
-    assert.deepEqual(defs.id, Fun('x', Var('x')))
-
-    assert.equal(1, terms.length)
-    assert.deepEqual(terms[0], App(Def('id', Fun('x', Var('x'))), Var('y')))
+    assertParse(code, expectedTerm, expectedDefs)
   })
 
   it('allows using a definition before it is declared', () => {
-    let {defs, terms} = parse(`
+    let code = `
       id y
       id = λx.x
-    `)
+    `
+    let expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
+    let expectedDefs = {id: Fun('x', Var('x'))}
 
-    assert.deepEqual(['id'], Object.keys(defs))
-    assert.deepEqual(defs.id, Fun('x', Var('x')))
-
-    assert.equal(1, terms.length)
-    assert.deepEqual(terms[0], App(Def('id', Fun('x', Var('x'))), Var('y')))
+    assertParse(code, expectedTerm, expectedDefs)
   })
 
   it('allows a definition referencing other definition(s)', () => {
-    let {defs, terms} = parse(`
+    let code = `
       id = λx.x
       id2 = id id
-    `)
-    let id = Fun('x', Var('x'))
+    `
+    let expectedDefs = {
+      id: Fun('x', Var('x')),
+      id2: App(
+        Def('id', Fun('x', Var('x'))),
+        Def('id', Fun('x', Var('x')))
+      ),
+    }
 
-    assert.deepEqual(['id', 'id2'], Object.keys(defs))
-    assert.deepEqual(defs.id, id)
-    assert.deepEqual(defs.id2, App(Def('id', id), Def('id', id)))
-
-    assert.equal(0, terms.length)
+    assertParse(code, [], expectedDefs)
   })
 
   it('disallows redefinitions', () => {
@@ -161,28 +153,27 @@ describe('parse()', () => {
   })
 
   it('does not confuse definitions with bound variables', () => {
-    let {terms} = parse(`
+    let code = `
       x = λx.x
       λy.x λx.x y
-    `)
-
-    assert.equal(1, terms.length)
-    assert.deepEqual(
-      terms[0],
-      Fun('y',
-        App(
-          Def('x', Fun('x', Var('x'))),
-          Fun('x', App(Var('x'), Var('y'))))
-      )
+    `
+    let expectedTerm = Fun('y',
+      App(
+        Def('x', Fun('x', Var('x'))),
+        Fun('x', App(Var('x'), Var('y'))))
     )
+    let expectedDefs = {x: Fun('x', Var('x'))}
+
+    assertParse(code, expectedTerm, expectedDefs)
   })
 
   it('parses a whole program') // TODO program with more than one def and term
 })
 
 let assertTermStr = (str, expected) => {
-  let term = parseTerm(str)
-  assert.equal(termStr(term), expected)
+  let {terms} = parse(str)
+  assert.equal(terms.length, 1)
+  assert.equal(termStr(terms[0]), expected)
 }
 
 describe('termStr()', () => {
@@ -196,10 +187,9 @@ describe('termStr()', () => {
 
 let reduceTerm = (str, options) => {
   let reductions = reduceProgram(str, options)
-  assert.equal(1, reductions.length)
+  assert.equal(reductions.length, 1)
   return reductions[0]
 }
-
 
 let assertReduce = (expr, expected) => {
   assert.strictEqual(reduceTerm(expr).final, expected)
