@@ -6,8 +6,8 @@
 "\\"|"λ"         { return 'LAMBDA'; }
 "."              { return '.'; }
 "="              { return '='; }
-[\n]             { return 'SEPARATOR'; }
-\s+              { /* ignore whitespace */ }
+\n               { return 'SEPARATOR'; }
+[^\S\n]+         { /* ignore whitespace */ }
 ";".*            { /* ignore line comments */ }
 [^\s\(\)\\λ\.=]+ { return 'IDENT'; }
 <<EOF>>          { return 'EOF'; }

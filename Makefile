@@ -33,7 +33,7 @@ clean:
 	rm -f src/grammar.js $(js_bundle) $(js_bundle).map
 
 .PHONY: test
-test: build
+test: src/grammar.js
 	$(bin_dir)/mocha --growl --colors
 
 .PHONY: lint
