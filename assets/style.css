@@ -203,7 +203,7 @@ main {
 
 .error {
   color: red;
-  white-space: pre;
+  white-space: pre-wrap;
   font-family: monospace;
   font-size: 0.8rem;
 }
