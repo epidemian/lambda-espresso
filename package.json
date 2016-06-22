@@ -8,6 +8,7 @@
   "dependencies": {},
   "devDependencies": {
     "browserify": "^11.2.0",
+    "bubleify": "^0.4.0",
     "eslint": "^2.13.0",
     "exorcist": "^0.4.0",
     "jison": "^0.4.17",

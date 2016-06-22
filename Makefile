@@ -5,20 +5,32 @@ min_js_bundle = assets/index.min.js
 all: build
 
 src/grammar.js: src/grammar.jison
-	$(bin_dir)/jison -o $@ $<
+	$(bin_dir)/jison -o src/grammar.js src/grammar.jison
 
 $(js_bundle): src/*.js src/grammar.js
-	$(bin_dir)/browserify --debug src/index.js | $(bin_dir)/exorcist --base . $@.map > $@
-
-$(min_js_bundle): $(js_bundle)
-	$(bin_dir)/uglifyjs --in-source-map $(js_bundle).map --source-map $@.map --source-map-url index.min.js.map $(js_bundle) > $@
+	$(bin_dir)/browserify --debug src/index.js > $(js_bundle)
 
 .PHONY: build
 build: $(js_bundle)
 
+.PHONY: build_prod
+# All of this is basically equivalent to
+# browserify -t bubleify src/index.js | /uglifyjs > $(js_bundle)
+# All the extra stuff is just to have source maps on production.
+build_prod: src/grammar.js
+	$(bin_dir)/browserify --debug -t bubleify src/index.js \
+	  | $(bin_dir)/exorcist --base . $(js_bundle).map.tmp > $(js_bundle).tmp
+	$(bin_dir)/uglifyjs \
+	  --in-source-map $(js_bundle).map.tmp \
+	  --source-map $(js_bundle).map \
+	  --source-map-root . \
+	  --source-map-url index.js.map \
+	  $(js_bundle).tmp > $(js_bundle)
+	rm $(js_bundle).tmp $(js_bundle).map.tmp
+
 .PHONY: clean
 clean:
-	rm -f src/grammar.js $(js_bundle) $(min_js_bundle)
+	rm -f src/grammar.js $(js_bundle) $(js_bundle).map
 
 .PHONY: test
 test: build
@@ -31,7 +43,7 @@ lint:
 .PHONY: watch
 watch:
 	@while true; do \
-	  make --no-print-directory test lint; \
+	  make --no-print-directory test lint build; \
 	  inotifywait \
 	    --event modify,close_write,move,move_self,create,delete,delete_self \
 	    --quiet --recursive \
@@ -41,3 +53,16 @@ watch:
 .PHONY: bench
 bench:
 	$(bin_dir)/node src/benchmark.js
+
+.PHONY: publish
+publish:
+	@git diff-index --quiet HEAD || ( \
+	  echo 'Commit everything before publishing!'; exit 1 \
+	)
+	git checkout gh-pages
+	git merge master
+	make build_prod
+	git add assets
+	git commit -m 'Update static assets'
+	git push origin gh-pages
+	git checkout master
