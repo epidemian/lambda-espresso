@@ -234,8 +234,8 @@ let freeIn = (x, t) => {
   case App:
     return freeIn(x, t.left) || freeIn(x, t.right)
   case Def:
-    // TODO return false directly. Defs don't have free variables!
-    return freeIn(x, t.term)
+    // Definitions don't have free variables.
+    return false
   }
 }
 
@@ -245,6 +245,7 @@ let freeIn = (x, t) => {
 let varRenameCollides = (t, oldName, newName) => {
   switch (t.type) {
   case Var:
+  case Def:
     return false
   case Fun:
     // A variable rename collides with this function if the old variable
@@ -257,10 +258,6 @@ let varRenameCollides = (t, oldName, newName) => {
   case App:
     return varRenameCollides(t.left, oldName, newName) ||
       varRenameCollides(t.right, oldName, newName)
-  case Def:
-    // TODO Is this necessary? Defs should never collide, as they don't have
-    // free vars!
-    return varRenameCollides(t.term, oldName, newName)
   }
 }
 
@@ -360,12 +357,6 @@ let findSynonyms = (term, defs) => {
   return synonyms
 }
 
-
-let defaultOptions = {
-  maxSteps: 100,
-  strategy: 'normal',
-}
-
 let reduceFunctions = {
   normal: reduceNormal,
   applicative: reduceApplicative,
@@ -373,9 +364,9 @@ let reduceFunctions = {
   cbv: reduceCallByValue,
 }
 
-// Reduces a term up to its normal form and returns TODO What does it return?
-let reduceTerm = timed('reduce', (term, defs, options) => {
-  let {maxSteps, strategy} = extend({}, defaultOptions, options)
+// Reduces a term up to its normal form.
+let reduceTerm = timed('reduce', (term, defs,
+    {maxSteps = 100, strategy = 'normal'} = {}) => {
   let reduce = reduceFunctions[strategy]
   let enough = {}
   let steps = []
