@@ -44,6 +44,15 @@ describe('parse()', () => {
     assertParse('  λx  .  x  ', Fun('x', Var('x')))
   })
 
+  it('ignores leading trailing whitespace in multi-line programs', () => {
+    let {terms} = parse('  x  \n  x y  ')
+
+    assert.deepEqual(terms, [
+      Var('x'),
+      App(Var('x'), Var('y')),
+    ])
+  })
+
   it('ignores comments', () => {
     let code = `
       ; This is a comment
