@@ -123,44 +123,37 @@ module.exports = [{
     sub = λm.λn.n pred m
     sub three two
 
-    ; To build some predicate functions, we'll use some known boolean terms:
+    ; To build some predicate functions, we'll use some known boolean terms (see 
+    ; Booleans example for more info):
     true = λt.λf.t
     false = λt.λf.f
     and = λp.λq.p q p
 
     ; To know if a number n is zero we can pass true as the base value and a function
-    ; that always returns false:
+    ; that always returns false (note that the "?" is no special syntax; it's just 
+    ; part of the name of the predicate):
     zero? = λn.n (λx.false) true
     zero? zero
     zero? two
 
-    ; Given the "= 0" predicate, numeric equality between m and n can be defined as
-    ; m - n = 0 and n - m = 0
-    eq = λm.λn.and (zero? (sub m n)) (zero? (sub n m))
+    ; To know if a number is less or equal to another number, we can subtract them and
+    ; see if the result is zero:
+    leq = λm.λn.zero? (sub m n)
 
-    ; Throw everyting into the mix:
+    ; And given that predicate, numeric equality between m and n can be defined as:
+    eq = λm.λn.and (leq m n) (leq n m)
+
+    ; Throwing everything into the mix, we can prove that 2³ = 3² - 1:
     eq (exp two three) (pred (exp three two))
   `),
 }, {
-  // TODO bump up the max-steps for this example (and try to use applicative order)
   name: 'Factorial',
   code: dedent(`
-    ; Recursion
+    ; Factorial function and recursion
 
-    ; Borrow some terms from previous examples:
-    true = λt.λf.t
-    false = λt.λf.f
-    if = λp.p
-
-    zero = λs.λz.z
-    one = λs.λz.s z
-    two = λs.λz.s (s z)
-    three = λs.λz.s (s (s z))
-    four = λs.λz.s (s (s (s z)))
-
-    pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
-    mult = λm.λn.λs.m (n s)
-    zero? = λn.n (λx.false) true
+    ; Note: for this example we'll use boolean and numeric terms from previous 
+    ; examples (see below). 
+    ; Also not that these factorial definitions won't work with applicative order ;)
 
     ; We'd like to be able to define a factorial function as:
     ; fact = λn.if (zero? n) one (mult n (fact (pred n)))
@@ -175,9 +168,21 @@ module.exports = [{
     ; Another way to recur is to use a general purpose fixed-point combinator.
     ; The almighty Y Combinator:
     Y = λf.(λx.f (x x)) (λx.f (x x))
-
     ; And then there's no need to define a separate function:
     fact' = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
     fact' four
+
+    ; Borrow some terms from previous examples:
+    true = λt.λf.t
+    false = λt.λf.f
+    if = λp.p
+    zero = λs.λz.z
+    one = λs.λz.s z
+    two = λs.λz.s (s z)
+    three = λs.λz.s (s (s z))
+    four = λs.λz.s (s (s (s z)))
+    pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+    mult = λm.λn.λs.m (n s)
+    zero? = λn.n (λx.false) true
   `),
 }]

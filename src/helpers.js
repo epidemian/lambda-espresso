@@ -21,6 +21,6 @@ exports.compose = (f, g) => (x) => f(g(x))
 
 exports.identity = x => x
 
-exports.dedent = str => str.replace(/^\s+/gm, '').trim()
+exports.dedent = str => str.replace(/^[^\S\n]+/gm, '').trim()
 
 exports.cleanWhitespace = str => str.replace(/\s+/gm, ' ')
