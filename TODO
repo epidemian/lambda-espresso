@@ -1,7 +1,7 @@
 - Add Eta-reduction option.
-- Add expand macro (lazy|eager) option.
+- Add option to expand all definitions at the beginning.
 - Add step-by-step reduction tests.
-- Add highlighting to the step-by-step reduction so the GUI can show which variables and terms where substituted =D
+- Implement "call by need" strategy (lazy)
 - Improve index.html
   - Save options and code in localStorage.
   - Use some binding library like Knockout.js to keep the DOM on-sync more easily :)
@@ -13,11 +13,18 @@
 - Add options to generated links.
 - Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
-- Use trampolining to avoid "too much recursion" errors
+- Use trampolining (or something similar) to avoid "too much recursion" errors
 - Add "about" page/dialog with a brief description of what this is and how it was done.
+- Improve input/output UX. Maybe have everything on the same panel and interleave reduction output between the input terms. See/copy: MathCAD, Matemathica
+- Have better implementations for hairy things like:
+  - terms highlighting
+  - marking reduction steps
+  (^ basically, anything that extends the core term objects, and changes their shape/type)
+  - substitute and renameForSubstitution/applySubstitution distinction. Ideally there should only be one substitute function.
+  - before/after step recording.
+- Use DOM API for creating elements instead of innerHTML, to avoid possible and funny JS injections.
+  - Or maybe use insertAdjacentHTML()
 
-Minor (but fun):
-- Change styling of reductions to use :last or those kind of selector instead of manually adding a <b> tag at the end.
 
 - Add references to nice intro material to Lambda Calculus:
   - [http://codon.com/programming-with-nothing](http://codon.com/programming-with-nothing)
