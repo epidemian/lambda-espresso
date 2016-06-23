@@ -119,6 +119,31 @@ let reduceApplicative = (t, cb) => {
   }
 }
 
+let reduceEta = (t, cb) => {
+  switch (t.type) {
+  case Var:
+    return t
+  case Fun:
+    // λx.(F x) = F if x is free in F
+    let isEta = t.body.type === App &&
+      t.body.right.type === Var &&
+      t.body.right.name === t.param &&
+      !freeIn(t.param, t.body.left)
+    if (isEta) {
+      cb(markStep('eta', t, t.body.left))
+      return t.body.left
+    } else {
+      return Fun(t.param, reduceEta(t.body, composeFun(cb, t.param)))
+    }
+  case App:
+    let l = reduceEta(t.left, composeAppR(cb, t.right))
+    let r = reduceEta(t.right, composeAppR(cb, l))
+    return App(l, r)
+  case Def:
+    return t
+  }
+}
+
 let apply = (fun, subst, cb) => {
   let renameCb = composeFun(composeAppR(cb, subst), fun.param)
   let renamedBody = renameForSubstitution(fun.body, fun.param, subst, renameCb)
@@ -318,6 +343,7 @@ let expandStep = (t, options = {}) => {
     before = App(ha, hs)
     after = substitute(fun.body, fun.param, hs)
     break
+  case 'eta':
   case 'def':
     before = highlight(before, highlightFormer)
     after = highlight(after, highlightSubst)
@@ -364,17 +390,24 @@ let reduceFunctions = {
   cbv: reduceCallByValue,
 }
 
+let reduceGeneric = (t, {strategy, etaEnabled}, cb) => {
+  let reduce = reduceFunctions[strategy]
+  let reduced = reduce(t, cb)
+  if (etaEnabled)
+    reduced = reduceEta(reduced, cb)
+  return reduced
+}
+
 // Reduces a term up to its normal form.
 let reduceTerm = timed('reduce', (term, defs,
-    {maxSteps = 100, strategy = 'normal'} = {}) => {
-  let reduce = reduceFunctions[strategy]
+    {maxSteps = 100, strategy = 'normal', etaEnabled = false} = {}) => {
   let enough = {}
   let steps = []
   let terminates = false
   try {
-    reduce(term, t => {
+    reduceGeneric(term, {strategy, etaEnabled}, step => {
       if (steps.length >= maxSteps) throw enough
-      steps.push(t)
+      steps.push(step)
     })
     terminates = true
   } catch (e) {

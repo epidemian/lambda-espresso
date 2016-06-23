@@ -76,6 +76,7 @@ let renderArrowByType = type => {
 let arrowSymbols = {
   alpha: 'α',
   beta: 'β',
+  eta: 'η',
 }
 
 let renderSynonyms = synonyms =>
@@ -86,7 +87,8 @@ let renderSynonyms = synonyms =>
 let getOptions = () => {
   let maxSteps = parseInt($('input[name=max-steps]').value || 0)
   let strategy = $('input[name=strategy]:checked').value
-  return {maxSteps, strategy}
+  let etaEnabled = $('[name=eta-reductions]').checked
+  return {maxSteps, strategy, etaEnabled}
 }
 
 

@@ -221,8 +221,8 @@ let reduceTerm = (str, options) => {
   return reductions[0]
 }
 
-let assertReduce = (expr, expected) => {
-  assert.strictEqual(reduceTerm(expr).final, expected)
+let assertReduce = (expr, expected, options) => {
+  assert.strictEqual(reduceTerm(expr, options).final, expected)
 }
 
 describe('reduceProgram()', () => {
@@ -261,6 +261,13 @@ describe('reduceProgram()', () => {
   it('indicates when a reduction does not terminate', () => {
     let {terminates} = reduceTerm('(λx.x x) (λx.x x)')
     assert(!terminates)
+  })
+
+  it('can reduce by eta-conversions', () => {
+    assertReduce('λx.f x', 'λx.f x')
+    assertReduce('λx.f x', 'f', {etaEnabled: true})
+    assertReduce('λs.λz.s z', 'λs.s', {etaEnabled: true})
+    assertReduce('λx.y z x', 'y z', {etaEnabled: true})
   })
 
   describe('renaming in substitution (λy.T)[x := S]', () => {
