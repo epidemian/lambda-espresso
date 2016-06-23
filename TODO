@@ -1,17 +1,13 @@
-- Add Eta-reduction option.
 - Add option to expand all definitions at the beginning.
 - Add step-by-step reduction tests.
 - Implement "call by need" strategy (lazy)
-- Improve index.html
-  - Save options and code in localStorage.
-  - Use some binding library like Knockout.js to keep the DOM on-sync more easily :)
+- Save options and code in localStorage.
 - Add examples to tests
 - Add more examples:
   - Lists (or ranges)
   - Prime number generator? (IDK if division is implementable though...)
   - FizzBuzz http://experthuman.com/programming-with-nothing (or a subset of it)
 - Add options to generated links.
-- Eagerly reduce macros' definitions (or not...)
 - Do not expand/collapse reductions just by clicking; it's annoying if you try to select some text.
 - Use trampolining (or something similar) to avoid "too much recursion" errors
 - Add "about" page/dialog with a brief description of what this is and how it was done.
@@ -24,7 +20,8 @@
   - before/after step recording.
 - Use DOM API for creating elements instead of innerHTML, to avoid possible and funny JS injections.
   - Or maybe use insertAdjacentHTML()
-
+- Add syntax for defining a term as the reduced form. E.g. `twenty-four := mult four six` so that twenty-four is suggested as synonym of the reduction of `fact four`.
+- Add syntax for defining a term as the reduced form. E.g. `twenty-four := mult four six` so that twenty-four is suggested as synonym of the reduction of `fact four`.
 
 - Add references to nice intro material to Lambda Calculus:
   - [http://codon.com/programming-with-nothing](http://codon.com/programming-with-nothing)
