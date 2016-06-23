@@ -27,9 +27,5 @@
   "bugs": {
     "url": "https://github.com/epidemian/lambda-espresso/issues"
   },
-  "homepage": "https://epidemian.github.io/lambda-espresso/",
-  "browser": {
-    "fs": false,
-    "path": false
-  }
+  "homepage": "https://epidemian.github.io/lambda-espresso/"
 }
