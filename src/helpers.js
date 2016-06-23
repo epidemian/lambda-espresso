@@ -1,3 +1,5 @@
+let stripIndent = require('strip-indent')
+
 exports.extend = Object.assign || ((obj, ...srcs) => {
   srcs.forEach(src => {
     for (let k in src)
@@ -21,6 +23,6 @@ exports.compose = (f, g) => (x) => f(g(x))
 
 exports.identity = x => x
 
-exports.dedent = str => str.replace(/^[^\S\n]+/gm, '').trim()
+exports.dedent = str => stripIndent(str).trim()
 
-exports.cleanWhitespace = str => str.replace(/\s+/gm, ' ')
+exports.collapseWhitespace = str => str.replace(/\s+/gm, ' ')

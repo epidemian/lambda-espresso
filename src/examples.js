@@ -185,4 +185,48 @@ module.exports = [{
     mult = λm.λn.λs.m (n s)
     zero? = λn.n (λx.false) true
   `),
+}, {
+  name: 'Extras',
+  code: dedent(`
+    ; Syntactic Trivia and Miscellaneous
+  
+    ; Identifiers can contain basically any character (except the few ones reserved for 
+    ; syntax: "λ", ".", "=", "(" and ")").
+    ; This means you can write some pretty code-looking lambda terms!
+    0 = λs.λz.z
+    1 = λs.λz.s z
+    2 = λs.λz.s (s z)
+    + = λm.λn.λs.λz.m s (n s z)
+    * = λm.λn.λs.m (n s)
+    (+ (* 2 1) 0)
+    ; Reinventing (a part of) Lisp is always fun...
+
+    ; You can even use emojis as identifiers! But make sure to use this power responsibly.
+    (λ🐴.❓) 🍎
+
+    ; Although line breaks usually act as separators between terms/definitions, 
+    ; you can use parentheses to split a complex term into multiple lines:
+    fib = Y λf.λn.(
+      if (≤ n 1)
+         n
+         (+ (f (- n 1))
+            (f (- n 2))))
+    fib 0
+    fib 1
+    fib 2
+    fib 7
+
+    ; The rest of the definitions to make the above code work. Not much to see here...
+    Y = λf.(λx.f (x x)) (λx.f (x x))
+    - = λm.λn.n pred m
+    ≤ = λm.λn.zero? (- m n)
+    pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+    zero? = λn.n (λx.false) true
+    true = λt.λf.t
+    false = λt.λf.f
+    if = λp.p
+    7 = λs.λz.s (s (s (s (s (s (s z))))))
+    13 = λs.λz.s (s (s (s (s (s (s (s (s (s (s (s (s z))))))))))))
+    ❓ = λ💩.💩 💩 💩
+  `),
 }]

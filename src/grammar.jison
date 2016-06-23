@@ -1,18 +1,21 @@
 %lex
 %%
 
-"("              { return '('; }
-")"              { return ')'; }
+"("              { openParens++; return '('; }
+")"              { openParens--; return ')'; }
 "\\"|"λ"         { return 'LAMBDA'; }
 "."              { return '.'; }
 "="              { return '='; }
-\n               { return 'SEPARATOR'; }
+\n               { /* ignore separators inside parens */
+                   if (openParens <= 0) return 'SEPARATOR'
+                 }
 [^\S\n]+         { /* ignore whitespace */ }
 ";".*            { /* ignore line comments */ }
 [^\s\(\)\\λ\.=]+ { return 'IDENT'; }
 <<EOF>>          { return 'EOF'; }
 /lex
 
+%{ var openParens = 0; %}
 
 %right LAMBDA
 %left IDENT

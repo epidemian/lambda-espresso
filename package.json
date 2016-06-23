@@ -5,7 +5,9 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "strip-indent": "^2.0.0"
+  },
   "devDependencies": {
     "browserify": "^11.2.0",
     "bubleify": "^0.4.0",

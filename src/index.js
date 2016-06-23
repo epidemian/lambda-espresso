@@ -191,6 +191,7 @@ examplesMenu.innerHTML = examplesHtml.join('')
 examplesMenu.delegate('click', 'li', function(e) {
   e.preventDefault() // Don't change the location.hash
   input.value = examples[this.index()].code
+  input.scrollTop = 0
 })
 
 let examplesDropdown = $('.examples-dropdown')
