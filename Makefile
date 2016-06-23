@@ -43,7 +43,8 @@ lint:
 .PHONY: watch
 watch:
 	@while true; do \
-	  make --no-print-directory test lint build; \
+	  make --no-print-directory test lint; \
+	  make --no-print-directory build; \
 	  inotifywait \
 	    --event modify,close_write,move,move_self,create,delete,delete_self \
 	    --quiet --recursive \

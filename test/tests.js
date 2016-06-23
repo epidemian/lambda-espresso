@@ -11,7 +11,15 @@ let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
   assert.deepEqual(defs, expectedDefs)
 }
 
+let assertParseFails = (str, error) => {
+  assert.throws(() => parse(str), error)
+}
+
 describe('parse()', () => {
+  it('parses an empty program', () => {
+    assertParse('')
+  })
+
   it('parses variables', () => {
     assertParse('x', Var('x'))
   })
@@ -55,7 +63,7 @@ describe('parse()', () => {
     assertParse(code, Var('x'))
   })
 
-  it('ignores unnecessary parentheses', () => {
+  it('ignores redundant parentheses', () => {
     assertParse('(x)', Var('x'))
     assertParse('(((x)))', Var('x'))
 
@@ -65,6 +73,15 @@ describe('parse()', () => {
 
     assertParse('(λx.x)', Fun('x', Var('x')))
     assertParse('λx.(x)', Fun('x', Var('x')))
+  })
+
+  it('ignores newlines inside parentheses', () => {
+    let expectedTerm = App(Var('x'), Var('y'))
+    assertParse('(x\ny)', expectedTerm)
+    assertParse('(\nx\ny)', expectedTerm)
+    assertParse('(x\ny\n)', expectedTerm)
+    assertParse('x(\ny)', expectedTerm)
+    assertParse('(x\n)y', expectedTerm)
   })
 
   it('parses nested applications', () => {
@@ -122,12 +139,12 @@ describe('parse()', () => {
       bar = λy.y
       foo = λz.z
     `
-    assert.throws(() => parse(code), /^Error: foo already defined$/)
+    assertParseFails(code, /^Error: foo already defined$/)
   })
 
   it('disallows recursive definitions', () => {
-    assert.throws(
-      () => parse('walk = (λx.x) walk'),
+    assertParseFails(
+      'walk = (λx.x) walk',
       /^Error: Illegal recursive reference in "walk"\./
     )
   })
@@ -139,15 +156,15 @@ describe('parse()', () => {
       baz = qux foo
       qux = λx.x
     `
-    assert.throws(
-      () => parse(code),
+    assertParseFails(
+      code,
       /^Error: Illegal recursive reference in "baz"\..*baz → foo → bar → baz/
     )
   })
 
   it('disallows free variables on definitions', () => {
-    assert.throws(
-      () => parse('foo = λx.x bar'),
+    assertParseFails(
+      'foo = λx.x bar',
       /^Error: Illegal free variable "bar" in "foo"\./
     )
   })
@@ -165,6 +182,19 @@ describe('parse()', () => {
     let expectedDefs = {x: Fun('x', Var('x'))}
 
     assertParse(code, expectedTerm, expectedDefs)
+  })
+
+  it('fails on empty parentheses', () => {
+    assertParseFails('()')
+    assertParseFails('a ()')
+    assertParseFails('( \n )')
+  })
+
+  it('fails when parentheses are unbalanced', () => {
+    assertParseFails('(')
+    assertParseFails(')')
+    assertParseFails('((a)')
+    assertParseFails('(a))')
   })
 
   it('parses a whole program') // TODO program with more than one def and term

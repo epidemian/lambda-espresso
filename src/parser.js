@@ -1,5 +1,5 @@
 let {Var, Fun, App, Def} = require('./core')
-let {timed, cleanWhitespace} = require('./helpers')
+let {timed, collapseWhitespace} = require('./helpers')
 let {Parser} = require('./grammar')
 
 // Parses an input program string and returns an object with the top-level terms
@@ -81,7 +81,7 @@ let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
       t.type = Def
       t.term = defs[t.name]
     } else {
-      throw Error(cleanWhitespace(
+      throw Error(collapseWhitespace(
         `Illegal free variable "${t.name}" in "${defName}". 
         Definitions cannot have free variables.`
       ))
@@ -104,7 +104,7 @@ let checkForCircularRefs = (name, refName, refNames, path = []) => {
       ? `In this case the definition does not reference itself directly, but 
         through other definitions: ${[name, ...path, name].join(' → ')}.`
       : ''
-    throw Error(cleanWhitespace(
+    throw Error(collapseWhitespace(
       `Illegal recursive reference in "${name}". Definitions cannot
       reference themselves; they are just simple find&replace mechanisms.
       ${circularNote}
