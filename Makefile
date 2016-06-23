@@ -1,6 +1,6 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
-min_js_bundle = assets/index.min.js
+browserify_opts = --debug --detect-globals false --no-builtins
 
 all: build
 
@@ -8,7 +8,7 @@ src/grammar.js: src/grammar.jison
 	$(bin_dir)/jison -o src/grammar.js src/grammar.jison
 
 $(js_bundle): src/*.js src/grammar.js
-	$(bin_dir)/browserify --debug src/index.js > $(js_bundle)
+	$(bin_dir)/browserify $(browserify_opts) src/index.js > $(js_bundle)
 
 .PHONY: build
 build: $(js_bundle)
@@ -18,7 +18,7 @@ build: $(js_bundle)
 # browserify -t bubleify src/index.js | /uglifyjs > $(js_bundle)
 # All the extra stuff is just to have source maps on production.
 build_prod: src/grammar.js
-	$(bin_dir)/browserify --debug -t bubleify src/index.js \
+	$(bin_dir)/browserify $(browserify_opts) -t bubleify src/index.js \
 	  | $(bin_dir)/exorcist --base . $(js_bundle).map.tmp > $(js_bundle).tmp
 	$(bin_dir)/uglifyjs \
 	  --in-source-map $(js_bundle).map.tmp \
