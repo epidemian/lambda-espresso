@@ -1,5 +1,5 @@
 let {reduceProgram} = require('./lambda')
-let {enableLogTimings} = require('./helpers')
+let {enableLogTimings} = require('./utils')
 
 enableLogTimings()
 

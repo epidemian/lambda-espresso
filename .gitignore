@@ -1,4 +1,4 @@
 node_modules
-src/grammar.js
+src/lambda/grammar.js
 assets/index.js
 .eslintcache

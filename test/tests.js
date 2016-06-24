@@ -1,6 +1,6 @@
 let assert = require('assert')
 let {
-  Var, App, Fun, Def, parse, termStr, reduceProgram,
+  Var, App, Fun, Def, parse, format, reduceProgram,
 } = require('../src/lambda')
 
 let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
@@ -200,18 +200,18 @@ describe('parse()', () => {
   it('parses a whole program') // TODO program with more than one def and term
 })
 
-let assertTermStr = (str, expected) => {
+let assertFormat = (str, expected) => {
   let {terms} = parse(str)
   assert.equal(terms.length, 1)
-  assert.equal(termStr(terms[0]), expected)
+  assert.equal(format(terms[0]), expected)
 }
 
-describe('termStr()', () => {
+describe('format()', () => {
   it('respects operations\' precedence when applying parentheses', () => {
-    assertTermStr('λa.a λb.b λc.c λd.d', 'λa.a λb.b λc.c λd.d')
-    assertTermStr('(λa.a) (λb.b) (λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d')
-    assertTermStr('(((λa.a) λb.b) λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d')
-    assertTermStr('λa.a (λb.b (λc.c (λd.d)))', 'λa.a λb.b λc.c λd.d')
+    assertFormat('λa.a λb.b λc.c λd.d', 'λa.a λb.b λc.c λd.d')
+    assertFormat('(λa.a) (λb.b) (λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d')
+    assertFormat('(((λa.a) λb.b) λc.c) λd.d', '(λa.a) (λb.b) (λc.c) λd.d')
+    assertFormat('λa.a (λb.b (λc.c (λd.d)))', 'λa.a λb.b λc.c λd.d')
   })
 })
 

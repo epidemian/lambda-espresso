@@ -1,14 +1,15 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
 browserify_opts = --debug --detect-globals false --no-builtins
+grammar_file = src/lambda/grammar.js
 
 all: build
 
-src/grammar.js: src/grammar.jison
-	$(bin_dir)/jison -o src/grammar.js src/grammar.jison
+$(grammar_file): src/lambda/grammar.jison
+	$(bin_dir)/jison -o $(grammar_file) src/lambda/grammar.jison
 
-$(js_bundle): src/*.js src/grammar.js
-	$(bin_dir)/browserify $(browserify_opts) src/index.js > $(js_bundle)
+$(js_bundle): src/*.js $(grammar_file)
+	$(bin_dir)/browserify $(browserify_opts) src/app.js > $(js_bundle)
 
 .PHONY: build
 build: $(js_bundle)
@@ -17,8 +18,8 @@ build: $(js_bundle)
 # All of this is basically equivalent to
 # browserify -t bubleify src/index.js | /uglifyjs > $(js_bundle)
 # All the extra stuff is just to have source maps on production.
-build_prod: src/grammar.js
-	$(bin_dir)/browserify $(browserify_opts) -t bubleify src/index.js \
+build_prod: $(grammar_file)
+	$(bin_dir)/browserify $(browserify_opts) -t bubleify src/app.js \
 	  | $(bin_dir)/exorcist --base . $(js_bundle).map.tmp > $(js_bundle).tmp
 	$(bin_dir)/uglifyjs \
 	  --in-source-map $(js_bundle).map.tmp \
@@ -30,10 +31,10 @@ build_prod: src/grammar.js
 
 .PHONY: clean
 clean:
-	rm -f src/grammar.js $(js_bundle) $(js_bundle).map
+	rm -f $(grammar_file) $(js_bundle) $(js_bundle).map
 
 .PHONY: test
-test: src/grammar.js
+test: $(grammar_file)
 	$(bin_dir)/mocha --growl --colors
 
 .PHONY: lint

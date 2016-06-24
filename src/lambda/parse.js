@@ -1,10 +1,10 @@
-let {Var, Fun, App, Def} = require('./core')
-let {timed, collapseWhitespace} = require('./helpers')
+let {Var, Fun, App, Def} = require('./terms')
+let {timed, collapseWhitespace} = require('../utils')
 let {Parser} = require('./grammar')
 
 // Parses an input program string and returns an object with the top-level terms
 // and definitions of the program.
-exports.parse = timed('parse', str => {
+module.exports = timed('parse', str => {
   // A custom Jison parser.
   let parser = new Parser
 
