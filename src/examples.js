@@ -1,4 +1,4 @@
-let {dedent} = require('./helpers')
+let {dedent} = require('./utils')
 
 /* eslint-disable max-len */
 module.exports = [{
