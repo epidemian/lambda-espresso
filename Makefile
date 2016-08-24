@@ -29,6 +29,7 @@ build_prod: grammar
 	  --source-map $(js_bundle).map \
 	  --source-map-root . \
 	  --source-map-url index.js.map \
+	  --source-map-include-sources \
 	  $(js_bundle).tmp > $(js_bundle)
 	rm $(js_bundle).tmp $(js_bundle).map.tmp
 
