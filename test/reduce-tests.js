@@ -108,9 +108,10 @@ describe('reduceProgram()', () => {
         '(λx.λy.λy2.λy5.x y y1 y4) (y y3 y6)', 'λy7.λy2.λy5.y y3 y6 y7 y1 y4'
       )
     })
+
+    it('performs more than one rename when necessary', () => {
+      assertReduce('(λx.λy.x λz.x) (y z)', 'λy1.y z λz1.y z')
+    })
   })
 })
-// TODO Add a test of a beta-reduction that requires more than one
-// alpha-conversion, like (λx.(λy.x)(λz.x)) (y z)
-// or (λx.λy.x (λz.x)) (y z)
 // TODO Add multi-step reduction tests!

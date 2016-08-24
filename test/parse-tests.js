@@ -197,5 +197,30 @@ describe('parse()', () => {
     assertParseFails('(a))')
   })
 
-  it('parses a whole program') // TODO program with more than one def and term
+  it('parses a whole program', () => {
+    let code = `
+      id = λx.x
+      k = λx.λy.x
+      ω = λx.x x
+      Ω = ω ω
+
+      ; This expression has no normal form.
+      Ω
+      ; But this one does!
+      k id Ω ; (not with all reduction strategies though)
+    `
+
+    let id = Fun('x', Var('x'))
+    let k = Fun('x', Fun('y', Var('x')))
+    let ω = Fun('x', App(Var('x'), Var('x')))
+    let Ω = App(Def('ω', ω), Def('ω', ω))
+
+    let expectedTerms = [
+      Def('Ω', Ω),
+      App(App(Def('k', k), Def('id', id)), Def('Ω', Ω)),
+    ]
+    let expectedDefs = {id, k, ω, Ω}
+
+    assertParse(code, expectedTerms, expectedDefs)
+  })
 })
