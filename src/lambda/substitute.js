@@ -98,8 +98,8 @@ let renameVar = (oldName, t, s) => {
       !freeIn(newName, t) &&
       // Avoid name collisions with inner functions.
       !varRenameCollides(t, oldName, newName)
-    if (isValid)
-      return newName
+
+    if (isValid) return newName
   }
 }
 

@@ -77,8 +77,7 @@ let expandStep = (t, options = {}) => {
 }
 
 let highlight = (t, fn) => {
-  if (t.highlight)
-    fn = compose(fn, t.highlight)
+  if (t.highlight) fn = compose(fn, t.highlight)
   return extend({}, t, {highlight: fn})
 }
 
@@ -89,8 +88,8 @@ let highlightFunctionVar = (t, x, fn) => {
 }
 
 let find = (t, fn) => {
-  if (fn(t))
-    return t
+  if (fn(t)) return t
+
   switch (t.type) {
   case Var:
   case Def:
@@ -103,8 +102,8 @@ let find = (t, fn) => {
 }
 
 let replace = (t, from, to) => {
-  if (t === from)
-    return to
+  if (t === from) return to
+
   switch (t.type) {
   case Var:
   case Def:
@@ -122,10 +121,11 @@ let replace = (t, from, to) => {
 
 let findSynonyms = (term, defs) => {
   let synonyms = []
-  for (let name in defs)
-    if (alphaEq(term, defs[name]))
+  for (let name in defs) {
+    if (alphaEq(term, defs[name])) {
       synonyms.push(name)
+    }
+  }
   return synonyms
 }
-
 

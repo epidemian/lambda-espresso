@@ -35,7 +35,7 @@ module.exports = [{
     ((((id id) id) id) id)
 
     ; TODO: explain applicative and normal order...
-  `),
+  `)
 }, {
   name: 'Booleans',
   code: dedent(`
@@ -66,7 +66,7 @@ module.exports = [{
 
     ; There's nothing special about "operators", we can treat them as any other value:
     (if false or and) true false
-  `),
+  `)
 }, {
   name: 'Numbers',
   code: dedent(`
@@ -145,7 +145,7 @@ module.exports = [{
 
     ; Throwing everything into the mix, we can prove that 2³ = 3² - 1:
     eq (exp two three) (pred (exp three two))
-  `),
+  `)
 }, {
   name: 'Factorial',
   code: dedent(`
@@ -184,7 +184,7 @@ module.exports = [{
     pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
     mult = λm.λn.λs.m (n s)
     zero? = λn.n (λx.false) true
-  `),
+  `)
 }, {
   name: 'Extras',
   code: dedent(`
@@ -228,5 +228,5 @@ module.exports = [{
     7 = λs.λz.s (s (s (s (s (s (s z))))))
     13 = λs.λz.s (s (s (s (s (s (s (s (s (s (s (s (s z))))))))))))
     ❓ = λ💩.💩 💩 💩
-  `),
+  `)
 }]

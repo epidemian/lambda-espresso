@@ -10,10 +10,11 @@ let alphaEq = (t1, t2) => {
   case Var:
     return t1.name === t2.name
   case Fun:
-    if (t1.param === t2.param)
+    if (t1.param === t2.param) {
       return alphaEq(t1.body, t2.body)
-    else
+    } else {
       return alphaEq(t1.body, substitute(t2.body, t2.param, Var(t1.param)))
+    }
   case App:
     return alphaEq(t1.left, t2.left) && alphaEq(t1.right, t2.right)
   }

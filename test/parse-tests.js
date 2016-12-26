@@ -3,8 +3,9 @@ let {Var, App, Fun, Def, parse} = require('../src/lambda')
 
 let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
   let {terms, defs} = parse(str)
-  if (!Array.isArray(expectedTerms))
+  if (!Array.isArray(expectedTerms)) {
     expectedTerms = [expectedTerms]
+  }
   assert.deepEqual(terms, expectedTerms)
   assert.deepEqual(defs, expectedDefs)
 }
@@ -13,9 +14,7 @@ let assertParseFails = (str, error) => {
   assert.throws(() => parse(str), error)
 }
 
-
 describe('parse()', () => {
-
   it('parses an empty program', () => {
     assertParse('')
   })
@@ -51,7 +50,7 @@ describe('parse()', () => {
   it('ignores leading trailing whitespace in multi-line programs', () => {
     assertParse('  x  \n  x y  ', [
       Var('x'),
-      App(Var('x'), Var('y')),
+      App(Var('x'), Var('y'))
     ])
   })
 
@@ -127,7 +126,7 @@ describe('parse()', () => {
       id2: App(
         Def('id', Fun('x', Var('x'))),
         Def('id', Fun('x', Var('x')))
-      ),
+      )
     }
 
     assertParse(code, [], expectedDefs)
@@ -217,7 +216,7 @@ describe('parse()', () => {
 
     let expectedTerms = [
       Def('Ω', Ω),
-      App(App(Def('k', k), Def('id', id)), Def('Ω', Ω)),
+      App(App(Def('k', k), Def('id', id)), Def('Ω', Ω))
     ]
     let expectedDefs = {id, k, ω, Ω}
 

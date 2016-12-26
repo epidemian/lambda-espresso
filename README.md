@@ -1,5 +1,8 @@
 # λ-Espresso ☕
 
+[![Standard - JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
+
+
 An interactive λ calculus interpreter.
 
 ## Usage

@@ -9,10 +9,11 @@
   "devDependencies": {
     "browserify": "^13.1.0",
     "bubleify": "^0.5.1",
-    "eslint": "^3.3.1",
+    "eslint": "^3.12.2",
     "exorcist": "^0.4.0",
     "jison": "^0.4.17",
     "mocha": "^3.0.2",
+    "standard": "^8.6.0",
     "uglify-js": "^2.7.3"
   },
   "scripts": {
