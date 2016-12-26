@@ -150,8 +150,8 @@ input.focus()
 
 let examplesMenu = $('.examples-menu')
 let examplesHtml = examples.map((example, i) => {
-  let hash = `>${example.code}`.replace(/\n/g, '%0A')
-  return `<li><a href='//${hash}'>${i} - ${example.name}</a></li>`
+  let href = encodeURI(`#>${example.code}`)
+  return `<li><a href="${href}">${i} - ${example.name}</a></li>`
 })
 
 examplesMenu.innerHTML = examplesHtml.join('')
