@@ -1,3 +1,5 @@
+- Fix example a[href]s
+
 - Add option to expand all definitions at the beginning.
 - Add step-by-step reduction tests.
 - Implement "call by need" strategy (lazy)
