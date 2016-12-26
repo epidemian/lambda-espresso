@@ -2,6 +2,7 @@ bin_dir = node_modules/.bin
 js_bundle = assets/index.js
 browserify_opts = --debug --detect-globals false --no-builtins
 grammar_file = src/lambda/grammar.js
+eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
 all: build
 
@@ -43,7 +44,11 @@ test: grammar
 
 .PHONY: lint
 lint:
-	$(bin_dir)/eslint . --ignore-path .gitignore --cache
+	$(eslint_cmd)
+
+.PHONY: lint-fix
+lint-fix:
+	$(eslint_cmd) --fix
 
 .PHONY: watch
 watch:

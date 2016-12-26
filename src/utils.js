@@ -1,16 +1,17 @@
 exports.extend = Object.assign || ((obj, ...srcs) => {
   srcs.forEach(src => {
-    for (let k in src)
+    for (let k in src) {
       obj[k] = src[k]
+    }
   })
   return obj
 })
 
 let logTimings = false
 exports.timed = (name, fn) => (...args) => {
-  logTimings && console.time(name) // eslint-disable-line no-console
+  logTimings && console.time(name)
   let res = fn(...args)
-  logTimings && console.timeEnd(name) // eslint-disable-line no-console
+  logTimings && console.timeEnd(name)
   return res
 }
 
@@ -24,8 +25,7 @@ exports.identity = x => x
 exports.dedent = str => {
   let match = str.match(/^[ \t]*(?=\S)/gm)
 
-  if (!match)
-    return str
+  if (!match) return str
 
   let indent = Math.min(...match.map(x => x.length))
   let re = new RegExp(`^[ \\t]{${indent}}`, 'gm')

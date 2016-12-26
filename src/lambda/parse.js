@@ -6,7 +6,7 @@ let {Parser} = require('./grammar')
 // and definitions of the program.
 module.exports = timed('parse', str => {
   // A custom Jison parser.
-  let parser = new Parser
+  let parser = new Parser()
 
   // A definition table with the definition term by their names.
   let defs = {}
@@ -24,7 +24,7 @@ module.exports = timed('parse', str => {
     parseTopLevelTerm: (term) => {
       terms.push(term)
     },
-    parseIdentifier: Ref,
+    parseIdentifier: Ref
   }
 
   parser.parse(str)
@@ -32,12 +32,12 @@ module.exports = timed('parse', str => {
   terms.forEach(t => resolveTermRefs(t, defs))
 
   let refNames = {}
-  for (let name in defs)
+  for (let name in defs) {
     resolveDefRefs(name, defs[name], defs, refNames)
+  }
 
   return {defs, terms}
 })
-
 
 // Temporary term used only while parsing as a placeholder for wither a Var o a
 // Ref. On the first pass the parser cannot know if an identifier is a variable

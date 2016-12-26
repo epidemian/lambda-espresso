@@ -12,7 +12,6 @@ let assertReduce = (expr, expected, options) => {
 }
 
 describe('reduceProgram()', () => {
-
   it('does not reduce simple irreducible expressions', () => {
     assertReduce('x', 'x')
     assertReduce('x y', 'x y')
@@ -57,7 +56,6 @@ describe('reduceProgram()', () => {
   })
 
   describe('renaming in substitution (λy.T)[x := S]', () => {
-
     it('renames when y is free in S and x is free in T', () => {
       assertReduce('(λx.λy.x y) (y z)', 'λy1.y z y1')
     })

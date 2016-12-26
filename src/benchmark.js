@@ -27,7 +27,6 @@ let code = `
   eq (fact ${makeTerm(num)}) ${makeTerm(factorial(num))}
 `
 
-/* eslint-disable no-console */
 console.log(`calculating ${num}! == ${factorial(num)}`)
 let [{totalSteps, final}] = reduceProgram(code, {maxSteps: 100000})
 

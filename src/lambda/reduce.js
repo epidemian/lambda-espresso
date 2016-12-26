@@ -6,8 +6,9 @@ let freeIn = require('./free-in')
 module.exports = (t, {strategy, etaEnabled}, cb) => {
   let reduce = reduceFunctions[strategy]
   let reduced = reduce(t, cb)
-  if (etaEnabled)
+  if (etaEnabled) {
     reduced = reduceEta(reduced, cb)
+  }
   return reduced
 }
 
@@ -18,13 +19,12 @@ let reduceCallByName = (t, cb) => {
     return t
   case App:
     let l = reduceCallByName(t.left, composeAppR(cb, t.right))
-    if (l.type === Fun)
-      return reduceCallByName(apply(l, t.right, cb), cb)
-    else
-    // TODO This is suspicious. If some reductions were made in previous
-    // l = reduceCallByName ... call, then we are losing the result of those
-    // reductions, but we have recorded them with cb.
-      return App(l, t.right)
+    return l.type === Fun
+      ? reduceCallByName(apply(l, t.right, cb), cb)
+      // TODO This is suspicious. If some reductions were made in previous
+      // l = reduceCallByName ... call, then we are losing the result of those
+      // reductions, but we have recorded them with cb.
+      : App(l, t.right)
   case Def:
     cb(markStep('def', t, t.term))
     return reduceCallByName(t.term, cb)
@@ -60,10 +60,9 @@ let reduceCallByValue = (t, cb) => {
   case App:
     let l = reduceCallByValue(t.left, composeAppR(cb, t.right))
     let r = reduceCallByValue(t.right, composeAppL(cb, l))
-    if (l.type === Fun)
-      return reduceCallByValue(apply(l, r, cb), cb)
-    else
-      return App(l, r)
+    return l.type === Fun
+      ? reduceCallByValue(apply(l, r, cb), cb)
+      : App(l, r)
   case Def:
     cb(markStep('def', t, t.term))
     return reduceCallByValue(t.term, cb)
@@ -131,5 +130,5 @@ let reduceFunctions = {
   normal: reduceNormal,
   applicative: reduceApplicative,
   cbn: reduceCallByName,
-  cbv: reduceCallByValue,
+  cbv: reduceCallByValue
 }
