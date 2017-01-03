@@ -1,5 +1,6 @@
 # λ-Espresso ☕
 
+[![Build Status](https://img.shields.io/travis/epidemian/lambda-espresso.svg)](https://travis-ci.org/epidemian/lambda-espresso)
 [![Standard - JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
 
 
