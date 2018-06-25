@@ -1,6 +1,6 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
-browserify_opts = --debug --detect-globals false --no-builtins
+browserify_opts = --debug --detect-globals false --no-builtins -p [ tsify --noImplicitAny ]
 grammar_file = src/lambda/grammar.js
 eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
@@ -63,7 +63,7 @@ watch:
 
 .PHONY: bench
 bench: grammar
-	node src/benchmark.js
+	node -r ts-node/register src/benchmark.js 
 
 .PHONY: publish
 publish:

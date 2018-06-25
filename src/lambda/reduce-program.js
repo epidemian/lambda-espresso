@@ -1,9 +1,9 @@
 let {extend, timed, compose, identity} = require('../utils')
-let {Var, Fun, App, Def} = require('./terms')
+let {Var, Fun, App} = require('./terms')
 let parse = require('./parse')
 let reduce = require('./reduce')
 let {substitute} = require('./substitute')
-let format = require('./format')
+let format = require('./format').default
 let alphaEq = require('./alpha-eq')
 
 // Reduce a program and return with the reduction for each term in the program.
@@ -91,12 +91,12 @@ let find = (t, fn) => {
   if (fn(t)) return t
 
   switch (t.type) {
-  case Var:
-  case Def:
+  case 'var':
+  case 'def':
     return
-  case Fun:
+  case 'fun':
     return find(t.body, fn)
-  case App:
+  case 'app':
     return find(t.left, fn) || find(t.right, fn)
   }
 }
@@ -105,13 +105,13 @@ let replace = (t, from, to) => {
   if (t === from) return to
 
   switch (t.type) {
-  case Var:
-  case Def:
+  case 'var':
+  case 'def':
     return t
-  case Fun:
+  case 'fun':
     let body = replace(t.body, from, to)
     return t.body === body ? t : Fun(t.param, body)
-  case App:
+  case 'app':
     let l = replace(t.left, from, to)
     if (t.left !== l) return App(l, t.right)
     let r = replace(t.right, from, to)

@@ -5,7 +5,11 @@
   "directories": {
     "test": "test"
   },
-  "dependencies": {},
+  "dependencies": {
+    "ts-node": "^7.0.0",
+    "tsify": "^4.0.0",
+    "typescript": "^2.9.2"
+  },
   "devDependencies": {
     "browserify": "^13.1.1",
     "bubleify": "^0.7.0",

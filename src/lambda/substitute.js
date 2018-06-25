@@ -1,16 +1,16 @@
-let {Var, Fun, App, Def} = require('./terms')
+let {Var, Fun, App} = require('./terms')
 let {markStep, composeFun, composeAppL, composeAppR} = require('./helpers')
-let freeIn = require('./free-in')
+let freeIn = require('./free-in').default
 
 // Applies the substitution T[x := S]
 // I.e., substitutes the variable x for the term S in the term T.
 let substitute = (t, x, s) => {
   switch (t.type) {
-  case Var:
+  case 'var':
     // x[x := S] = S
     // y[x := S] = y
     return t.name === x ? s : t
-  case Fun:
+  case 'fun':
     // (λx.E)[x := S] = λx.E
     // λx creates a new context for x so no further substitution is needed.
     if (t.param === x) return t
@@ -26,10 +26,10 @@ let substitute = (t, x, s) => {
       // (λy.E)[x := S] = λy.(E[x := S])
       return Fun(t.param, substitute(t.body, x, s))
     }
-  case App:
+  case 'app':
     // (U V)[x := S] = (U[x := S]) (V[x := S])
     return App(substitute(t.left, x, s), substitute(t.right, x, s))
-  case Def:
+  case 'def':
     return t
   }
 }
@@ -44,10 +44,10 @@ let substitute = (t, x, s) => {
 // Records the α-conversions by calling cb.
 let renameForSubstitution = (t, x, s, cb) => {
   switch (t.type) {
-  case Var:
-  case Def:
+  case 'var':
+  case 'def':
     return t
-  case Fun:
+  case 'fun':
     if (t.param === x) return t
     if (freeIn(t.param, s) && freeIn(x, t.body)) {
       let newVarName = renameVar(t.param, t.body, s)
@@ -56,7 +56,7 @@ let renameForSubstitution = (t, x, s, cb) => {
     }
     let body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
     return Fun(t.param, body)
-  case App:
+  case 'app':
     let l = renameForSubstitution(t.left, x, s, composeAppR(cb, t.right))
     let r = renameForSubstitution(t.right, x, s, composeAppL(cb, l))
     return App(l, r)
@@ -66,17 +66,17 @@ let renameForSubstitution = (t, x, s, cb) => {
 // Applies the substitution T[x := S] directly, without doing α-conversions.
 let applySubstitution = (t, x, s) => {
   switch (t.type) {
-  case Var:
+  case 'var':
     return t.name === x ? s : t
-  case Fun:
+  case 'fun':
     return t.param === x
       ? t
       : Fun(t.param, applySubstitution(t.body, x, s))
-  case App:
+  case 'app':
     let l = applySubstitution(t.left, x, s)
     let r = applySubstitution(t.right, x, s)
     return App(l, r)
-  case Def:
+  case 'def':
     return t
   }
 }
@@ -108,10 +108,10 @@ let renameVar = (oldName, t, s) => {
 // (i.e. not be α-equivalent).
 let varRenameCollides = (t, oldName, newName) => {
   switch (t.type) {
-  case Var:
-  case Def:
+  case 'var':
+  case 'def':
     return false
-  case Fun:
+  case 'fun':
     // A variable rename collides with this function if the old variable
     // was free in the function and the new name for the variable is the
     // same as the param of the function, thus changing old free variable
@@ -119,7 +119,7 @@ let varRenameCollides = (t, oldName, newName) => {
     return t.param === newName && freeIn(oldName, t) ||
       // Or if the renaming collides in the body of the function.
       varRenameCollides(t.body, oldName, newName)
-  case App:
+  case 'app':
     return varRenameCollides(t.left, oldName, newName) ||
       varRenameCollides(t.right, oldName, newName)
   }

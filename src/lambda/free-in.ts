@@ -1,18 +1,18 @@
-let {Var, Fun, App, Def} = require('./terms')
+import { Term } from './terms'
 
 // Whether the variable x appears free in the term t.
-let freeIn = (x, t) => {
+const freeIn = (x: string, t: Term): boolean => {
   switch (t.type) {
-  case Var:
+  case 'var':
     return t.name === x
-  case Fun:
+  case 'fun':
     return t.param !== x && freeIn(x, t.body)
-  case App:
+  case 'app':
     return freeIn(x, t.left) || freeIn(x, t.right)
-  case Def:
+  case 'def':
     // Definitions don't have free variables.
     return false
   }
 }
 
-module.exports = freeIn
+export default freeIn

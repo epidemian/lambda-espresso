@@ -1,4 +1,4 @@
-let {Var, Fun, App, Def} = require('./terms')
+let {Fun, App} = require('./terms')
 let {timed, collapseWhitespace} = require('../utils')
 let {Parser} = require('./grammar')
 
@@ -52,17 +52,17 @@ let resolveTermRefs = (t, defs, boundNames = []) => {
   case Ref:
     let free = boundNames.indexOf(t.name) < 0
     if (t.name in defs && free) {
-      t.type = Def
+      t.type = 'def'
       t.term = defs[t.name]
     } else {
-      t.type = Var
+      t.type = 'var'
     }
     break
-  case App:
+  case 'app':
     resolveTermRefs(t.left, defs, boundNames)
     resolveTermRefs(t.right, defs, boundNames)
     break
-  case Fun:
+  case 'fun':
     resolveTermRefs(t.body, defs, boundNames.concat(t.param))
     break
   }
@@ -74,11 +74,11 @@ let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
   case Ref:
     let bound = boundNames.indexOf(t.name) >= 0
     if (bound) {
-      t.type = Var
+      t.type = 'var'
     } else if (t.name in defs) {
       refNames[defName] = [...refNames[defName] || [], t.name]
       checkForCircularRefs(defName, t.name, refNames)
-      t.type = Def
+      t.type = 'def'
       t.term = defs[t.name]
     } else {
       throw Error(collapseWhitespace(
@@ -87,11 +87,11 @@ let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
       ))
     }
     break
-  case App:
+  case 'app':
     resolveDefRefs(defName, t.left, defs, refNames, boundNames)
     resolveDefRefs(defName, t.right, defs, refNames, boundNames)
     break
-  case Fun:
+  case 'fun':
     let boundOnBody = boundNames.concat(t.param)
     resolveDefRefs(defName, t.body, defs, refNames, boundOnBody)
     break

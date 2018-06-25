@@ -1,19 +1,20 @@
-let {Var, Fun, App, Def} = require('./terms')
-let {identity} = require('../utils')
+import { Term } from './terms'
+import { identity } from '../utils'
 
 // Returns the string representation for a given term t.
-let format = (t, appParens = false, funParens = false) => {
-  let h = t.highlight || identity
+const format = (t: Term, appParens = false, funParens = false): string => {
+  // TODO: Remove highlighting hack of storing data on terms.
+  let { highlight: h = identity, highlightVar } = t as any
   switch (t.type) {
-  case Var:
-  case Def:
+  case 'var':
+  case 'def':
     return h(t.name)
-  case Fun:
+  case 'fun':
     let lambda = `λ${t.param}`
-    if (t.highlightVar) lambda = t.highlightVar(lambda)
+    if (highlightVar) lambda = highlightVar(lambda)
     let funStr = `${lambda}.${format(t.body)}`
     return h(funParens ? `(${funStr})` : funStr)
-  case App:
+  case 'app':
     let lStr = format(t.left, false, true)
     let rStr = format(t.right, true, funParens)
     let appStr = `${lStr} ${rStr}`
@@ -21,4 +22,4 @@ let format = (t, appParens = false, funParens = false) => {
   }
 }
 
-module.exports = format
+export default format
