@@ -1,7 +1,7 @@
-let {dedent} = require('./utils')
+import { dedent } from './utils'
 
 /* eslint-disable max-len */
-module.exports = [{
+const examples = [{
   name: 'Basics',
   code: dedent(`
     ; This example is not intend to be a tutorial nor an introduction to λ Calculus.
@@ -230,3 +230,5 @@ module.exports = [{
     ❓ = λ💩.💩 💩 💩
   `)
 }]
+
+export default examples

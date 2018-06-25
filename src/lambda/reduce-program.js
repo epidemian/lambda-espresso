@@ -1,6 +1,6 @@
 let {extend, timed, compose, identity} = require('../utils')
 let {Var, Fun, App} = require('./terms')
-let parse = require('./parse')
+let parse = require('./parse').default
 let reduce = require('./reduce')
 let {substitute} = require('./substitute')
 let format = require('./format').default

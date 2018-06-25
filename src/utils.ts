@@ -1,9 +1,13 @@
 export const extend = Object.assign
 
 let logTimings = false
-export const timed = (name: string, fn: Function) => (...args: any[]) => {
+export const timed = (name: string, fn: Function) => (...args: any[]) => 
+  timeIt(name, () => fn(...args))
+
+
+export const timeIt = <T>(name: string, fn: () => T) => {
   logTimings && console.time(name)
-  let res = fn(...args)
+  let res = fn()
   logTimings && console.timeEnd(name)
   return res
 }

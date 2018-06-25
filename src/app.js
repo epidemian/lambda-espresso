@@ -1,6 +1,6 @@
 // Script for index.html
 let {reduceProgram} = require('./lambda')
-let examples = require('./examples')
+let examples = require('./examples').default
 let {timed, enableLogTimings, dedent} = require('./utils')
 let {$, delegate, once, nodeIndex} = require('./dom')
 
