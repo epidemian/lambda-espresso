@@ -21,7 +21,6 @@
 - Use DOM API for creating elements instead of innerHTML, to avoid possible and funny JS injections.
   - Or maybe use insertAdjacentHTML()
 - Add syntax for defining a term as the reduced form. E.g. `twenty-four := mult four six` so that twenty-four is suggested as synonym of the reduction of `fact four`.
-- Add syntax for defining a term as the reduced form. E.g. `twenty-four := mult four six` so that twenty-four is suggested as synonym of the reduction of `fact four`.
 
 - Add references to nice intro material to Lambda Calculus:
   - [http://codon.com/programming-with-nothing](http://codon.com/programming-with-nothing)

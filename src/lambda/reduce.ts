@@ -1,9 +1,14 @@
-let {Fun, App} = require('./terms')
-let {renameForSubstitution, applySubstitution} = require('./substitute')
-let {markStep, composeFun, composeAppL, composeAppR} = require('./helpers')
-let freeIn = require('./free-in').default
+import { Fun, App, Term } from './terms'
+import { renameForSubstitution, applySubstitution } from './substitute'
+import { markStep, composeFun, composeAppL, composeAppR, Callback } from './helpers'
+import freeIn from './free-in'
 
-module.exports = (t, {strategy, etaEnabled}, cb) => {
+export type Options = {
+  strategy: keyof typeof reduceFunctions
+  etaEnabled: boolean
+}
+
+const reduce = (t: Term, { strategy, etaEnabled }: Options, cb: Callback) => {
   let reduce = reduceFunctions[strategy]
   let reduced = reduce(t, cb)
   if (etaEnabled) {
@@ -12,7 +17,11 @@ module.exports = (t, {strategy, etaEnabled}, cb) => {
   return reduced
 }
 
-let reduceCallByName = (t, cb) => {
+export default reduce
+
+type Reducer = (t: Term, cb: Callback) => Term
+
+let reduceCallByName: Reducer = (t, cb) => {
   switch (t.type) {
   case 'var':
   case 'fun':
@@ -26,12 +35,12 @@ let reduceCallByName = (t, cb) => {
       // reductions, but we have recorded them with cb.
       : App(l, t.right)
   case 'def':
-    cb(markStep('def', t, t.term))
+    cb(markStep({ type: 'def', before: t, after: t.term }))
     return reduceCallByName(t.term, cb)
   }
 }
 
-let reduceNormal = (t, cb) => {
+let reduceNormal: Reducer = (t, cb) => {
   switch (t.type) {
   case 'var':
     return t
@@ -47,12 +56,12 @@ let reduceNormal = (t, cb) => {
       return App(l, r)
     }
   case 'def':
-    cb(markStep('def', t, t.term))
+    cb(markStep({ type: 'def', before: t, after: t.term }))
     return reduceNormal(t.term, cb)
   }
 }
 
-let reduceCallByValue = (t, cb) => {
+let reduceCallByValue: Reducer = (t, cb) => {
   switch (t.type) {
   case 'var':
   case 'fun':
@@ -64,12 +73,12 @@ let reduceCallByValue = (t, cb) => {
       ? reduceCallByValue(apply(l, r, cb), cb)
       : App(l, r)
   case 'def':
-    cb(markStep('def', t, t.term))
+    cb(markStep({ type: 'def', before: t, after: t.term }))
     return reduceCallByValue(t.term, cb)
   }
 }
 
-let reduceApplicative = (t, cb) => {
+let reduceApplicative: Reducer = (t, cb) => {
   switch (t.type) {
   case 'var':
     return t
@@ -86,33 +95,32 @@ let reduceApplicative = (t, cb) => {
       return App(l, r)
     }
   case 'def':
-    cb(markStep('def', t, t.term))
+    cb(markStep({ type: 'def', before: t, after: t.term }))
     return reduceApplicative(t.term, cb)
   }
 }
 
-let apply = (fun, subst, cb) => {
+let apply = (fun: Fun, subst: Term, cb: Callback) => {
   let renameCb = composeFun(composeAppR(cb, subst), fun.param)
   let renamedBody = renameForSubstitution(fun.body, fun.param, subst, renameCb)
   let renamed = App(Fun(fun.param, renamedBody), subst)
   let applied = applySubstitution(renamedBody, fun.param, subst)
-  cb(markStep('beta', renamed, applied))
+  cb(markStep({ type: 'beta', before: renamed, after: applied }))
   return applied
 }
 
 // Performs any available η-reductions on a term.
-let reduceEta = (t, cb) => {
+let reduceEta: Reducer = (t, cb) => {
   switch (t.type) {
   case 'var':
     return t
   case 'fun':
     // λx.(F x) = F if x is free in F
-    let isEta = t.body.type === 'app' &&
-      t.body.right.type === 'var' &&
-      t.body.right.name === t.param &&
-      !freeIn(t.param, t.body.left)
-    if (isEta) {
-      cb(markStep('eta', t, t.body.left))
+    if (t.body.type === 'app' &&
+        t.body.right.type === 'var' &&
+        t.body.right.name === t.param &&
+        !freeIn(t.param, t.body.left)) {
+      cb(markStep({ type: 'eta', before: t, after: t.body.left }))
       return t.body.left
     } else {
       return Fun(t.param, reduceEta(t.body, composeFun(cb, t.param)))

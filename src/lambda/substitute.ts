@@ -1,10 +1,10 @@
-let {Var, Fun, App} = require('./terms')
-let {markStep, composeFun, composeAppL, composeAppR} = require('./helpers')
-let freeIn = require('./free-in').default
+import { Term, Var, Fun, App } from './terms'
+import { markStep, composeFun, composeAppL, composeAppR, Callback } from './helpers'
+import freeIn from './free-in'
 
 // Applies the substitution T[x := S]
 // I.e., substitutes the variable x for the term S in the term T.
-let substitute = (t, x, s) => {
+export const substitute = (t: Term, x: string, s: Term): Term => {
   switch (t.type) {
   case 'var':
     // x[x := S] = S
@@ -42,7 +42,7 @@ let substitute = (t, x, s) => {
 // Performs the α-conversions necessary for the substitution T[x := S], but does
 // not perform the substitution itself.
 // Records the α-conversions by calling cb.
-let renameForSubstitution = (t, x, s, cb) => {
+export const renameForSubstitution = (t: Term, x: string, s: Term, cb: Callback): Term => {
   switch (t.type) {
   case 'var':
   case 'def':
@@ -52,7 +52,7 @@ let renameForSubstitution = (t, x, s, cb) => {
     if (freeIn(t.param, s) && freeIn(x, t.body)) {
       let newVarName = renameVar(t.param, t.body, s)
       let renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
-      cb(markStep('alpha', t, t = Fun(newVarName, renamedBody)))
+      cb(markStep({ type: 'alpha', before: t, after: t = Fun(newVarName, renamedBody) }))
     }
     let body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
     return Fun(t.param, body)
@@ -64,7 +64,7 @@ let renameForSubstitution = (t, x, s, cb) => {
 }
 
 // Applies the substitution T[x := S] directly, without doing α-conversions.
-let applySubstitution = (t, x, s) => {
+export const applySubstitution = (t: Term, x: string, s: Term): Term => {
   switch (t.type) {
   case 'var':
     return t.name === x ? s : t
@@ -82,7 +82,7 @@ let applySubstitution = (t, x, s) => {
 }
 
 // Renames a variable to avoid naming conflicts case doing: a substitution.
-let renameVar = (oldName, t, s) => {
+let renameVar = (oldName: string, t: Term, s: Term) => {
   // Split the name into base and number part.
   let base = oldName.replace(/\d+$/, '')
   let match = oldName.match(/\d+$/)
@@ -106,7 +106,7 @@ let renameVar = (oldName, t, s) => {
 // Whether a variable rename collides in a given term. That is, if changing the
 // occurrences of oldName with newName in t would make it change t's meaning
 // (i.e. not be α-equivalent).
-let varRenameCollides = (t, oldName, newName) => {
+let varRenameCollides = (t: Term, oldName: string, newName: string): boolean => {
   switch (t.type) {
   case 'var':
   case 'def':
@@ -124,5 +124,3 @@ let varRenameCollides = (t, oldName, newName) => {
       varRenameCollides(t.right, oldName, newName)
   }
 }
-
-module.exports = {substitute, renameForSubstitution, applySubstitution}
