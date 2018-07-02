@@ -17,5 +17,4 @@ export type Step =
   | { type: 'def' , before: Def, after: Term }
 
 // Mark a reduction step on the `after` term.
-export const markStep = (step: Step) =>
-  Object.assign({}, step.after, {step: step})
+export const markStep = (step: Step) => ({ ...step.after, step })

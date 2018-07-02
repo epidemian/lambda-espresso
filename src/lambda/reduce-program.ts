@@ -98,13 +98,13 @@ let expandStep = (t: Term, options: ExpandStepOptions = {}) => {
 let highlight = (t: Term, fn: StrFun) => {
   let h: StrFun = (t as any).highlight
   let highlight: StrFun = h ? s => fn(h(s)) : fn
-  return Object.assign({}, t, { highlight })
+  return { ...t, highlight }
 }
 
 let highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
   let hx = highlight(Var(x), fn)
   let ht = substitute(t, x, hx)
-  return Object.assign(Fun(x, ht), {highlightVar: fn})
+  return { ...Fun(x, ht), highlightVar: fn }
 }
 
 let findStep = (t: Term): Step | undefined => {
