@@ -1,12 +1,12 @@
-let {reduceProgram} = require('./lambda')
-let {enableLogTimings} = require('./utils')
+import { reduceProgram } from "./lambda";
+import { enableLogTimings } from "./utils";
 
 enableLogTimings()
 
-let makeTerm = n =>
+let makeTerm = (n: number) =>
   `λs.λz.${'(s '.repeat(n)}z${')'.repeat(n)}`
 
-let factorial = n =>
+let factorial = (n: number): number =>
   n === 0 ? 1 : n * factorial(n - 1)
 
 let num = 4

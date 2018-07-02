@@ -63,7 +63,7 @@ watch:
 
 .PHONY: bench
 bench: grammar
-	node -r ts-node/register src/benchmark.js 
+	$(bin_dir)/ts-node src/benchmark.ts 
 
 .PHONY: publish
 publish:
