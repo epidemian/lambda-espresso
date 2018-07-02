@@ -2,7 +2,7 @@
 let {reduceProgram} = require('./lambda')
 let examples = require('./examples').default
 let {timeIt, enableLogTimings, dedent} = require('./utils')
-let {$, delegate, once, nodeIndex} = require('./dom')
+let {$, delegate, nodeIndex} = require('./dom')
 
 enableLogTimings()
 
@@ -166,7 +166,9 @@ examplesDropdown.addEventListener('click', e => {
   if (examplesDropdown.classList.contains('active')) return
   e.stopPropagation()
   examplesDropdown.classList.add('active')
-  once('click', document, () => examplesDropdown.classList.remove('active'))
+  document.addEventListener('click', () => { 
+    examplesDropdown.classList.remove('active') 
+  }, { once: true })
 })
 
 $('button.link').addEventListener('click', () => {
