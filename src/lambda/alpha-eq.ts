@@ -3,7 +3,7 @@ import { substitute } from './substitute'
 
 // Whether two terms are alpha-equivalent.
 const alphaEq = (t1: Term, t2: Term): boolean => {
-  if (t1.type === 'def') 
+  if (t1.type === 'def')
     return alphaEq(t1.term, t2)
   if (t2.type === 'def') 
     return alphaEq(t1, t2.term)

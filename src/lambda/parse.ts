@@ -1,8 +1,7 @@
 import { Term, Fun, App } from './terms'
 import { timeIt, collapseWhitespace } from '../utils'
 import { Parser } from './grammar'
-
-type Definitions = { [key: string]: Term }
+import { Definitions } from './helpers';
 
 // Parses an input program string and returns an object with the top-level terms
 // and definitions of the program.
@@ -73,7 +72,7 @@ let resolveTermRefs = (
     break
   }
 }
-
+ 
 type RefNames = { [key: string]: string[] }
 
 // Changes all Refs inside term t to either Vars or Defs.

@@ -5,7 +5,11 @@ import reduce, { Options as ReduceOptions } from './reduce'
 import { substitute } from './substitute'
 import format from './format'
 import alphaEq from './alpha-eq'
-import { Step } from './helpers';
+import { Step, Definitions } from './helpers';
+
+type Options = Partial<ReduceOptions> & {
+  maxSteps?: number
+}
 
 // Reduce a program and return with the reduction for each term in the program.
 const reduceProgram = (program: string, options: Options = {}) => {
@@ -14,11 +18,6 @@ const reduceProgram = (program: string, options: Options = {}) => {
 }
 
 export default reduceProgram 
-
-type Definitions = { [key: string]: Term }
-type Options = Partial<ReduceOptions> & {
-  maxSteps?: number
-}
 
 // Reduces a term up to its normal form.
 let reduceTerm = (term: Term, defs: Definitions, options: Options) => timeIt('reduce', () => {
@@ -47,12 +46,12 @@ let reduceTerm = (term: Term, defs: Definitions, options: Options) => timeIt('re
   return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
 })
 
-type StringFn = (s: string) => string
+type StrFun = (s: string) => string
 
 type ExpandStepOptions = {
-  highlightFormerTerm?: StringFn,
-  highlightSubstitutionTerm?: StringFn,
-  highlightStep?: StringFn
+  highlightFormerTerm?: StrFun,
+  highlightSubstitutionTerm?: StrFun,
+  highlightStep?: StrFun
 }
 
 let expandStep = (t: Term, options: ExpandStepOptions = {}) => {
@@ -96,13 +95,13 @@ let expandStep = (t: Term, options: ExpandStepOptions = {}) => {
   return { type: step.type, before: beforeStr, after: afterStr }
 }
 
-let highlight = (t: Term, fn: StringFn) => {
-  let h: StringFn = (t as any).highlight
-  let highlight: StringFn = h ? s => fn(h(s)) : fn
+let highlight = (t: Term, fn: StrFun) => {
+  let h: StrFun = (t as any).highlight
+  let highlight: StrFun = h ? s => fn(h(s)) : fn
   return Object.assign({}, t, { highlight })
 }
 
-let highlightFunctionVar = (t: Term, x: string, fn: StringFn) => {
+let highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
   let hx = highlight(Var(x), fn)
   let ht = substitute(t, x, hx)
   return Object.assign(Fun(x, ht), {highlightVar: fn})

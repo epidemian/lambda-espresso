@@ -1,7 +1,7 @@
 // Script for index.html
 let {reduceProgram} = require('./lambda')
 let examples = require('./examples').default
-let {timed, enableLogTimings, dedent} = require('./utils')
+let {timeIt, enableLogTimings, dedent} = require('./utils')
 let {$, delegate, once, nodeIndex} = require('./dom')
 
 enableLogTimings()
@@ -72,7 +72,7 @@ let run = () => {
   }
 }
 
-let renderReductions = timed('render html', () => {
+let renderReductions = () => timeIt('render html', () => {
   output.innerHTML = reductions.map(renderCollapsedReduction).join('')
   output.classList.remove('error')
 })

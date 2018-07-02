@@ -1,10 +1,6 @@
-export const extend = Object.assign
-
 let logTimings = false
-export const timed = (name: string, fn: Function) => (...args: any[]) => 
-  timeIt(name, () => fn(...args))
 
-
+// TODO: Maybe this could be a function decorator?
 export const timeIt = <T>(name: string, fn: () => T) => {
   logTimings && console.time(name)
   let res = fn()
@@ -15,10 +11,9 @@ export const timeIt = <T>(name: string, fn: () => T) => {
 export const enableLogTimings = () => { logTimings = true }
 export const disableLogTimings = () => { logTimings = false }
 
-export const compose = (f: Function, g: Function) => (x: any) => f(g(x))
-
 export const identity = <T>(x: T) => x
 
+// TODO: Maybe this could be a tagged template string function :)
 export const dedent = (str: string) => {
   let match = str.match(/^[ \t]*(?=\S)/gm)
 
