@@ -7,21 +7,42 @@ import format from './format'
 import alphaEq from './alpha-eq'
 import { Step, Definitions } from './helpers';
 
-type Options = Partial<ReduceOptions> & {
+export type Options = Partial<ReduceOptions> & {
   maxSteps?: number
 }
 
+export type Reduction = {
+  initial: string
+  final: string
+  finalSynonyms: string[]
+  terminates: boolean
+  totalSteps: number
+  renderStep: (i: number, options: RenderStepOptions) => RenderedStep
+}
+
+type RenderStepOptions = {
+  highlightFormerTerm?: StrFun,
+  highlightSubstitutionTerm?: StrFun,
+  highlightStep?: StrFun
+}
+
+type StrFun = (s: string) => string
+
+type RenderedStep = {
+  type: "alpha" | "beta" | "eta" | "def"
+  before: string
+  after: string
+}
+
 // Reduce a program and return with the reduction for each term in the program.
-const reduceProgram = (program: string, options: Options = {}) => {
+export const reduceProgram = (program: string, options: Options = {}) => {
   let { terms, defs } = parse(program)
   return terms.map(term => reduceTerm(term, defs, options))
 }
 
-export default reduceProgram 
-
 // Reduces a term up to its normal form.
-let reduceTerm = (term: Term, defs: Definitions, options: Options) => timeIt('reduce', () => {
-  const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options || {}
+let reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction => timeIt('reduce', () => {
+  const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
   let enough = {}
   let steps: Term[] = []
   let terminates = false
@@ -41,20 +62,12 @@ let reduceTerm = (term: Term, defs: Definitions, options: Options) => timeIt('re
   let initial = format(term)
   let final = format(last)
   let totalSteps = steps.length
-  let renderStep = (i: number, options: ExpandStepOptions) =>
+  let renderStep = (i: number, options: RenderStepOptions) =>
     expandStep(steps[i], options)
   return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
 })
 
-type StrFun = (s: string) => string
-
-type ExpandStepOptions = {
-  highlightFormerTerm?: StrFun,
-  highlightSubstitutionTerm?: StrFun,
-  highlightStep?: StrFun
-}
-
-let expandStep = (t: Term, options: ExpandStepOptions = {}) => {
+let expandStep = (t: Term, options: RenderStepOptions = {}) => {
   let step = findStep(t)
   if (!step) throw new Error('Unexpected: term should always have a step')
 

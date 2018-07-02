@@ -28,7 +28,7 @@ let code = `
 `
 
 console.log(`calculating ${num}! == ${factorial(num)}`)
-let [{totalSteps, final}] = reduceProgram(code, {maxSteps: 100000})
+let [{ totalSteps, final }] = reduceProgram(code, {maxSteps: 100000})
 
 console.log('steps:', totalSteps)
 console.log('ok:', final === 'true' || final === 'λt.λf.t')

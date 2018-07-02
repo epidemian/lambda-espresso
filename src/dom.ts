@@ -1,4 +1,5 @@
-export const $ = (s: string) => document.querySelector(s)
+export const $ = <T extends Element>(s: string) => 
+  document.querySelector(s) as T
 
 // Similar to jQuery.fn.on(type, selector, handler)
 export const delegate = (
