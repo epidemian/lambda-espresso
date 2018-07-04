@@ -78,20 +78,18 @@ describe('reduceProgram()', () => {
     )
 
     it('does not choose a name that makes an inner variable bind to another ' +
-      'abstraction',
-      () => {
-        // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to
-        // use [y := y1] because it would make the inner y bind to the second
-        // abstraction instead of the first one.
-        assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
-        // Same thing as above but with higher numbers.
-        assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
-        // Same idea, but here it has to go quite deep to find a new name.
-        assertReduce(
-          '(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5'
-        )
-      }
-    )
+      'abstraction', () => {
+      // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to
+      // use [y := y1] because it would make the inner y bind to the second
+      // abstraction instead of the first one.
+      assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
+      // Same thing as above but with higher numbers.
+      assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
+      // Same idea, but here it has to go quite deep to find a new name.
+      assertReduce(
+        '(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5'
+      )
+    })
 
     it('does not choose a name that collides with free variables', () => {
       assertReduce('(λx.λy.x y y1) y', 'λy2.y y2 y1')

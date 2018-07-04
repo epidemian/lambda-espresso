@@ -1,6 +1,6 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
-browserify_opts = --debug --detect-globals false --no-builtins -p [ tsify --noImplicitAny ]
+browserify_opts = --debug --detect-globals false --no-builtins -p tsify
 grammar_file = src/lambda/grammar.js
 eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
