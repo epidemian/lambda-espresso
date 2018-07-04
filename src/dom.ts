@@ -7,16 +7,12 @@ export const delegate = (
   element: Element, 
   selector: string, 
   handler: (el: Element, ev: Event) => void
-) => {
+) => { 
   element.addEventListener(eventType, event => {
-    let element = event.target as Element
-    // Try to find matching element bubbling up from event target.
-    while (element !== event.currentTarget) {
-      if (element.matches(selector)) {
-        handler(element, event)
-        break
-      }
-      element = element.parentNode as Element
+    if (event.target instanceof Element) {
+      let closest = event.target.closest(selector)
+      if (closest && element.contains(closest))
+        handler(closest, event)
     }
   })
 }
