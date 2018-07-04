@@ -23,7 +23,6 @@
 - Add syntax for defining a term as the reduced form. E.g. `twenty-four := mult four six` so that twenty-four is suggested as synonym of the reduction of `fact four`.
 - Update build system and tools
   - Use Prettier
-  - Stop using Buble
   - Consider using something else than Browserify (maybe Rollup?)
 
 - Add references to nice intro material to Lambda Calculus:
