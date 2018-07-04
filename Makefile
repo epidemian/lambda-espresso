@@ -1,6 +1,6 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
-browserify_opts = --debug --detect-globals false --no-builtins
+browserify_opts = --debug --detect-globals false --no-builtins -p [ tsify --noImplicitAny ]
 grammar_file = src/lambda/grammar.js
 eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
@@ -9,8 +9,8 @@ all: build
 $(grammar_file): src/lambda/grammar.jison
 	$(bin_dir)/jison -o $(grammar_file) src/lambda/grammar.jison
 
-$(js_bundle): src/*.js grammar
-	$(bin_dir)/browserify $(browserify_opts) src/app.js > $(js_bundle)
+$(js_bundle): src/*.ts grammar
+	$(bin_dir)/browserify $(browserify_opts) src/app.ts > $(js_bundle)
 
 .PHONY: grammar
 grammar: $(grammar_file)
@@ -19,20 +19,9 @@ grammar: $(grammar_file)
 build: $(js_bundle)
 
 .PHONY: build_prod
-# All of this is basically equivalent to
-# browserify -t bubleify src/index.js | /uglifyjs > $(js_bundle)
-# All the extra stuff is just to have source maps on production.
 build_prod: grammar
-	$(bin_dir)/browserify $(browserify_opts) -t bubleify src/app.js \
-	  | $(bin_dir)/exorcist --base . $(js_bundle).map.tmp > $(js_bundle).tmp
-	$(bin_dir)/uglifyjs \
-	  --in-source-map $(js_bundle).map.tmp \
-	  --source-map $(js_bundle).map \
-	  --source-map-root . \
-	  --source-map-url index.js.map \
-	  --source-map-include-sources \
-	  $(js_bundle).tmp > $(js_bundle)
-	rm $(js_bundle).tmp $(js_bundle).map.tmp
+	$(bin_dir)/browserify $(browserify_opts) src/app.ts \
+	  | $(bin_dir)/terser --source-map "root='.',url='index.js.map',content=inline" -o $(js_bundle)
 
 .PHONY: clean
 clean:
@@ -63,7 +52,7 @@ watch:
 
 .PHONY: bench
 bench: grammar
-	node src/benchmark.js
+	$(bin_dir)/ts-node src/benchmark.ts 
 
 .PHONY: publish
 publish:

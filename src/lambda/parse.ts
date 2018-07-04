@@ -1,30 +1,31 @@
-let {Var, Fun, App, Def} = require('./terms')
-let {timed, collapseWhitespace} = require('../utils')
-let {Parser} = require('./grammar')
+import { Term, Fun, App } from './terms'
+import { timeIt, collapseWhitespace } from '../utils'
+import { Parser } from './grammar'
+import { Definitions } from './helpers';
 
 // Parses an input program string and returns an object with the top-level terms
 // and definitions of the program.
-module.exports = timed('parse', str => {
+const parse = (str: string) => timeIt('parse', () => {
   // A custom Jison parser.
   let parser = new Parser()
 
   // A definition table with the definition term by their names.
-  let defs = {}
+  let defs: Definitions = {}
   // The terms of the program.
-  let terms = []
+  let terms: Term[] = []
 
   // Add some handy functions so the parser can build the AST.
   parser.yy = {
     parseFunction: Fun,
     parseApplication: App,
-    parseDefinition: (name, term) => {
+    parseDefinition: (name: string, term: Term) => {
       if (defs[name]) throw Error(`${name} already defined`)
       defs[name] = term
     },
-    parseTopLevelTerm: (term) => {
+    parseTopLevelTerm: (term: Term) => {
       terms.push(term)
     },
-    parseIdentifier: Ref
+    parseIdentifier: (name: string) => ({ type: 'ref', name })
   }
 
   parser.parse(str)
@@ -39,47 +40,58 @@ module.exports = timed('parse', str => {
   return {defs, terms}
 })
 
+export default parse
+
 // Temporary term used only while parsing as a placeholder for wither a Var o a
 // Ref. On the first pass the parser cannot know if an identifier is a variable
 // or a definition (because definitions can be declared after their use), so it
 // stores a Ref instead and then on a second pass decides what it should be and
 // *mutates* the Ref in-place to become either a Var or a Ref.
-let Ref = name => ({type: Ref, name})
+// TODO: Remove this hack.
+type TermOrRef = Term | { type: 'ref', name: string }
 
 // Changes all Refs inside term t to either Vars or Defs.
-let resolveTermRefs = (t, defs, boundNames = []) => {
+let resolveTermRefs = (
+  t: TermOrRef, defs: Definitions, boundNames: string[] = []
+) => {
   switch (t.type) {
-  case Ref:
+  case 'ref':
     let free = boundNames.indexOf(t.name) < 0
     if (t.name in defs && free) {
-      t.type = Def
-      t.term = defs[t.name]
+      Object.assign(t, { type: 'def', term: defs[t.name] })
     } else {
-      t.type = Var
+      Object.assign(t, { type: 'var' })
     }
     break
-  case App:
+  case 'app':
     resolveTermRefs(t.left, defs, boundNames)
     resolveTermRefs(t.right, defs, boundNames)
     break
-  case Fun:
+  case 'fun':
     resolveTermRefs(t.body, defs, boundNames.concat(t.param))
     break
   }
 }
+ 
+type RefNames = { [key: string]: string[] }
 
 // Changes all Refs inside term t to either Vars or Defs.
-let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
+let resolveDefRefs = (
+  defName: string, 
+  t: TermOrRef, 
+  defs: Definitions, 
+  refNames: RefNames, 
+  boundNames: string[] = []
+) => {
   switch (t.type) {
-  case Ref:
+  case 'ref':
     let bound = boundNames.indexOf(t.name) >= 0
     if (bound) {
-      t.type = Var
+      Object.assign(t, { type: 'var' })
     } else if (t.name in defs) {
       refNames[defName] = [...refNames[defName] || [], t.name]
       checkForCircularRefs(defName, t.name, refNames)
-      t.type = Def
-      t.term = defs[t.name]
+      Object.assign(t, { type: 'def', term: defs[t.name]})
     } else {
       throw Error(collapseWhitespace(
         `Illegal free variable "${t.name}" in "${defName}". 
@@ -87,18 +99,20 @@ let resolveDefRefs = (defName, t, defs, refNames, boundNames = []) => {
       ))
     }
     break
-  case App:
+  case 'app':
     resolveDefRefs(defName, t.left, defs, refNames, boundNames)
     resolveDefRefs(defName, t.right, defs, refNames, boundNames)
     break
-  case Fun:
+  case 'fun':
     let boundOnBody = boundNames.concat(t.param)
     resolveDefRefs(defName, t.body, defs, refNames, boundOnBody)
     break
   }
 }
 
-let checkForCircularRefs = (name, refName, refNames, path = []) => {
+let checkForCircularRefs = (
+  name: string, refName: string, refNames: RefNames, path: string[] = []
+) => {
   if (name === refName) {
     let circularNote = path.length
       ? `In this case the definition does not reference itself directly, but 

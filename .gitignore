@@ -1,4 +1,5 @@
 node_modules
 src/lambda/grammar.js
 assets/index.js
+assets/index.js.map
 .eslintcache

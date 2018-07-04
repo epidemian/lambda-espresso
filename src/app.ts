@@ -1,12 +1,12 @@
 // Script for index.html
-let {reduceProgram} = require('./lambda')
-let examples = require('./examples')
-let {timed, enableLogTimings, dedent} = require('./utils')
-let {$, delegate, once, nodeIndex} = require('./dom')
+import { reduceProgram, Options, Reduction } from './lambda'
+import examples from './examples'
+import { timeIt, enableLogTimings, dedent } from './utils'
+import { $, delegate, nodeIndex } from './dom'
 
 enableLogTimings()
 
-let input = $('.input')
+let input = $('.input') as HTMLInputElement
 let output = $('.output')
 
 // Run code on ctrl+enter.
@@ -30,37 +30,32 @@ input.addEventListener('keyup', () => {
 
 $('.run').addEventListener('click', _ => run())
 
-let renderTerm = (term, className = '') =>
+let renderTerm = (term: string, className = '') =>
   `<span class="term ${className}">${term}</span>`
 
-let renderArrow = (symbol, label) =>
+let renderArrow = (symbol: string, label: string) =>
   `<span class=arrow>${symbol}<small>${label}</small></span>`
-
-let renderArrowByType = type => {
-  let symbol = type === 'def' ? '≡' : '→'
-  let label = arrowSymbols[type] || ''
-  return renderArrow(symbol, label)
-}
 
 let arrowSymbols = {
   alpha: 'α',
   beta: 'β',
-  eta: 'η'
+  eta: 'η',
+  def: ''
 }
 
-let renderSynonyms = synonyms =>
+let renderSynonyms = (synonyms: string[]) =>
   synonyms.length
     ? `<span class=synonyms>(${synonyms.join(', ')})</span>`
     : ''
 
-let getOptions = () => {
-  let maxSteps = parseInt($('input[name=max-steps]').value || 0)
-  let strategy = $('input[name=strategy]:checked').value
-  let etaEnabled = $('[name=eta-reductions]').checked
-  return {maxSteps, strategy, etaEnabled}
+let getOptions = (): Options => {
+  let maxSteps = parseInt($<HTMLInputElement>('input[name=max-steps]').value || '0')
+  let strategy = $<HTMLInputElement>('input[name=strategy]:checked').value as Options['strategy']
+  let etaEnabled = $<HTMLInputElement>('[name=eta-reductions]').checked
+  return { maxSteps, strategy, etaEnabled }
 }
 
-let reductions = null
+let reductions: Reduction[] = []
 let run = () => {
   let code = input.value
   try {
@@ -72,7 +67,7 @@ let run = () => {
   }
 }
 
-let renderReductions = timed('render html', () => {
+let renderReductions = () => timeIt('render html', () => {
   output.innerHTML = reductions.map(renderCollapsedReduction).join('')
   output.classList.remove('error')
 })
@@ -84,9 +79,9 @@ delegate('click', output, '.reduction', element => {
   let collapsed = element.querySelector('.collapsed')
   if (expanded) {
     expanded.classList.toggle('hidden')
-    collapsed.classList.toggle('hidden')
+    collapsed!.classList.toggle('hidden')
   } else {
-    collapsed.classList.add('hidden')
+    collapsed!.classList.add('hidden')
     element.innerHTML += renderExpandedReductionForm(reduction)
   }
 })
@@ -95,19 +90,19 @@ delegate('mouseover', output, '.expanded .step', element => {
   element.classList.add('highlight')
   // Hide the previous step's after term.
   let prev = element.previousElementSibling
-  prev && prev.querySelector('.after').classList.add('hidden')
+  prev && prev.querySelector('.after')!.classList.add('hidden')
 })
 
 delegate('mouseout', output, '.expanded .step', element => {
   element.classList.remove('highlight')
   let prev = element.previousElementSibling
-  prev && prev.querySelector('.after').classList.remove('hidden')
+  prev && prev.querySelector('.after')!.classList.remove('hidden')
 })
 
-let renderCollapsedReduction = reduction =>
+let renderCollapsedReduction = (reduction: Reduction) =>
   `<div class=reduction>${renderCollapsedReductionForm(reduction)}</div>`
 
-let renderCollapsedReductionForm = reduction => {
+let renderCollapsedReductionForm = (reduction: Reduction) => {
   let initial = renderTerm(reduction.initial)
   let arrow = ''
   let final = ''
@@ -119,13 +114,15 @@ let renderCollapsedReductionForm = reduction => {
   return `<div class=collapsed>${initial} ${arrow} ${final} ${synonyms}</div>`
 }
 
-let renderExpandedReductionForm = reduction => {
+let renderExpandedReductionForm = (reduction: Reduction) => {
   let steps = []
   for (let i = 0; i < reduction.totalSteps; i++) {
     let step = reduction.renderStep(i, renderStepOptions)
     let before = renderTerm(step.before, 'before')
     let after = renderTerm(step.after, 'after')
-    let arrow = renderArrowByType(step.type)
+    let arrowSymbol = step.type === 'def' ? '≡' : '→'
+    let arrowLabel = arrowSymbols[step.type]
+    let arrow = renderArrow(arrowSymbol, arrowLabel)
     let lastStep = i === reduction.totalSteps - 1
     let synonyms = lastStep ? renderSynonyms(reduction.finalSynonyms) : ''
     steps.push(
@@ -137,9 +134,9 @@ let renderExpandedReductionForm = reduction => {
 }
 
 let renderStepOptions = {
-  highlightStep: str => `<span class=match>${str}</span>`,
-  highlightFormerTerm: str => `<span class=former-term>${str}</span>`,
-  highlightSubstitutionTerm: str => `<span class=subst-term>${str}</span>`
+  highlightStep: (s: string) => `<span class=match>${s}</span>`,
+  highlightFormerTerm: (s: string) => `<span class=former-term>${s}</span>`,
+  highlightSubstitutionTerm: (s: string) => `<span class=subst-term>${s}</span>`
 }
 
 input.value = dedent(`
@@ -166,7 +163,9 @@ examplesDropdown.addEventListener('click', e => {
   if (examplesDropdown.classList.contains('active')) return
   e.stopPropagation()
   examplesDropdown.classList.add('active')
-  once('click', document, () => examplesDropdown.classList.remove('active'))
+  document.addEventListener('click', () => { 
+    examplesDropdown.classList.remove('active') 
+  }, { once: true })
 })
 
 $('button.link').addEventListener('click', () => {

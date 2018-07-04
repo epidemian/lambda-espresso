@@ -1,12 +1,12 @@
-let {reduceProgram} = require('./lambda')
-let {enableLogTimings} = require('./utils')
+import { reduceProgram } from "./lambda";
+import { enableLogTimings } from "./utils";
 
 enableLogTimings()
 
-let makeTerm = n =>
+let makeTerm = (n: number) =>
   `λs.λz.${'(s '.repeat(n)}z${')'.repeat(n)}`
 
-let factorial = n =>
+let factorial = (n: number): number =>
   n === 0 ? 1 : n * factorial(n - 1)
 
 let num = 4
@@ -28,7 +28,7 @@ let code = `
 `
 
 console.log(`calculating ${num}! == ${factorial(num)}`)
-let [{totalSteps, final}] = reduceProgram(code, {maxSteps: 100000})
+let [{ totalSteps, final }] = reduceProgram(code, {maxSteps: 100000})
 
 console.log('steps:', totalSteps)
 console.log('ok:', final === 'true' || final === 'λt.λf.t')
