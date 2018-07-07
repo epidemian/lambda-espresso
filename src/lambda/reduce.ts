@@ -36,10 +36,7 @@ const reduceCallByName: Reducer = (t, cb) => {
       const l = reduceCallByName(t.left, composeAppR(cb, t.right))
       return l.type === 'fun'
         ? reduceCallByName(apply(l, t.right, cb), cb)
-        : // TODO This is suspicious. If some reductions were made in previous
-          // l = reduceCallByName ... call, then we are losing the result of those
-          // reductions, but we have recorded them with cb.
-          App(l, t.right)
+        : App(l, t.right)
     case 'def':
       cb(markStep({ type: 'def', before: t, after: t.term }))
       return reduceCallByName(t.term, cb)
