@@ -1,8 +1,7 @@
 # λ-Espresso ☕
 
-[![Build Status](https://img.shields.io/travis/epidemian/lambda-espresso.svg)](https://travis-ci.org/epidemian/lambda-espresso)
-[![Standard - JavaScript Style Guide](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](http://standardjs.com/)
-
+[![Build Status](https://img.shields.io/travis/epidemian/lambda-espresso.svg?style=flat-square)](https://travis-ci.org/epidemian/lambda-espresso)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
 
 An interactive λ calculus interpreter.
 

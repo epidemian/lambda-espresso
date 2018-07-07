@@ -1,9 +1,9 @@
 import { dedent } from './utils'
 
-/* eslint-disable max-len */
-const examples = [{
-  name: 'Basics',
-  code: dedent(`
+const examples = [
+  {
+    name: 'Basics',
+    code: dedent(`
     ; This example is not intend to be a tutorial nor an introduction to λ Calculus.
     ; You should check http://en.wikipedia.org/wiki/Lambda_calculus for that :)
     ; As you can see, these are comments. You can run this example clicking the Run
@@ -36,9 +36,10 @@ const examples = [{
 
     ; TODO: explain applicative and normal order...
   `)
-}, {
-  name: 'Booleans',
-  code: dedent(`
+  },
+  {
+    name: 'Booleans',
+    code: dedent(`
     ; Church booleans
 
     ; The booleans and their operations can be encoded as the following λ-terms:
@@ -67,9 +68,10 @@ const examples = [{
     ; There's nothing special about "operators", we can treat them as any other value:
     (if false or and) true false
   `)
-}, {
-  name: 'Numbers',
-  code: dedent(`
+  },
+  {
+    name: 'Numbers',
+    code: dedent(`
     ; Church numerals
 
     ; The first few numbers are:
@@ -146,9 +148,10 @@ const examples = [{
     ; Throwing everything into the mix, we can prove that 2³ = 3² - 1:
     eq (exp two three) (pred (exp three two))
   `)
-}, {
-  name: 'Factorial',
-  code: dedent(`
+  },
+  {
+    name: 'Factorial',
+    code: dedent(`
     ; Factorial function and recursion
 
     ; Note: for this example we'll use boolean and numeric terms from previous 
@@ -185,9 +188,10 @@ const examples = [{
     mult = λm.λn.λs.m (n s)
     zero? = λn.n (λx.false) true
   `)
-}, {
-  name: 'Extras',
-  code: dedent(`
+  },
+  {
+    name: 'Extras',
+    code: dedent(`
     ; Syntactic Trivia and Miscellaneous
   
     ; Identifiers can contain basically any character (except the few ones reserved for 
@@ -229,6 +233,7 @@ const examples = [{
     13 = λs.λz.s (s (s (s (s (s (s (s (s (s (s (s (s z))))))))))))
     ❓ = λ💩.💩 💩 💩
   `)
-}]
+  }
+]
 
 export default examples

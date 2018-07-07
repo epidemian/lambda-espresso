@@ -8,8 +8,12 @@ export const timeIt = <T>(name: string, fn: () => T) => {
   return res
 }
 
-export const enableLogTimings = () => { logTimings = true }
-export const disableLogTimings = () => { logTimings = false }
+export const enableLogTimings = () => {
+  logTimings = true
+}
+export const disableLogTimings = () => {
+  logTimings = false
+}
 
 export const identity = <T>(x: T) => x
 

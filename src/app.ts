@@ -44,13 +44,14 @@ let arrowSymbols = {
 }
 
 let renderSynonyms = (synonyms: string[]) =>
-  synonyms.length
-    ? `<span class=synonyms>(${synonyms.join(', ')})</span>`
-    : ''
+  synonyms.length ? `<span class=synonyms>(${synonyms.join(', ')})</span>` : ''
 
 let getOptions = (): Options => {
-  let maxSteps = parseInt($<HTMLInputElement>('input[name=max-steps]').value || '0')
-  let strategy = $<HTMLInputElement>('input[name=strategy]:checked').value as Options['strategy']
+  let maxSteps = parseInt(
+    $<HTMLInputElement>('input[name=max-steps]').value || '0'
+  )
+  let strategy = $<HTMLInputElement>('input[name=strategy]:checked')
+    .value as Options['strategy']
   let etaEnabled = $<HTMLInputElement>('[name=eta-reductions]').checked
   return { maxSteps, strategy, etaEnabled }
 }
@@ -67,10 +68,11 @@ let run = () => {
   }
 }
 
-let renderReductions = () => timeIt('render html', () => {
-  output.innerHTML = reductions.map(renderCollapsedReduction).join('')
-  output.classList.remove('error')
-})
+let renderReductions = () =>
+  timeIt('render html', () => {
+    output.innerHTML = reductions.map(renderCollapsedReduction).join('')
+    output.classList.remove('error')
+  })
 
 delegate('click', output, '.reduction', element => {
   let reduction = reductions[nodeIndex(element)]
@@ -163,9 +165,13 @@ examplesDropdown.addEventListener('click', e => {
   if (examplesDropdown.classList.contains('active')) return
   e.stopPropagation()
   examplesDropdown.classList.add('active')
-  document.addEventListener('click', () => { 
-    examplesDropdown.classList.remove('active') 
-  }, { once: true })
+  document.addEventListener(
+    'click',
+    () => {
+      examplesDropdown.classList.remove('active')
+    },
+    { once: true }
+  )
 })
 
 $('button.link').addEventListener('click', () => {

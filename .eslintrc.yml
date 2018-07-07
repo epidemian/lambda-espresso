@@ -1,7 +1,0 @@
-env:
-  browser: true
-  commonjs: true
-extends: standard
-rules:
-  indent: [error, 2] # Override standard indent rule for switch statements.
-  max-len: [error, 80, ignoreUrls: true]

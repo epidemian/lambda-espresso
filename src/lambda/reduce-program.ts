@@ -5,7 +5,7 @@ import reduce, { Options as ReduceOptions } from './reduce'
 import { substitute } from './substitute'
 import format from './format'
 import alphaEq from './alpha-eq'
-import { Step, Definitions } from './helpers';
+import { Step, Definitions } from './helpers'
 
 export type Options = Partial<ReduceOptions> & {
   maxSteps?: number
@@ -21,15 +21,15 @@ export type Reduction = {
 }
 
 type RenderStepOptions = {
-  highlightFormerTerm?: StrFun,
-  highlightSubstitutionTerm?: StrFun,
+  highlightFormerTerm?: StrFun
+  highlightSubstitutionTerm?: StrFun
   highlightStep?: StrFun
 }
 
 type StrFun = (s: string) => string
 
 type RenderedStep = {
-  type: "alpha" | "beta" | "eta" | "def"
+  type: 'alpha' | 'beta' | 'eta' | 'def'
   before: string
   after: string
 }
@@ -41,31 +41,32 @@ export const reduceProgram = (program: string, options: Options = {}) => {
 }
 
 // Reduces a term up to its normal form.
-let reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction => timeIt('reduce', () => {
-  const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
-  let enough = {}
-  let steps: Term[] = []
-  let terminates = false
-  try {
-    reduce(term, { strategy, etaEnabled }, step => {
-      if (steps.length >= maxSteps) throw enough
-      steps.push(step)
-    })
-    terminates = true
-  } catch (e) {
-    if (e !== enough) throw e
-    terminates = false
-  }
+let reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction =>
+  timeIt('reduce', () => {
+    const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
+    let enough = {}
+    let steps: Term[] = []
+    let terminates = false
+    try {
+      reduce(term, { strategy, etaEnabled }, step => {
+        if (steps.length >= maxSteps) throw enough
+        steps.push(step)
+      })
+      terminates = true
+    } catch (e) {
+      if (e !== enough) throw e
+      terminates = false
+    }
 
-  let last = steps[steps.length - 1] || term
-  let finalSynonyms = findSynonyms(last, defs)
-  let initial = format(term)
-  let final = format(last)
-  let totalSteps = steps.length
-  let renderStep = (i: number, options: RenderStepOptions) =>
-    expandStep(steps[i], options)
-  return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
-})
+    let last = steps[steps.length - 1] || term
+    let finalSynonyms = findSynonyms(last, defs)
+    let initial = format(term)
+    let final = format(last)
+    let totalSteps = steps.length
+    let renderStep = (i: number, options: RenderStepOptions) =>
+      expandStep(steps[i], options)
+    return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
+  })
 
 let expandStep = (t: Term, options: RenderStepOptions = {}) => {
   let step = findStep(t)
@@ -81,22 +82,30 @@ let expandStep = (t: Term, options: RenderStepOptions = {}) => {
   } = options
 
   switch (step.type) {
-  case 'alpha':
-    before = highlightFunctionVar(step.before.body, step.before.param, highlightFormerTerm)
-    after = highlightFunctionVar(step.after.body, step.after.param, highlightSubstitutionTerm)
-    break
-  case 'beta':
-    let fun = step.before.left as Fun
-    let hs = highlight(step.before.right, highlightSubstitutionTerm)
-    let ha = highlightFunctionVar(fun.body, fun.param, highlightFormerTerm)
-    before = App(ha, hs)
-    after = substitute(fun.body, fun.param, hs)
-    break
-  case 'eta':
-  case 'def':
-    before = highlight(step.before, highlightFormerTerm)
-    after = highlight(step.after, highlightSubstitutionTerm)
-    break
+    case 'alpha':
+      before = highlightFunctionVar(
+        step.before.body,
+        step.before.param,
+        highlightFormerTerm
+      )
+      after = highlightFunctionVar(
+        step.after.body,
+        step.after.param,
+        highlightSubstitutionTerm
+      )
+      break
+    case 'beta':
+      let fun = step.before.left as Fun
+      let hs = highlight(step.before.right, highlightSubstitutionTerm)
+      let ha = highlightFunctionVar(fun.body, fun.param, highlightFormerTerm)
+      before = App(ha, hs)
+      after = substitute(fun.body, fun.param, hs)
+      break
+    case 'eta':
+    case 'def':
+      before = highlight(step.before, highlightFormerTerm)
+      after = highlight(step.after, highlightSubstitutionTerm)
+      break
   }
 
   before = highlight(before, highlightStep)
@@ -121,14 +130,14 @@ let highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
 }
 
 let findStep = (t: Term): Step | undefined => {
-  let { step } = t as any 
+  let { step } = t as any
   if (step) return step
 
   switch (t.type) {
-  case 'fun':
-    return findStep(t.body)
-  case 'app':
-    return findStep(t.left) || findStep(t.right)
+    case 'fun':
+      return findStep(t.body)
+    case 'app':
+      return findStep(t.left) || findStep(t.right)
   }
 }
 
@@ -136,17 +145,17 @@ let replaceStep = (t: Term, replacement: Term): Term => {
   if ((t as any).step) return replacement
 
   switch (t.type) {
-  case 'var':
-  case 'def':
-    return t
-  case 'fun':
-    let body = replaceStep(t.body, replacement)
-    return t.body === body ? t : Fun(t.param, body)
-  case 'app':
-    let l = replaceStep(t.left, replacement)
-    if (t.left !== l) return App(l, t.right)
-    let r = replaceStep(t.right, replacement)
-    return t.right === r ? t : App(l, r)
+    case 'var':
+    case 'def':
+      return t
+    case 'fun':
+      let body = replaceStep(t.body, replacement)
+      return t.body === body ? t : Fun(t.param, body)
+    case 'app':
+      let l = replaceStep(t.left, replacement)
+      if (t.left !== l) return App(l, t.right)
+      let r = replaceStep(t.right, replacement)
+      return t.right === r ? t : App(l, r)
   }
 }
 
@@ -159,4 +168,3 @@ let findSynonyms = (term: Term, defs: Definitions) => {
   }
   return synonyms
 }
-

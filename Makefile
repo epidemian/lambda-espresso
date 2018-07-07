@@ -2,7 +2,6 @@ bin_dir = node_modules/.bin
 js_bundle = assets/index.js
 browserify_opts = --debug --detect-globals false --no-builtins -p tsify
 grammar_file = src/lambda/grammar.js
-eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
 all: build
 
@@ -31,18 +30,10 @@ clean:
 test: grammar
 	$(bin_dir)/mocha --growl --colors
 
-.PHONY: lint
-lint:
-	$(eslint_cmd)
-
-.PHONY: lint-fix
-lint-fix:
-	$(eslint_cmd) --fix
-
 .PHONY: watch
 watch:
 	@while true; do \
-	  make --no-print-directory test lint; \
+	  make --no-print-directory test; \
 	  make --no-print-directory build; \
 	  inotifywait \
 	    --event modify,close_write,move,move_self,create,delete,delete_self \
