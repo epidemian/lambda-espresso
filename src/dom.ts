@@ -10,8 +10,10 @@ export const delegate = (
 ) => {
   element.addEventListener(eventType, event => {
     if (event.target instanceof Element) {
-      let closest = event.target.closest(selector)
-      if (closest && element.contains(closest)) handler(closest, event)
+      const closest = event.target.closest(selector)
+      if (closest && element.contains(closest)) {
+        handler(closest, event)
+      }
     }
   })
 }

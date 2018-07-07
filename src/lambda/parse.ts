@@ -1,26 +1,28 @@
-import { Term, Fun, App } from './terms'
-import { timeIt, collapseWhitespace } from '../utils'
+import { collapseWhitespace, timeIt } from '../utils'
 import { Parser } from './grammar'
 import { Definitions } from './helpers'
+import { App, Fun, Term } from './terms'
 
 // Parses an input program string and returns an object with the top-level terms
 // and definitions of the program.
 const parse = (str: string) =>
   timeIt('parse', () => {
     // A custom Jison parser.
-    let parser = new Parser()
+    const parser = new Parser()
 
     // A definition table with the definition term by their names.
-    let defs: Definitions = {}
+    const defs: Definitions = {}
     // The terms of the program.
-    let terms: Term[] = []
+    const terms: Term[] = []
 
     // Add some handy functions so the parser can build the AST.
     parser.yy = {
       parseFunction: Fun,
       parseApplication: App,
       parseDefinition: (name: string, term: Term) => {
-        if (defs[name]) throw Error(`${name} already defined`)
+        if (defs[name]) {
+          throw Error(`${name} already defined`)
+        }
         defs[name] = term
       },
       parseTopLevelTerm: (term: Term) => {
@@ -33,10 +35,10 @@ const parse = (str: string) =>
 
     terms.forEach(t => resolveTermRefs(t, defs))
 
-    let refNames = {}
-    for (let name in defs) {
+    const refNames = {}
+    Object.keys(defs).forEach(name => {
       resolveDefRefs(name, defs[name], defs, refNames)
-    }
+    })
 
     return { defs, terms }
   })
@@ -52,14 +54,14 @@ export default parse
 type TermOrRef = Term | { type: 'ref'; name: string }
 
 // Changes all Refs inside term t to either Vars or Defs.
-let resolveTermRefs = (
+const resolveTermRefs = (
   t: TermOrRef,
   defs: Definitions,
   boundNames: string[] = []
 ) => {
   switch (t.type) {
     case 'ref':
-      let free = boundNames.indexOf(t.name) < 0
+      const free = boundNames.indexOf(t.name) < 0
       if (t.name in defs && free) {
         Object.assign(t, { type: 'def', term: defs[t.name] })
       } else {
@@ -79,7 +81,7 @@ let resolveTermRefs = (
 type RefNames = { [key: string]: string[] }
 
 // Changes all Refs inside term t to either Vars or Defs.
-let resolveDefRefs = (
+const resolveDefRefs = (
   defName: string,
   t: TermOrRef,
   defs: Definitions,
@@ -88,7 +90,7 @@ let resolveDefRefs = (
 ) => {
   switch (t.type) {
     case 'ref':
-      let bound = boundNames.indexOf(t.name) >= 0
+      const bound = boundNames.indexOf(t.name) >= 0
       if (bound) {
         Object.assign(t, { type: 'var' })
       } else if (t.name in defs) {
@@ -109,20 +111,20 @@ let resolveDefRefs = (
       resolveDefRefs(defName, t.right, defs, refNames, boundNames)
       break
     case 'fun':
-      let boundOnBody = boundNames.concat(t.param)
+      const boundOnBody = boundNames.concat(t.param)
       resolveDefRefs(defName, t.body, defs, refNames, boundOnBody)
       break
   }
 }
 
-let checkForCircularRefs = (
+const checkForCircularRefs = (
   name: string,
   refName: string,
   refNames: RefNames,
   path: string[] = []
 ) => {
   if (name === refName) {
-    let circularNote = path.length
+    const circularNote = path.length
       ? `In this case the definition does not reference itself directly, but 
         through other definitions: ${[name, ...path, name].join(' → ')}.`
       : ''
@@ -136,7 +138,7 @@ let checkForCircularRefs = (
     )
   }
 
-  let nextRefs = refNames[refName] || []
+  const nextRefs = refNames[refName] || []
   nextRefs.forEach(nextRef =>
     checkForCircularRefs(name, nextRef, refNames, [...path, refName])
   )

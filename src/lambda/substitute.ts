@@ -1,12 +1,12 @@
-import { Term, Var, Fun, App } from './terms'
+import freeIn from './free-in'
 import {
-  markStep,
-  composeFun,
+  Callback,
   composeAppL,
   composeAppR,
-  Callback
+  composeFun,
+  markStep
 } from './helpers'
-import freeIn from './free-in'
+import { App, Fun, Term, Var } from './terms'
 
 // Applies the substitution T[x := S]
 // I.e., substitutes the variable x for the term S in the term T.
@@ -19,14 +19,16 @@ export const substitute = (t: Term, x: string, s: Term): Term => {
     case 'fun':
       // (λx.E)[x := S] = λx.E
       // λx creates a new context for x so no further substitution is needed.
-      if (t.param === x) return t
+      if (t.param === x) {
+        return t
+      }
       // (λy.E)[x := S] with x != y
       // If y is free in S and x is free in E, then must α-convert λy.E to avoid
       // name conflicts.
       if (freeIn(t.param, s) && freeIn(x, t.body)) {
         // (λy.E)[x := S] = λy'.(E[y := y'][x := S])
-        let newVarName = renameVar(t.param, t.body, s)
-        let renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
+        const newVarName = renameVar(t.param, t.body, s)
+        const renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
         return Fun(newVarName, substitute(renamedBody, x, s))
       } else {
         // (λy.E)[x := S] = λy.(E[x := S])
@@ -59,10 +61,12 @@ export const renameForSubstitution = (
     case 'def':
       return t
     case 'fun':
-      if (t.param === x) return t
+      if (t.param === x) {
+        return t
+      }
       if (freeIn(t.param, s) && freeIn(x, t.body)) {
-        let newVarName = renameVar(t.param, t.body, s)
-        let renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
+        const newVarName = renameVar(t.param, t.body, s)
+        const renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
         cb(
           markStep({
             type: 'alpha',
@@ -71,11 +75,11 @@ export const renameForSubstitution = (
           })
         )
       }
-      let body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
+      const body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
       return Fun(t.param, body)
     case 'app':
-      let l = renameForSubstitution(t.left, x, s, composeAppR(cb, t.right))
-      let r = renameForSubstitution(t.right, x, s, composeAppL(cb, l))
+      const l = renameForSubstitution(t.left, x, s, composeAppR(cb, t.right))
+      const r = renameForSubstitution(t.right, x, s, composeAppL(cb, l))
       return App(l, r)
   }
 }
@@ -88,8 +92,8 @@ export const applySubstitution = (t: Term, x: string, s: Term): Term => {
     case 'fun':
       return t.param === x ? t : Fun(t.param, applySubstitution(t.body, x, s))
     case 'app':
-      let l = applySubstitution(t.left, x, s)
-      let r = applySubstitution(t.right, x, s)
+      const l = applySubstitution(t.left, x, s)
+      const r = applySubstitution(t.right, x, s)
       return App(l, r)
     case 'def':
       return t
@@ -97,16 +101,16 @@ export const applySubstitution = (t: Term, x: string, s: Term): Term => {
 }
 
 // Renames a variable to avoid naming conflicts case doing: a substitution.
-let renameVar = (oldName: string, t: Term, s: Term) => {
+const renameVar = (oldName: string, t: Term, s: Term) => {
   // Split the name into base and number part.
-  let base = oldName.replace(/\d+$/, '')
-  let match = oldName.match(/\d+$/)
-  let n = match ? parseInt(match[0]) : 0
+  const base = oldName.replace(/\d+$/, '')
+  const match = oldName.match(/\d+$/)
+  let n = match ? parseInt(match[0], 10) : 0
 
   while (true) {
     n++
-    let newName = base + n
-    let isValid =
+    const newName = base + n
+    const isValid =
       // Avoid name collisions with substitution term.
       !freeIn(newName, s) &&
       // Avoid name collisions with free variables in body.
@@ -114,14 +118,16 @@ let renameVar = (oldName: string, t: Term, s: Term) => {
       // Avoid name collisions with inner functions.
       !varRenameCollides(t, oldName, newName)
 
-    if (isValid) return newName
+    if (isValid) {
+      return newName
+    }
   }
 }
 
 // Whether a variable rename collides in a given term. That is, if changing the
 // occurrences of oldName with newName in t would make it change t's meaning
 // (i.e. not be α-equivalent).
-let varRenameCollides = (
+const varRenameCollides = (
   t: Term,
   oldName: string,
   newName: string

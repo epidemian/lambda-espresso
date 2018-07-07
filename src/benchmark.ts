@@ -3,13 +3,13 @@ import { enableLogTimings } from './utils'
 
 enableLogTimings()
 
-let makeTerm = (n: number) => `λs.λz.${'(s '.repeat(n)}z${')'.repeat(n)}`
+const makeTerm = (n: number) => `λs.λz.${'(s '.repeat(n)}z${')'.repeat(n)}`
 
-let factorial = (n: number): number => (n === 0 ? 1 : n * factorial(n - 1))
+const factorial = (n: number): number => (n === 0 ? 1 : n * factorial(n - 1))
 
-let num = 4
+const num = 4
 
-let code = `
+const code = `
   one = λs.λz.s z
   true = λt.λf.t
   false = λt.λf.f
@@ -26,7 +26,7 @@ let code = `
 `
 
 console.log(`calculating ${num}! == ${factorial(num)}`)
-let [{ totalSteps, final }] = reduceProgram(code, { maxSteps: 100000 })
+const [{ totalSteps, final }] = reduceProgram(code, { maxSteps: 100000 })
 
 console.log('steps:', totalSteps)
 console.log('ok:', final === 'true' || final === 'λt.λf.t')

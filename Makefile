@@ -30,10 +30,18 @@ clean:
 test: grammar
 	$(bin_dir)/mocha --growl --colors
 
+.PHONY: lint
+lint:
+	$(bin_dir)/tslint --project .
+
+.PHONY: lint-fix
+lint-fix:
+	$(bin_dir)/tslint --project . --fix
+
 .PHONY: watch
 watch:
 	@while true; do \
-	  make --no-print-directory test; \
+	  make --no-print-directory test lint; \
 	  make --no-print-directory build; \
 	  inotifywait \
 	    --event modify,close_write,move,move_self,create,delete,delete_self \

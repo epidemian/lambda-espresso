@@ -1,13 +1,13 @@
-import { Fun, App, Term } from './terms'
-import { renameForSubstitution, applySubstitution } from './substitute'
+import freeIn from './free-in'
 import {
-  markStep,
-  composeFun,
+  Callback,
   composeAppL,
   composeAppR,
-  Callback
+  composeFun,
+  markStep
 } from './helpers'
-import freeIn from './free-in'
+import { applySubstitution, renameForSubstitution } from './substitute'
+import { App, Fun, Term } from './terms'
 
 export type Options = {
   strategy: keyof typeof reduceFunctions
@@ -15,8 +15,8 @@ export type Options = {
 }
 
 const reduce = (t: Term, { strategy, etaEnabled }: Options, cb: Callback) => {
-  let reduce = reduceFunctions[strategy]
-  let reduced = reduce(t, cb)
+  const reducer = reduceFunctions[strategy]
+  let reduced = reducer(t, cb)
   if (etaEnabled) {
     reduced = reduceEta(reduced, cb)
   }
@@ -27,13 +27,13 @@ export default reduce
 
 type Reducer = (t: Term, cb: Callback) => Term
 
-let reduceCallByName: Reducer = (t, cb) => {
+const reduceCallByName: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
     case 'fun':
       return t
     case 'app':
-      let l = reduceCallByName(t.left, composeAppR(cb, t.right))
+      const l = reduceCallByName(t.left, composeAppR(cb, t.right))
       return l.type === 'fun'
         ? reduceCallByName(apply(l, t.right, cb), cb)
         : // TODO This is suspicious. If some reductions were made in previous
@@ -46,7 +46,7 @@ let reduceCallByName: Reducer = (t, cb) => {
   }
 }
 
-let reduceNormal: Reducer = (t, cb) => {
+const reduceNormal: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
       return t
@@ -58,7 +58,7 @@ let reduceNormal: Reducer = (t, cb) => {
         return reduceNormal(apply(l, t.right, cb), cb)
       } else {
         l = reduceNormal(l, composeAppR(cb, t.right)) // Finish reducing l.
-        let r = reduceNormal(t.right, composeAppL(cb, l))
+        const r = reduceNormal(t.right, composeAppL(cb, l))
         return App(l, r)
       }
     case 'def':
@@ -67,14 +67,14 @@ let reduceNormal: Reducer = (t, cb) => {
   }
 }
 
-let reduceCallByValue: Reducer = (t, cb) => {
+const reduceCallByValue: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
     case 'fun':
       return t
     case 'app':
-      let l = reduceCallByValue(t.left, composeAppR(cb, t.right))
-      let r = reduceCallByValue(t.right, composeAppL(cb, l))
+      const l = reduceCallByValue(t.left, composeAppR(cb, t.right))
+      const r = reduceCallByValue(t.right, composeAppL(cb, l))
       return l.type === 'fun'
         ? reduceCallByValue(apply(l, r, cb), cb)
         : App(l, r)
@@ -84,7 +84,7 @@ let reduceCallByValue: Reducer = (t, cb) => {
   }
 }
 
-let reduceApplicative: Reducer = (t, cb) => {
+const reduceApplicative: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
       return t
@@ -93,11 +93,11 @@ let reduceApplicative: Reducer = (t, cb) => {
     case 'app':
       let l = reduceCallByValue(t.left, composeAppR(cb, t.right))
       if (l.type === 'fun') {
-        let r = reduceCallByValue(t.right, composeAppL(cb, l))
+        const r = reduceCallByValue(t.right, composeAppL(cb, l))
         return reduceApplicative(apply(l, r, cb), cb)
       } else {
         l = reduceApplicative(l, composeAppR(cb, t.right))
-        let r = reduceApplicative(t.right, composeAppL(cb, l))
+        const r = reduceApplicative(t.right, composeAppL(cb, l))
         return App(l, r)
       }
     case 'def':
@@ -106,17 +106,22 @@ let reduceApplicative: Reducer = (t, cb) => {
   }
 }
 
-let apply = (fun: Fun, subst: Term, cb: Callback) => {
-  let renameCb = composeFun(composeAppR(cb, subst), fun.param)
-  let renamedBody = renameForSubstitution(fun.body, fun.param, subst, renameCb)
-  let renamed = App(Fun(fun.param, renamedBody), subst)
-  let applied = applySubstitution(renamedBody, fun.param, subst)
+const apply = (fun: Fun, subst: Term, cb: Callback) => {
+  const renameCb = composeFun(composeAppR(cb, subst), fun.param)
+  const renamedBody = renameForSubstitution(
+    fun.body,
+    fun.param,
+    subst,
+    renameCb
+  )
+  const renamed = App(Fun(fun.param, renamedBody), subst)
+  const applied = applySubstitution(renamedBody, fun.param, subst)
   cb(markStep({ type: 'beta', before: renamed, after: applied }))
   return applied
 }
 
 // Performs any available η-reductions on a term.
-let reduceEta: Reducer = (t, cb) => {
+const reduceEta: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
       return t
@@ -134,15 +139,15 @@ let reduceEta: Reducer = (t, cb) => {
         return Fun(t.param, reduceEta(t.body, composeFun(cb, t.param)))
       }
     case 'app':
-      let l = reduceEta(t.left, composeAppR(cb, t.right))
-      let r = reduceEta(t.right, composeAppR(cb, l))
+      const l = reduceEta(t.left, composeAppR(cb, t.right))
+      const r = reduceEta(t.right, composeAppR(cb, l))
       return App(l, r)
     case 'def':
       return t
   }
 }
 
-let reduceFunctions = {
+const reduceFunctions = {
   normal: reduceNormal,
   applicative: reduceApplicative,
   cbn: reduceCallByName,

@@ -1,4 +1,4 @@
-import { Term, Fun, App, Def } from './terms'
+import { App, Def, Fun, Term } from './terms'
 
 export type Callback = (t: Term) => void
 
