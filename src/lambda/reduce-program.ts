@@ -41,7 +41,11 @@ export const reduceProgram = (program: string, options: Options = {}) => {
 }
 
 // Reduces a term up to its normal form.
-const reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction =>
+const reduceTerm = (
+  term: Term,
+  defs: Definitions,
+  options: Options
+): Reduction =>
   timeIt('reduce', () => {
     const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
     const enough = {}
@@ -49,12 +53,16 @@ const reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction 
     let terminates = false
     try {
       reduce(term, { strategy, etaEnabled }, step => {
-        if (steps.length >= maxSteps) { throw enough }
+        if (steps.length >= maxSteps) {
+          throw enough
+        }
         steps.push(step)
       })
       terminates = true
     } catch (e) {
-      if (e !== enough) { throw e }
+      if (e !== enough) {
+        throw e
+      }
       terminates = false
     }
 
@@ -70,7 +78,9 @@ const reduceTerm = (term: Term, defs: Definitions, options: Options): Reduction 
 
 const expandStep = (t: Term, options: RenderStepOptions = {}) => {
   const step = findStep(t)
-  if (!step) { throw new Error('Unexpected: term should always have a step') }
+  if (!step) {
+    throw new Error('Unexpected: term should always have a step')
+  }
 
   let before: Term = step.before
   let after: Term = step.after
@@ -131,7 +141,9 @@ const highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
 
 const findStep = (t: Term): Step | undefined => {
   const { step } = t as any
-  if (step) { return step }
+  if (step) {
+    return step
+  }
 
   switch (t.type) {
     case 'fun':
@@ -142,7 +154,9 @@ const findStep = (t: Term): Step | undefined => {
 }
 
 const replaceStep = (t: Term, replacement: Term): Term => {
-  if ((t as any).step) { return replacement }
+  if ((t as any).step) {
+    return replacement
+  }
 
   switch (t.type) {
     case 'var':
@@ -153,7 +167,9 @@ const replaceStep = (t: Term, replacement: Term): Term => {
       return t.body === body ? t : Fun(t.param, body)
     case 'app':
       const l = replaceStep(t.left, replacement)
-      if (t.left !== l) { return App(l, t.right) }
+      if (t.left !== l) {
+        return App(l, t.right)
+      }
       const r = replaceStep(t.right, replacement)
       return t.right === r ? t : App(l, r)
   }
