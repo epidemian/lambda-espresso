@@ -1,4 +1,4 @@
-import { identity, timeIt } from '../utils'
+import { identity, timed } from '../utils'
 import alphaEq from './alpha-eq'
 import format from './format'
 import { Definitions, Step } from './helpers'
@@ -41,40 +41,36 @@ export const reduceProgram = (program: string, options: Options = {}) => {
 }
 
 // Reduces a term up to its normal form.
-const reduceTerm = (
-  term: Term,
-  defs: Definitions,
-  options: Options
-): Reduction =>
-  timeIt('reduce', () => {
-    const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
-    const enough = {}
-    const steps: Term[] = []
-    let terminates = false
-    try {
-      reduce(term, { strategy, etaEnabled }, step => {
-        if (steps.length >= maxSteps) {
-          throw enough
-        }
-        steps.push(step)
-      })
-      terminates = true
-    } catch (e) {
-      if (e !== enough) {
-        throw e
+let reduceTerm = (term: Term, defs: Definitions, options: Options) => {
+  const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
+  const enough = {}
+  const steps: Term[] = []
+  let terminates = false
+  try {
+    reduce(term, { strategy, etaEnabled }, step => {
+      if (steps.length >= maxSteps) {
+        throw enough
       }
-      terminates = false
+      steps.push(step)
+    })
+    terminates = true
+  } catch (e) {
+    if (e !== enough) {
+      throw e
     }
+    terminates = false
+  }
 
-    const last = steps[steps.length - 1] || term
-    const finalSynonyms = findSynonyms(last, defs)
-    const initial = format(term)
-    const final = format(last)
-    const totalSteps = steps.length
-    const renderStep = (i: number, options: RenderStepOptions) =>
-      expandStep(steps[i], options)
-    return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
-  })
+  const last = steps[steps.length - 1] || term
+  const finalSynonyms = findSynonyms(last, defs)
+  const initial = format(term)
+  const final = format(last)
+  const totalSteps = steps.length
+  const renderStep = (i: number, options: RenderStepOptions) =>
+    expandStep(steps[i], options)
+  return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
+}
+reduceTerm = timed('reduce', reduceTerm)
 
 const expandStep = (t: Term, options: RenderStepOptions = {}) => {
   const step = findStep(t)

@@ -2,7 +2,7 @@
 import { $, delegate, nodeIndex } from './dom'
 import examples from './examples'
 import { Options, reduceProgram, Reduction } from './lambda'
-import { dedent, enableLogTimings, timeIt } from './utils'
+import { dedent, enableLogTimings, timed } from './utils'
 
 enableLogTimings()
 
@@ -69,11 +69,10 @@ const run = () => {
   }
 }
 
-const renderReductions = () =>
-  timeIt('render html', () => {
-    output.innerHTML = reductions.map(renderCollapsedReduction).join('')
-    output.classList.remove('error')
-  })
+const renderReductions = timed('render html', () => {
+  output.innerHTML = reductions.map(renderCollapsedReduction).join('')
+  output.classList.remove('error')
+})
 
 delegate('click', output, '.reduction', element => {
   const reduction = reductions[nodeIndex(element)]

@@ -1,11 +1,13 @@
 let logTimings = false
 
-// TODO: Maybe this could be a function decorator?
-export const timeIt = <T>(name: string, fn: () => T) => {
+export const timed = <TS extends any[], R>(
+  name: string,
+  fn: (...args: TS) => R
+) => (...args: TS) => {
   if (logTimings) {
     console.time(name)
   }
-  const res = fn()
+  const res = fn(...args)
   if (logTimings) {
     console.timeEnd(name)
   }

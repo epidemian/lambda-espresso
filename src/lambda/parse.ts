@@ -1,47 +1,46 @@
-import { collapseWhitespace, timeIt } from '../utils'
+import { collapseWhitespace, timed } from '../utils'
 import { Parser } from './grammar'
 import { Definitions } from './helpers'
 import { App, Fun, Term } from './terms'
 
 // Parses an input program string and returns an object with the top-level terms
 // and definitions of the program.
-const parse = (str: string) =>
-  timeIt('parse', () => {
-    // A custom Jison parser.
-    const parser = new Parser()
+const parse = timed('parse', (str: string) => {
+  // A custom Jison parser.
+  const parser = new Parser()
 
-    // A definition table with the definition term by their names.
-    const defs: Definitions = {}
-    // The terms of the program.
-    const terms: Term[] = []
+  // A definition table with the definition term by their names.
+  const defs: Definitions = {}
+  // The terms of the program.
+  const terms: Term[] = []
 
-    // Add some handy functions so the parser can build the AST.
-    parser.yy = {
-      parseFunction: Fun,
-      parseApplication: App,
-      parseDefinition: (name: string, term: Term) => {
-        if (defs[name]) {
-          throw Error(`${name} already defined`)
-        }
-        defs[name] = term
-      },
-      parseTopLevelTerm: (term: Term) => {
-        terms.push(term)
-      },
-      parseIdentifier: (name: string) => ({ type: 'ref', name })
-    }
+  // Add some handy functions so the parser can build the AST.
+  parser.yy = {
+    parseFunction: Fun,
+    parseApplication: App,
+    parseDefinition: (name: string, term: Term) => {
+      if (defs[name]) {
+        throw Error(`${name} already defined`)
+      }
+      defs[name] = term
+    },
+    parseTopLevelTerm: (term: Term) => {
+      terms.push(term)
+    },
+    parseIdentifier: (name: string) => ({ type: 'ref', name })
+  }
 
-    parser.parse(str)
+  parser.parse(str)
 
-    terms.forEach(t => resolveTermRefs(t, defs))
+  terms.forEach(t => resolveTermRefs(t, defs))
 
-    const refNames = {}
-    Object.keys(defs).forEach(name => {
-      resolveDefRefs(name, defs[name], defs, refNames)
-    })
-
-    return { defs, terms }
+  const refNames = {}
+  Object.keys(defs).forEach(name => {
+    resolveDefRefs(name, defs[name], defs, refNames)
   })
+
+  return { defs, terms }
+})
 
 export default parse
 
