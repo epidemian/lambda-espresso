@@ -1,27 +1,38 @@
 let logTimings = false
 
-// TODO: Maybe this could be a function decorator?
-export const timeIt = <T>(name: string, fn: () => T) => {
-  logTimings && console.time(name)
-  let res = fn()
-  logTimings && console.timeEnd(name)
+export const timed = <TS extends any[], R>(
+  name: string,
+  fn: (...args: TS) => R
+) => (...args: TS) => {
+  if (logTimings) {
+    console.time(name)
+  }
+  const res = fn(...args)
+  if (logTimings) {
+    console.timeEnd(name)
+  }
   return res
 }
 
-export const enableLogTimings = () => { logTimings = true }
-export const disableLogTimings = () => { logTimings = false }
+export const enableLogTimings = () => {
+  logTimings = true
+}
+export const disableLogTimings = () => {
+  logTimings = false
+}
 
 export const identity = <T>(x: T) => x
 
 // TODO: Maybe this could be a tagged template string function :)
 export const dedent = (str: string) => {
-  let match = str.match(/^[ \t]*(?=\S)/gm)
+  const match = str.match(/^[ \t]*(?=\S)/gm)
+  if (!match) {
+    return str
+  }
 
-  if (!match) return str
-
-  let indent = Math.min(...match.map(x => x.length))
-  let re = new RegExp(`^[ \\t]{${indent}}`, 'gm')
-  let unindented = indent > 0 ? str.replace(re, '') : str
+  const indent = Math.min(...match.map(x => x.length))
+  const re = new RegExp(`^[ \\t]{${indent}}`, 'gm')
+  const unindented = indent > 0 ? str.replace(re, '') : str
 
   return unindented.trim()
 }

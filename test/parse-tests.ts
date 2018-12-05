@@ -1,8 +1,12 @@
-let assert = require('assert')
-let {Var, App, Fun, Def, parse} = require('../src/lambda')
+import assert from 'assert'
+import { App, Def, Definitions, Fun, parse, Term, Var } from '../src/lambda'
 
-let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
-  let {terms, defs} = parse(str)
+const assertParse = (
+  str: string,
+  expectedTerms: Term | Term[] = [],
+  expectedDefs: Definitions = {}
+) => {
+  const { terms, defs } = parse(str)
   if (!Array.isArray(expectedTerms)) {
     expectedTerms = [expectedTerms]
   }
@@ -10,8 +14,12 @@ let assertParse = (str, expectedTerms = [], expectedDefs = {}) => {
   assert.deepEqual(defs, expectedDefs)
 }
 
-let assertParseFails = (str, error) => {
-  assert.throws(() => parse(str), error)
+const assertParseFails = (str: string, error?: RegExp) => {
+  if (error) {
+    assert.throws(() => parse(str), error)
+  } else {
+    assert.throws(() => parse(str))
+  }
 }
 
 describe('parse()', () => {
@@ -48,14 +56,11 @@ describe('parse()', () => {
   })
 
   it('ignores leading trailing whitespace in multi-line programs', () => {
-    assertParse('  x  \n  x y  ', [
-      Var('x'),
-      App(Var('x'), Var('y'))
-    ])
+    assertParse('  x  \n  x y  ', [Var('x'), App(Var('x'), Var('y'))])
   })
 
   it('ignores comments', () => {
-    let code = `
+    const code = `
       ; This is a comment
       x ; The variable x
     `
@@ -75,7 +80,7 @@ describe('parse()', () => {
   })
 
   it('ignores newlines inside parentheses', () => {
-    let expectedTerm = App(Var('x'), Var('y'))
+    const expectedTerm = App(Var('x'), Var('y'))
     assertParse('(x\ny)', expectedTerm)
     assertParse('(\nx\ny)', expectedTerm)
     assertParse('(x\ny\n)', expectedTerm)
@@ -95,45 +100,42 @@ describe('parse()', () => {
   })
 
   it('parses definitions', () => {
-    let code = `
+    const code = `
       id = λx.x
       id y
     `
-    let expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
-    let expectedDefs = {id: Fun('x', Var('x'))}
+    const expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
+    const expectedDefs = { id: Fun('x', Var('x')) }
 
     assertParse(code, expectedTerm, expectedDefs)
   })
 
   it('allows using a definition before it is declared', () => {
-    let code = `
+    const code = `
       id y
       id = λx.x
     `
-    let expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
-    let expectedDefs = {id: Fun('x', Var('x'))}
+    const expectedTerm = App(Def('id', Fun('x', Var('x'))), Var('y'))
+    const expectedDefs = { id: Fun('x', Var('x')) }
 
     assertParse(code, expectedTerm, expectedDefs)
   })
 
   it('allows a definition referencing other definition(s)', () => {
-    let code = `
+    const code = `
       id = λx.x
       id2 = id id
     `
-    let expectedDefs = {
+    const expectedDefs = {
       id: Fun('x', Var('x')),
-      id2: App(
-        Def('id', Fun('x', Var('x'))),
-        Def('id', Fun('x', Var('x')))
-      )
+      id2: App(Def('id', Fun('x', Var('x'))), Def('id', Fun('x', Var('x'))))
     }
 
     assertParse(code, [], expectedDefs)
   })
 
   it('disallows redefinitions', () => {
-    let code = `
+    const code = `
       foo = λx.x
       bar = λy.y
       foo = λz.z
@@ -149,7 +151,7 @@ describe('parse()', () => {
   })
 
   it('disallows mutually-recursive definitions', () => {
-    let code = `
+    const code = `
       foo = (λx.x) bar
       bar = baz qux
       baz = qux foo
@@ -169,16 +171,15 @@ describe('parse()', () => {
   })
 
   it('does not confuse definitions with bound variables', () => {
-    let code = `
+    const code = `
       x = λx.x
       λy.x λx.x y
     `
-    let expectedTerm = Fun('y',
-      App(
-        Def('x', Fun('x', Var('x'))),
-        Fun('x', App(Var('x'), Var('y'))))
+    const expectedTerm = Fun(
+      'y',
+      App(Def('x', Fun('x', Var('x'))), Fun('x', App(Var('x'), Var('y'))))
     )
-    let expectedDefs = {x: Fun('x', Var('x'))}
+    const expectedDefs = { x: Fun('x', Var('x')) }
 
     assertParse(code, expectedTerm, expectedDefs)
   })
@@ -197,7 +198,7 @@ describe('parse()', () => {
   })
 
   it('parses a whole program', () => {
-    let code = `
+    const code = `
       id = λx.x
       k = λx.λy.x
       ω = λx.x x
@@ -209,16 +210,16 @@ describe('parse()', () => {
       k id Ω ; (not with all reduction strategies though)
     `
 
-    let id = Fun('x', Var('x'))
-    let k = Fun('x', Fun('y', Var('x')))
-    let ω = Fun('x', App(Var('x'), Var('x')))
-    let Ω = App(Def('ω', ω), Def('ω', ω))
+    const id = Fun('x', Var('x'))
+    const k = Fun('x', Fun('y', Var('x')))
+    const ω = Fun('x', App(Var('x'), Var('x')))
+    const Ω = App(Def('ω', ω), Def('ω', ω))
 
-    let expectedTerms = [
+    const expectedTerms = [
       Def('Ω', Ω),
       App(App(Def('k', k), Def('id', id)), Def('Ω', Ω))
     ]
-    let expectedDefs = {id, k, ω, Ω}
+    const expectedDefs = { id, k, ω, Ω }
 
     assertParse(code, expectedTerms, expectedDefs)
   })

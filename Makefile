@@ -1,8 +1,7 @@
 bin_dir = node_modules/.bin
 js_bundle = assets/index.js
-browserify_opts = --debug --detect-globals false --no-builtins -p [ tsify --noImplicitAny ]
+browserify_opts = --debug --detect-globals false --no-builtins -p tsify
 grammar_file = src/lambda/grammar.js
-eslint_cmd = $(bin_dir)/eslint . --ignore-path .gitignore --cache
 
 all: build
 
@@ -33,11 +32,11 @@ test: grammar
 
 .PHONY: lint
 lint:
-	$(eslint_cmd)
+	$(bin_dir)/tslint --project .
 
 .PHONY: lint-fix
 lint-fix:
-	$(eslint_cmd) --fix
+	$(bin_dir)/tslint --project . --fix
 
 .PHONY: watch
 watch:
