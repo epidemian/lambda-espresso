@@ -7,7 +7,7 @@ An interactive λ calculus interpreter.
 
 ## Usage
 
-You can play with λ-Espresso [here](http://epidemian.github.io/lambda-espresso/).
+You can play with λ-Espresso [here](https://demian.ferrei.ro/lambda-espresso/).
 
 Ideas and suggestions are welcomed, please [open an issue](https://github.com/epidemian/lambda-espresso/issues) or, better yet, send a pull request :)
 
