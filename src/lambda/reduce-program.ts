@@ -1,7 +1,7 @@
 import { identity, timed } from '../utils'
 import alphaEq from './alpha-eq'
 import format from './format'
-import { Definitions, Step } from './helpers'
+import { AnnotatedTerm, Definitions, Step } from './helpers'
 import parse from './parse'
 import reduce, { Options as ReduceOptions } from './reduce'
 import { substitute } from './substitute'
@@ -135,8 +135,8 @@ const highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
   return { ...Fun(x, ht), highlightVar: fn }
 }
 
-const findStep = (t: Term): Step | undefined => {
-  const { step } = t as any
+const findStep = (t: AnnotatedTerm): Step | undefined => {
+  const { step } = t
   if (step) {
     return step
   }
@@ -149,8 +149,8 @@ const findStep = (t: Term): Step | undefined => {
   }
 }
 
-const replaceStep = (t: Term, replacement: Term): Term => {
-  if ((t as any).step) {
+const replaceStep = (t: AnnotatedTerm, replacement: Term): Term => {
+  if (t.step) {
     return replacement
   }
 
