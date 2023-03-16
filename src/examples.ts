@@ -125,14 +125,14 @@ const examples = [
     sub = λm.λn.n pred m
     sub three two
 
-    ; To build some predicate functions, we'll use some known boolean terms (see 
+    ; To build some predicate functions, we'll use some known boolean terms (see
     ; Booleans example for more info):
     true = λt.λf.t
     false = λt.λf.f
     and = λp.λq.p q p
 
     ; To know if a number n is zero we can pass true as the base value and a function
-    ; that always returns false (note that the "?" is no special syntax; it's just 
+    ; that always returns false (note that the "?" is no special syntax; it's just
     ; part of the name of the predicate):
     zero? = λn.n (λx.false) true
     zero? zero
@@ -154,8 +154,8 @@ const examples = [
     code: dedent(`
     ; Factorial function and recursion
 
-    ; Note: for this example we'll use boolean and numeric terms from previous 
-    ; examples (see below). 
+    ; Note: for this example we'll use boolean and numeric terms from previous
+    ; examples (see below).
     ; Also not that these factorial definitions won't work with applicative order ;)
 
     ; We'd like to be able to define a factorial function as:
@@ -169,11 +169,37 @@ const examples = [
     fact four
 
     ; Another way to recur is to use a general purpose fixed-point combinator.
-    ; The almighty Y Combinator:
+    ; Behold, the almighty Y Combinator:
     Y = λf.(λx.f (x x)) (λx.f (x x))
     ; And then there's no need to define a separate function:
-    fact' = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
-    fact' four
+    fact2 = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
+    fact2 four
+
+    ; A completely different way of computing the factorial of n is to use the number n itself
+    ; as a function that will call a given function n times, starting with a given value.
+    ; The function given will take a pair [a, b] and return a new pair [a+1, a*b], and start with [1, 1].
+    ; After applying this given function n times, the resulting pair will be [n+1, factorial(n)],
+    ; of which we take the 2nd component.
+    fact3 = λn.2nd (n (λp.pair (succ (1st p)) (mult (1st p) (2nd p))) (pair one one))
+    fact3 four
+
+    ; Yet another way of defining factorial is as the successive multiplication of the numbers n...1, which results in this very elegant solution
+    fact4 = λn.reduce mult (iota n) one
+    fact4 four
+
+    ; Pair-handling functions:
+    pair = λx.λy.λf.f x y
+    1st = λp.p (λx.λy.x)
+    2nd = λp.p (λx.λy.y)
+
+    ; List-handling functions. Lists are either nil (empty) or a pair of an element (head) and the rest of the list (tail).
+    nil = λx.true
+    head = 1st
+    tail = 2nd
+    empty? = λp.p (λx.λy.false)
+    reduce = Y λr.λf.λlist.λinitial.(empty? list) initial (f (head list) (r f (tail list) initial))
+    ; For a given number n, iota produces the list of numbers 1, 2, ..., n
+    iota = λn.2nd (n (λp.pair (pred (1st p)) p) (pair n nil))
 
     ; Borrow some terms from previous examples:
     true = λt.λf.t
@@ -184,6 +210,7 @@ const examples = [
     two = λs.λz.s (s z)
     three = λs.λz.s (s (s z))
     four = λs.λz.s (s (s (s z)))
+    succ = λn.λs.λz.s (n s z)
     pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
     mult = λm.λn.λs.m (n s)
     zero? = λn.n (λx.false) true
@@ -193,8 +220,8 @@ const examples = [
     name: 'Extras',
     code: dedent(`
     ; Syntactic Trivia and Miscellaneous
-  
-    ; Identifiers can contain basically any character (except the few ones reserved for 
+
+    ; Identifiers can contain basically any character (except the few ones reserved for
     ; syntax: "λ", ".", "=", "(" and ")").
     ; This means you can write some pretty code-looking lambda terms!
     0 = λs.λz.z
@@ -208,7 +235,7 @@ const examples = [
     ; You can even use emojis as identifiers! But make sure to use this power responsibly.
     (λ🐴.❓) 🍎
 
-    ; Although line breaks usually act as separators between terms/definitions, 
+    ; Although line breaks usually act as separators between terms/definitions,
     ; you can use parentheses to split a complex term into multiple lines:
     fib = Y λf.λn.(
       if (≤ n 1)
