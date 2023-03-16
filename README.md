@@ -17,6 +17,6 @@ Ideas and suggestions are welcomed, please [open an issue](https://github.com/ep
 
 Assuming you have Node.js installed, clone the repo and install the dependencies with `npm install`.
 
-Then, use `make` to build everything, or `make watch` to build everything and run the tests every time the source files change (uses inotifywait).
+Then, use `make` to build everything, or `make watch` to build everything and run the tests every time the source files change.
 
 The icons font was generated using [Fontastic](http://app.fontastic.me)
