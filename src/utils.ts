@@ -1,18 +1,17 @@
 let logTimings = false
 
-export const timed = <TS extends any[], R>(
-  name: string,
-  fn: (...args: TS) => R
-) => (...args: TS) => {
-  if (logTimings) {
-    console.time(name)
+export const timed =
+  <Args extends unknown[], R>(name: string, fn: (...args: Args) => R) =>
+  (...args: Args) => {
+    if (logTimings) {
+      console.time(name)
+    }
+    const res = fn(...args)
+    if (logTimings) {
+      console.timeEnd(name)
+    }
+    return res
   }
-  const res = fn(...args)
-  if (logTimings) {
-    console.timeEnd(name)
-  }
-  return res
-}
 
 export const enableLogTimings = () => {
   logTimings = true

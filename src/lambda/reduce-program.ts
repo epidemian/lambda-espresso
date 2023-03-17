@@ -142,6 +142,7 @@ const expandStep = (t: Term, options: RenderStepOptions = {}) => {
 }
 
 const highlight = (t: Term, fn: StrFun) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const h: StrFun = (t as any).highlight
   const highlight: StrFun = h ? s => fn(h(s)) : fn
   return { ...t, highlight }

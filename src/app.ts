@@ -6,7 +6,7 @@ import { dedent, enableLogTimings, timed } from './utils'
 
 enableLogTimings()
 
-const input = $('.input') as HTMLInputElement
+const input: HTMLInputElement = $('.input')
 const output = $('.output')
 
 // Run code on ctrl+enter.
@@ -16,15 +16,16 @@ document.addEventListener('keyup', e => {
   }
 })
 
-input.addEventListener('keypress', event => {
+input.addEventListener('beforeinput', event => {
   // Replace every "\" with "λ" while typing.
-  if (event.key === '\\') {
+  if (event.data?.includes('\\')) {
     event.preventDefault()
+    const replaced = event.data.replace(/\\/g, 'λ')
     const start = input.selectionStart || 0
     const end = input.selectionEnd || 0
-    const oldValue = input.value
+    const value = input.value
 
-    input.value = oldValue.slice(0, start) + 'λ' + oldValue.slice(end)
+    input.value = value.slice(0, start) + replaced + value.slice(end)
 
     // Update selection
     input.selectionStart = input.selectionEnd = start + 1
@@ -86,9 +87,9 @@ delegate('click', output, '.reduction', element => {
   const collapsed = element.querySelector('.collapsed')
   if (expanded) {
     expanded.classList.toggle('hidden')
-    collapsed!.classList.toggle('hidden')
+    collapsed?.classList.toggle('hidden')
   } else {
-    collapsed!.classList.add('hidden')
+    collapsed?.classList.add('hidden')
     element.innerHTML += renderExpandedReductionForm(reduction)
   }
 })
@@ -98,7 +99,7 @@ delegate('mouseover', output, '.expanded .step', element => {
   // Hide the previous step's after term.
   const prev = element.previousElementSibling
   if (prev) {
-    prev.querySelector('.after')!.classList.add('hidden')
+    prev.querySelector('.after')?.classList.add('hidden')
   }
 })
 
@@ -106,7 +107,7 @@ delegate('mouseout', output, '.expanded .step', element => {
   element.classList.remove('highlight')
   const prev = element.previousElementSibling
   if (prev) {
-    prev.querySelector('.after')!.classList.remove('hidden')
+    prev.querySelector('.after')?.classList.remove('hidden')
   }
 })
 

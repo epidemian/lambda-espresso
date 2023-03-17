@@ -28,15 +28,15 @@ clean:
 
 .PHONY: test
 test: grammar
-	$(bin_dir)/mocha --growl --colors
+	$(bin_dir)/mocha
 
 .PHONY: lint
 lint:
-	$(bin_dir)/tslint --project .
+	$(bin_dir)/eslint src test
 
 .PHONY: lint-fix
 lint-fix:
-	$(bin_dir)/tslint --project . --fix
+	$(bin_dir)/eslint src test --fix
 
 .PHONY: watch
 watch:

@@ -99,7 +99,7 @@ const resolveDefRefs = (
       } else {
         throw Error(
           collapseWhitespace(
-            `Illegal free variable "${t.name}" in "${defName}". 
+            `Illegal free variable "${t.name}" in "${defName}".
         Definitions cannot have free variables.`
           )
         )
@@ -124,7 +124,7 @@ const checkForCircularRefs = (
 ) => {
   if (name === refName) {
     const circularNote = path.length
-      ? `In this case the definition does not reference itself directly, but 
+      ? `In this case the definition does not reference itself directly, but
         through other definitions: ${[name, ...path, name].join(' → ')}.`
       : ''
     throw Error(
