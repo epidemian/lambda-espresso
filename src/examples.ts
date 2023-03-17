@@ -177,10 +177,11 @@ const examples = [
 
     ; A completely different way of computing the factorial of n is to use the number n itself
     ; as a function that will call a given function n times, starting with a given value.
-    ; The function given will take a pair [a, b] and return a new pair [a+1, a*b], and start with [1, 1].
-    ; After applying this given function n times, the resulting pair will be [n+1, factorial(n)],
+    ; The function given will take a pair [a, b] and return a new pair [a-1, a*b], and start with [n, 1].
+    ; After applying this given function n times, the resulting pair will be [0, factorial(n)],
     ; of which we take the 2nd component.
-    fact3 = λn.2nd (n (λp.pair (succ (1st p)) (mult (1st p) (2nd p))) (pair one one))
+    ; This way of defining factorial requires much fewer reduction steps.
+    fact3 = λn.2nd (n (λp.pair (pred (1st p)) (mult (1st p) (2nd p))) (pair n one))
     fact3 four
 
     ; Yet another way of defining factorial is as the successive multiplication of the numbers n...1, which results in this very elegant solution
