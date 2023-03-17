@@ -16,16 +16,19 @@ document.addEventListener('keyup', e => {
   }
 })
 
-input.addEventListener('keyup', () => {
+input.addEventListener('keypress', event => {
   // Replace every "\" with "λ" while typing.
-  let code = input.value
-  code = code.replace(/\\/g, 'λ')
-  // Preserve selection
-  const start = input.selectionStart
-  const end = input.selectionEnd
-  input.value = code
-  input.selectionStart = start
-  input.selectionEnd = end
+  if (event.key === '\\') {
+    event.preventDefault()
+    const start = input.selectionStart || 0
+    const end = input.selectionEnd || 0
+    const oldValue = input.value
+
+    input.value = oldValue.slice(0, start) + 'λ' + oldValue.slice(end)
+
+    // Update selection
+    input.selectionStart = input.selectionEnd = start + 1
+  }
 })
 
 $('.run').addEventListener('click', _ => run())
@@ -64,7 +67,7 @@ const run = () => {
     reductions = reduceProgram(code, getOptions())
     renderReductions()
   } catch (err) {
-    output.textContent = err.message
+    output.textContent = err instanceof Error ? err.message : String(err)
     output.classList.add('error')
   }
 }
