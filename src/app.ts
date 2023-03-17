@@ -16,15 +16,16 @@ document.addEventListener('keyup', e => {
   }
 })
 
-input.addEventListener('keypress', event => {
+input.addEventListener('beforeinput', event => {
   // Replace every "\" with "λ" while typing.
-  if (event.key === '\\') {
+  if (event.data?.includes('\\')) {
     event.preventDefault()
+    const replaced = event.data.replace(/\\/g, 'λ')
     const start = input.selectionStart || 0
     const end = input.selectionEnd || 0
-    const oldValue = input.value
+    const value = input.value
 
-    input.value = oldValue.slice(0, start) + 'λ' + oldValue.slice(end)
+    input.value = value.slice(0, start) + replaced + value.slice(end)
 
     // Update selection
     input.selectionStart = input.selectionEnd = start + 1
