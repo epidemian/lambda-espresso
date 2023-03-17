@@ -1,8 +1,8 @@
 let logTimings = false
 
 export const timed =
-  <TS extends any[], R>(name: string, fn: (...args: TS) => R) =>
-  (...args: TS) => {
+  <Args extends unknown[], R>(name: string, fn: (...args: Args) => R) =>
+  (...args: Args) => {
     if (logTimings) {
       console.time(name)
     }

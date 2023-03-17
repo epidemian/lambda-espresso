@@ -6,7 +6,7 @@ import { dedent, enableLogTimings, timed } from './utils'
 
 enableLogTimings()
 
-const input = $('.input') as HTMLInputElement
+const input: HTMLInputElement = $('.input')
 const output = $('.output')
 
 // Run code on ctrl+enter.
@@ -87,9 +87,9 @@ delegate('click', output, '.reduction', element => {
   const collapsed = element.querySelector('.collapsed')
   if (expanded) {
     expanded.classList.toggle('hidden')
-    collapsed!.classList.toggle('hidden')
+    collapsed?.classList.toggle('hidden')
   } else {
-    collapsed!.classList.add('hidden')
+    collapsed?.classList.add('hidden')
     element.innerHTML += renderExpandedReductionForm(reduction)
   }
 })
@@ -99,7 +99,7 @@ delegate('mouseover', output, '.expanded .step', element => {
   // Hide the previous step's after term.
   const prev = element.previousElementSibling
   if (prev) {
-    prev.querySelector('.after')!.classList.add('hidden')
+    prev.querySelector('.after')?.classList.add('hidden')
   }
 })
 
@@ -107,7 +107,7 @@ delegate('mouseout', output, '.expanded .step', element => {
   element.classList.remove('highlight')
   const prev = element.previousElementSibling
   if (prev) {
-    prev.querySelector('.after')!.classList.remove('hidden')
+    prev.querySelector('.after')?.classList.remove('hidden')
   }
 })
 

@@ -19,5 +19,5 @@ export const delegate = (
 }
 
 export const nodeIndex = (element: Element): number => {
-  return Array.prototype.indexOf.call(element.parentNode!.childNodes, element)
+  return Array.prototype.indexOf.call(element.parentNode?.childNodes, element)
 }

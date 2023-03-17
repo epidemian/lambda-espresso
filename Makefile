@@ -32,11 +32,11 @@ test: grammar
 
 .PHONY: lint
 lint:
-	$(bin_dir)/tslint --project .
+	$(bin_dir)/eslint src test
 
 .PHONY: lint-fix
 lint-fix:
-	$(bin_dir)/tslint --project . --fix
+	$(bin_dir)/eslint src test --fix
 
 .PHONY: watch
 watch:
