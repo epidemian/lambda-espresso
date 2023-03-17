@@ -187,12 +187,12 @@ examplesDropdown.addEventListener('click', e => {
 })
 
 $('button.link').addEventListener('click', () => {
-  const code = input.value
+  const code = encodeURIComponent(input.value)
   location.hash = `>${code}`
 })
 
 const updateInputFromHash = () => {
-  const hash = decodeURI(location.hash)
+  const hash = decodeURIComponent(location.hash)
   const codeStart = hash.indexOf('>')
   if (codeStart >= 0) {
     input.value = hash.slice(codeStart + 1)
