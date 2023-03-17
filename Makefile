@@ -40,18 +40,11 @@ lint-fix:
 
 .PHONY: watch
 watch:
-	@while true; do \
-	  make --no-print-directory test lint; \
-	  make --no-print-directory build; \
-	  inotifywait \
-	    --event modify,close_write,move,move_self,create,delete,delete_self \
-	    --quiet --recursive \
-	    src test; \
-	done
+	$(bin_dir)/chokidar src test --initial --silent --command "make --no-print-directory test lint; make --no-print-directory build"
 
 .PHONY: bench
 bench: grammar
-	$(bin_dir)/ts-node src/benchmark.ts 
+	$(bin_dir)/ts-node src/benchmark.ts
 
 .PHONY: publish
 publish:

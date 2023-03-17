@@ -17,7 +17,7 @@ export type Step =
   | { type: 'eta'; before: Fun; after: Term }
   | { type: 'def'; before: Def; after: Term }
 
-export type AnnotatedTerm = Term & { step?: Step }
+export type AnnotatedTerm = Term & { step: Step }
 
 // Mark a reduction step on the `after` term.
 export const markStep = (step: Step): AnnotatedTerm => ({ ...step.after, step })

@@ -33,9 +33,12 @@ describe('reduceProgram()', () => {
     assertReduce('(λx.x y) (λz.z z)', 'y y')
   })
 
-  it('does at most maxStep reduction steps', () => {
-    const { totalSteps } = reduceTerm('(λx.x x) (λx.x x)', { maxSteps: 42 })
-    assert.equal(42, totalSteps)
+  it('does at most maxReductionSteps reduction steps', () => {
+    const { totalSteps, reductionSteps } = reduceTerm('(λx.x x) (λx.x x)', {
+      maxReductionSteps: 42
+    })
+    assert.equal(reductionSteps, 42)
+    assert.equal(totalSteps, 42)
   })
 
   it('indicates when a reduction terminates', () => {
@@ -55,7 +58,7 @@ describe('reduceProgram()', () => {
     assertReduce('λx.y z x', 'y z', { etaEnabled: true })
   })
 
-  describe('renaming in substitution (λy.T)[x := S]', () => {
+  describe('alpha-renaming in substitution (λy.T)[x := S]', () => {
     it('renames when y is free in S and x is free in T', () => {
       assertReduce('(λx.λy.x y) (y z)', 'λy1.y z y1')
     })
@@ -73,23 +76,16 @@ describe('reduceProgram()', () => {
       assertReduce('(λx.λy.y λx.x x y λx.x) (y z)', 'λy.y λx.x x y λx.x')
     })
 
-    it(
-      'does not choose a name that makes an inner variable bind to another ' +
-        'abstraction',
-      () => {
-        // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to
-        // use [y := y1] because it would make the inner y bind to the second
-        // abstraction instead of the first one.
-        assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
-        // Same thing as above but with higher numbers.
-        assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
-        // Same idea, but here it has to go quite deep to find a new name.
-        assertReduce(
-          '(λx.λy.λy1.λy2.λy3.λy4.x y) y',
-          'λy5.λy1.λy2.λy3.λy4.y y5'
-        )
-      }
-    )
+    it('does not choose a name that makes an inner variable bind to another abstraction', () => {
+      // In this case, λy.λy1.x y y1 must be renamed, but it cannot choose to
+      // use [y := y1] because it would make the inner y bind to the second
+      // abstraction instead of the first one.
+      assertReduce('(λx.λy.λy1.x y) y', 'λy2.λy1.y y2')
+      // Same thing as above but with higher numbers.
+      assertReduce('(λx.λy4.λy5.x y4) y4', 'λy6.λy5.y4 y6')
+      // Same idea, but here it has to go quite deep to find a new name.
+      assertReduce('(λx.λy.λy1.λy2.λy3.λy4.x y) y', 'λy5.λy1.λy2.λy3.λy4.y y5')
+    })
 
     it('does not choose a name that collides with free variables', () => {
       assertReduce('(λx.λy.x y y1) y', 'λy2.y y2 y1')
@@ -108,6 +104,18 @@ describe('reduceProgram()', () => {
 
     it('performs more than one rename when necessary', () => {
       assertReduce('(λx.λy.x λz.x) (y z)', 'λy1.y z λz1.y z')
+    })
+
+    it('does not count alpha-renames as reduction steps', () => {
+      const { reductionSteps, totalSteps } = reduceTerm('(λx.λy.x λz.x) (y z)')
+      assert.equal(reductionSteps, 1)
+      assert.equal(totalSteps, 3)
+    })
+
+    it('does not count alpha-renames toward the reduction step limit', () => {
+      const term = '(λx.λy.x y) (y z)'
+      assert(reduceTerm(term, { maxReductionSteps: 1 }).terminates)
+      assert(!reduceTerm(term, { maxReductionSteps: 0 }).terminates)
     })
   })
 })
