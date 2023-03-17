@@ -23,7 +23,8 @@ export const disableLogTimings = () => {
 
 export const identity = <T>(x: T) => x
 
-// TODO: Maybe this could be a tagged template string function :)
+// Note: it would be nice to replace this overly-clever function with
+// String.dedent() once it gets standardized. See https://github.com/tc39/proposal-string-dedent
 export const dedent = (str: string) => {
   const match = str.match(/^[ \t]*(?=\S)/gm)
   if (!match) {
