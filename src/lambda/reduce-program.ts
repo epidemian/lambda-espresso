@@ -8,7 +8,7 @@ import { substitute } from './substitute'
 import { App, Fun, Term, Var } from './terms'
 
 export type Options = Partial<ReduceOptions> & {
-  maxSteps?: number
+  maxReductionSteps?: number
 }
 
 export type Reduction = {
@@ -16,6 +16,7 @@ export type Reduction = {
   final: string
   finalSynonyms: string[]
   terminates: boolean
+  reductionSteps: number
   totalSteps: number
   renderStep: (i: number, options: RenderStepOptions) => RenderedStep
 }
@@ -41,17 +42,32 @@ export const reduceProgram = (program: string, options: Options = {}) => {
 }
 
 // Reduces a term up to its normal form.
-let reduceTerm = (term: Term, defs: Definitions, options: Options) => {
-  const { maxSteps = 100, strategy = 'normal', etaEnabled = false } = options
+let reduceTerm = (
+  term: Term,
+  defs: Definitions,
+  { maxReductionSteps = 100, strategy = 'normal', etaEnabled = false }: Options
+): Reduction => {
   const enough = {}
   const steps: Term[] = []
+  let reductionSteps = 0
   let terminates = false
   try {
-    reduce(term, { strategy, etaEnabled }, step => {
-      if (steps.length >= maxSteps) {
+    reduce(term, { strategy, etaEnabled }, stepTerm => {
+      if (reductionSteps >= maxReductionSteps) {
         throw enough
       }
-      steps.push(step)
+      steps.push(stepTerm)
+
+      // TODO: it'd be nice if we didn't need to find the step type on the term
+      // on each step. Maybe the callback function could receive the step type
+      // as an argument.
+      const step = findStep(stepTerm)
+      if (!step) {
+        throw new Error('Unexpected: term should always have a step')
+      }
+      if (step.type === 'beta' || step.type === 'eta') {
+        reductionSteps += 1
+      }
     })
     terminates = true
   } catch (e) {
@@ -62,13 +78,15 @@ let reduceTerm = (term: Term, defs: Definitions, options: Options) => {
   }
 
   const last = steps[steps.length - 1] || term
-  const finalSynonyms = findSynonyms(last, defs)
-  const initial = format(term)
-  const final = format(last)
-  const totalSteps = steps.length
-  const renderStep = (i: number, options: RenderStepOptions) =>
-    expandStep(steps[i], options)
-  return { initial, final, finalSynonyms, terminates, totalSteps, renderStep }
+  return {
+    initial: format(term),
+    final: format(last),
+    finalSynonyms: findSynonyms(last, defs),
+    terminates,
+    reductionSteps,
+    totalSteps: steps.length,
+    renderStep: (i, options) => expandStep(steps[i], options)
+  }
 }
 reduceTerm = timed('reduce', reduceTerm)
 
@@ -135,10 +153,9 @@ const highlightFunctionVar = (t: Term, x: string, fn: StrFun) => {
   return { ...Fun(x, ht), highlightVar: fn }
 }
 
-const findStep = (t: AnnotatedTerm): Step | undefined => {
-  const { step } = t
-  if (step) {
-    return step
+const findStep = (t: Term | AnnotatedTerm): Step | undefined => {
+  if ('step' in t) {
+    return t.step
   }
 
   switch (t.type) {
@@ -149,8 +166,8 @@ const findStep = (t: AnnotatedTerm): Step | undefined => {
   }
 }
 
-const replaceStep = (t: AnnotatedTerm, replacement: Term): Term => {
-  if (t.step) {
+const replaceStep = (t: Term | AnnotatedTerm, replacement: Term): Term => {
+  if ('step' in t && t.step) {
     return replacement
   }
 

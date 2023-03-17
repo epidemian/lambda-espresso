@@ -47,14 +47,14 @@ const renderSynonyms = (synonyms: string[]) =>
   synonyms.length ? `<span class=synonyms>(${synonyms.join(', ')})</span>` : ''
 
 const getOptions = (): Options => {
-  const maxSteps = parseInt(
+  const maxReductionSteps = parseInt(
     $<HTMLInputElement>('input[name=max-steps]').value || '0',
     10
   )
   const strategy = $<HTMLInputElement>('input[name=strategy]:checked')
     .value as Options['strategy']
   const etaEnabled = $<HTMLInputElement>('[name=eta-reductions]').checked
-  return { maxSteps, strategy, etaEnabled }
+  return { maxReductionSteps, strategy, etaEnabled }
 }
 
 let reductions: Reduction[] = []
@@ -114,8 +114,8 @@ const renderCollapsedReductionForm = (reduction: Reduction) => {
   const initial = renderTerm(reduction.initial)
   let arrow = ''
   let final = ''
-  if (reduction.totalSteps > 0) {
-    arrow = renderArrow('→', `(${reduction.totalSteps})`)
+  if (reduction.reductionSteps > 0) {
+    arrow = renderArrow('→', `(${reduction.reductionSteps})`)
     final = renderTerm(reduction.final)
   }
   const synonyms = renderSynonyms(reduction.finalSynonyms)
