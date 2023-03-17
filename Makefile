@@ -28,7 +28,7 @@ clean:
 
 .PHONY: test
 test: grammar
-	$(bin_dir)/mocha --growl --colors
+	$(bin_dir)/mocha
 
 .PHONY: lint
 lint:
