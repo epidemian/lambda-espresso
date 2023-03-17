@@ -26,9 +26,10 @@ const code = `
 `
 
 console.log(`calculating ${num}! == ${factorial(num)}`)
-const [{ totalSteps, final }] = reduceProgram(code, {
+const [{ reductionSteps, totalSteps, final }] = reduceProgram(code, {
   maxReductionSteps: 100000
 })
 
-console.log('steps:', totalSteps)
+console.log('reductions:', reductionSteps)
+console.log('total steps:', totalSteps)
 console.log('ok:', final === 'true' || final === 'λt.λf.t')
