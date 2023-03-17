@@ -67,7 +67,7 @@ const run = () => {
     reductions = reduceProgram(code, getOptions())
     renderReductions()
   } catch (err) {
-    output.textContent = err.message
+    output.textContent = err instanceof Error ? err.message : String(err)
     output.classList.add('error')
   }
 }
