@@ -175,7 +175,7 @@ const examples = [
     fact2 = Y λr.λn.if (zero? n) one (mult n (r (pred n)))
     fact2 four
 
-    ; A completely different way of computing the factorial of n is to use the number n itself
+    ; A different way of computing the factorial of n is to use the number n itself
     ; as a function that will call a given function n times, starting with a given value.
     ; The function given will take a pair [a, b] and return a new pair [a-1, a*b], and start with [n, 1].
     ; After applying this given function n times, the resulting pair will be [0, factorial(n)],
@@ -184,7 +184,8 @@ const examples = [
     fact3 = λn.2nd (n (λp.pair (pred (1st p)) (mult (1st p) (2nd p))) (pair n one))
     fact3 four
 
-    ; Yet another way of defining factorial is as the successive multiplication of the numbers n...1, which results in this very elegant solution
+    ; Yet another way of defining factorial is as the successive multiplication of the numbers n...1,
+    ; which results in this very elegant solution:
     fact4 = λn.reduce mult (iota n) one
     fact4 four
 
@@ -193,14 +194,13 @@ const examples = [
     1st = λp.p (λx.λy.x)
     2nd = λp.p (λx.λy.y)
 
-    ; List-handling functions. Lists are either nil (empty) or a pair of an element (head) and the rest of the list (tail).
-    nil = λx.true
-    head = 1st
-    tail = 2nd
-    empty? = λp.p (λx.λy.false)
-    reduce = Y λr.λf.λlist.λinitial.(empty? list) initial (f (head list) (r f (tail list) initial))
+    ; List-handling functions. Lists can be considered functions handling a nil (empty) case
+    ; and a cons (head+tail) case:
+    nil = λn.λc.n
+    cons = λh.λt.λn.λc.c h t
+    reduce = Y λr.λf.λlist.λinitial.list initial (λh.λt.f h (r f t initial))
     ; For a given number n, iota produces the list of numbers 1, 2, ..., n
-    iota = λn.2nd (n (λp.pair (pred (1st p)) p) (pair n nil))
+    iota = λn.n (λlist.list (cons n nil) (λh.λt.cons (pred h) list)) nil
 
     ; Borrow some terms from previous examples:
     true = λt.λf.t
