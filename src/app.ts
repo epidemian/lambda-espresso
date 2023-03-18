@@ -40,12 +40,14 @@ const renderTerm = (term: string, className = '') =>
 const renderArrow = (symbol: string, label: string) =>
   `<span class=arrow>${symbol}<small>${label}</small></span>`
 
+// Only beta and eta steps count as reductions, so use an arrow symbol for them.
+// While alpha-renames are more of an equivalence, and thus their symbol.
 const arrowSymbols = {
-  alpha: 'α',
-  beta: 'β',
-  eta: 'η',
-  def: ''
-}
+  def: ['≡', ''],
+  alpha: ['≡', 'α'],
+  beta: ['→', 'β'],
+  eta: ['→', 'η']
+} as const
 
 const renderSynonyms = (synonyms: string[]) =>
   synonyms.length ? `<span class=synonyms>(${synonyms.join(', ')})</span>` : ''
@@ -132,8 +134,7 @@ const renderExpandedReductionForm = (reduction: Reduction) => {
     const step = reduction.renderStep(i, renderStepOptions)
     const before = renderTerm(step.before, 'before')
     const after = renderTerm(step.after, 'after')
-    const arrowSymbol = step.type === 'def' ? '≡' : '→'
-    const arrowLabel = arrowSymbols[step.type]
+    const [arrowSymbol, arrowLabel] = arrowSymbols[step.type]
     const arrow = renderArrow(arrowSymbol, arrowLabel)
     const lastStep = i === reduction.totalSteps - 1
     const synonyms = lastStep ? renderSynonyms(reduction.finalSynonyms) : ''
