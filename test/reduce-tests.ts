@@ -11,6 +11,15 @@ const assertReduce = (expr: string, expected: string, options?: Options) => {
   assert.strictEqual(reduceTerm(expr, options).final, expected)
 }
 
+const assertReduceSteps = (expr: string, expectedSteps: string[]) => {
+  const { totalSteps, renderStep } = reduceTerm(expr)
+  const actualSteps = Array.from({ length: totalSteps }).map((_, i) => {
+    const { before, after } = renderStep(i)
+    return `${before} -> ${after}`
+  })
+  assert.deepStrictEqual(actualSteps, expectedSteps)
+}
+
 describe('reduceProgram()', () => {
   it('does not reduce simple irreducible expressions', () => {
     assertReduce('x', 'x')
@@ -107,16 +116,72 @@ describe('reduceProgram()', () => {
     })
 
     it('does not count alpha-renames as reduction steps', () => {
-      const { reductionSteps, totalSteps } = reduceTerm('(λx.λy.x λz.x) (y z)')
+      const term = '(λx.λy.x λz.x) (y z)'
+      const { reductionSteps, totalSteps } = reduceTerm(term)
+
       assert.equal(reductionSteps, 1)
       assert.equal(totalSteps, 3)
-    })
 
-    it('does not count alpha-renames toward the reduction step limit', () => {
-      const term = '(λx.λy.x y) (y z)'
       assert(reduceTerm(term, { maxReductionSteps: 1 }).terminates)
       assert(!reduceTerm(term, { maxReductionSteps: 0 }).terminates)
     })
   })
+
+  describe('definitions', () => {
+    it('does not reduce standalone definitions', () => {
+      const reductions = reduceProgram(`
+        id = λx.x
+        true = λt.λf.t
+      `)
+      assert.equal(reductions.length, 0)
+    })
+
+    it('only resolves definitions when used on a top-level expressions', () => {
+      const reductions = reduceProgram(`
+        id = λx.x
+        true = λt.λf.t
+        id true
+      `)
+      assert.equal(reductions.length, 1)
+      assert.equal(reductions[0].final, 'λt.λf.t')
+    })
+
+    it('records definition resolution steps', () => {
+      const code = `
+        id = λx.x
+        true = λt.λf.t
+        id true
+      `
+      assertReduceSteps(code, [
+        'id true -> (λx.x) true',
+        '(λx.x) true -> true',
+        'true -> λt.λf.t'
+      ])
+    })
+
+    it('does not count definition resolutions as reduction steps', () => {
+      const code = `
+        id = λx.x
+        id foo
+      `
+      const { totalSteps, reductionSteps } = reduceTerm(code)
+      assert.equal(totalSteps, 2)
+      assert.equal(reductionSteps, 1)
+
+      assert(reduceTerm(code, { maxReductionSteps: 1 }).terminates)
+      assert(!reduceTerm(code, { maxReductionSteps: 0 }).terminates)
+    })
+
+    it('only takes one step to resolve a definition that points to another definition (i.e. a "synonym")', () => {
+      const code = `
+        id = λx.x
+        identity = id
+        identity foo
+      `
+      assertReduceSteps(code, [
+        'identity foo -> (λx.x) foo',
+        '(λx.x) foo -> foo'
+      ])
+    })
+  })
 })
-// TODO Add multi-step reduction tests!

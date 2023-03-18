@@ -18,7 +18,7 @@ export type Reduction = {
   terminates: boolean
   reductionSteps: number
   totalSteps: number
-  renderStep: (i: number, options: RenderStepOptions) => RenderedStep
+  renderStep: (i: number, options?: RenderStepOptions) => RenderedStep
 }
 
 type RenderStepOptions = {
