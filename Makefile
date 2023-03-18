@@ -40,7 +40,7 @@ lint-fix:
 
 .PHONY: watch
 watch:
-	$(bin_dir)/chokidar src test --initial --silent --command "make --no-print-directory test lint; make --no-print-directory build"
+	$(bin_dir)/chokidar src test --initial --silent --command "make --no-print-directory build test lint"
 
 .PHONY: bench
 bench: grammar
