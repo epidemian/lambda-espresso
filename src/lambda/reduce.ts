@@ -7,7 +7,7 @@ import {
   markStep
 } from './helpers'
 import { applySubstitution, renameForSubstitution } from './substitute'
-import { App, Fun, Term } from './terms'
+import { App, Def, Fun, Term } from './terms'
 
 export type Options = {
   strategy: keyof typeof reduceFunctions
@@ -38,8 +38,7 @@ const reduceCallByName: Reducer = (t, cb) => {
         ? reduceCallByName(apply(l, t.right, cb), cb)
         : App(l, t.right)
     case 'def':
-      cb(markStep({ type: 'def', before: t, after: t.term }))
-      return reduceCallByName(t.term, cb)
+      return reduceCallByName(resolveDefinition(t, cb), cb)
   }
 }
 
@@ -59,8 +58,7 @@ const reduceNormal: Reducer = (t, cb) => {
         return App(l, r)
       }
     case 'def':
-      cb(markStep({ type: 'def', before: t, after: t.term }))
-      return reduceNormal(t.term, cb)
+      return reduceNormal(resolveDefinition(t, cb), cb)
   }
 }
 
@@ -76,8 +74,7 @@ const reduceCallByValue: Reducer = (t, cb) => {
         ? reduceCallByValue(apply(l, r, cb), cb)
         : App(l, r)
     case 'def':
-      cb(markStep({ type: 'def', before: t, after: t.term }))
-      return reduceCallByValue(t.term, cb)
+      return reduceCallByValue(resolveDefinition(t, cb), cb)
   }
 }
 
@@ -98,8 +95,7 @@ const reduceApplicative: Reducer = (t, cb) => {
         return App(l, r)
       }
     case 'def':
-      cb(markStep({ type: 'def', before: t, after: t.term }))
-      return reduceApplicative(t.term, cb)
+      return reduceApplicative(resolveDefinition(t, cb), cb)
   }
 }
 
@@ -149,4 +145,13 @@ const reduceFunctions = {
   applicative: reduceApplicative,
   cbn: reduceCallByName,
   cbv: reduceCallByValue
+}
+
+const resolveDefinition = (def: Def, cb: Callback) => {
+  let after = def.term
+  while (after.type === 'def') {
+    after = after.term
+  }
+  cb(markStep({ type: 'def', before: def, after }))
+  return after
 }
