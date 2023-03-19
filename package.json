@@ -10,7 +10,7 @@
     "@types/node": "^18.15.3",
     "@typescript-eslint/eslint-plugin": "^5.55.0",
     "@typescript-eslint/parser": "^5.55.0",
-    "browserify": "^16.2.3",
+    "browserify": "^17.0.0",
     "chokidar-cli": "^3.0.0",
     "eslint": "^8.36.0",
     "eslint-config-prettier": "^8.7.0",
@@ -19,8 +19,8 @@
     "mocha": "^10.2.0",
     "prettier": "^2.8.4",
     "terser": "^5.16.6",
-    "ts-node": "^7.0.0",
-    "tsify": "^4.0.0",
+    "ts-node": "^10.9.1",
+    "tsify": "^5.0.4",
     "typescript": "^5.0.2"
   },
   "scripts": {
