@@ -52,7 +52,7 @@ publish:
 	  echo 'Commit everything before publishing!'; exit 1 \
 	)
 	git checkout gh-pages
-	git merge master
+	git merge master --no-edit
 	make build_prod
 	git add assets
 	git commit -m 'Update static assets'
