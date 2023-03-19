@@ -40,7 +40,7 @@ lint-fix:
 
 .PHONY: watch
 watch:
-	$(bin_dir)/chokidar src test --initial --silent --command "make --no-print-directory test lint; make --no-print-directory build"
+	$(bin_dir)/chokidar src test --initial --silent --command "make --no-print-directory build test lint"
 
 .PHONY: bench
 bench: grammar
@@ -52,7 +52,7 @@ publish:
 	  echo 'Commit everything before publishing!'; exit 1 \
 	)
 	git checkout gh-pages
-	git merge master
+	git merge master --no-edit
 	make build_prod
 	git add assets
 	git commit -m 'Update static assets'
