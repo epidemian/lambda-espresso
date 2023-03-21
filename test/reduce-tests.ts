@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { Options, reduceProgram } from '../src/lambda'
+import { Options, Reduction, reduceProgram } from '../src/lambda'
 
 const reduceTerm = (str: string, options?: Options) => {
   const reductions = reduceProgram(str, options)
@@ -11,8 +11,11 @@ const assertReduce = (expr: string, expected: string, options?: Options) => {
   assert.strictEqual(reduceTerm(expr, options).final, expected)
 }
 
-const assertReduceSteps = (expr: string, expectedSteps: string[]) => {
-  const { totalSteps, renderStep } = reduceTerm(expr)
+const assertSteps = (
+  totalSteps: number,
+  renderStep: Reduction['renderStep'],
+  expectedSteps: string[]
+) => {
   const actualSteps = Array.from({ length: totalSteps }).map((_, i) => {
     const { before, after } = renderStep(i)
     return `${before} -> ${after}`
@@ -58,13 +61,6 @@ describe('reduceProgram()', () => {
   it('indicates when a reduction does not terminate', () => {
     const { terminates } = reduceTerm('(λx.x x) (λx.x x)')
     assert(!terminates)
-  })
-
-  it('can reduce by eta-conversions', () => {
-    assertReduce('λx.f x', 'λx.f x')
-    assertReduce('λx.f x', 'f', { etaEnabled: true })
-    assertReduce('λs.λz.s z', 'λs.s', { etaEnabled: true })
-    assertReduce('λx.y z x', 'y z', { etaEnabled: true })
   })
 
   describe('alpha-renaming in substitution (λy.T)[x := S]', () => {
@@ -127,6 +123,50 @@ describe('reduceProgram()', () => {
     })
   })
 
+  describe('eta reductions', () => {
+    it('does eta reductions when etaEnabled is passed', () => {
+      assertReduce('λx.f x', 'λx.f x')
+      assertReduce('λx.f x', 'f', { etaEnabled: true })
+    })
+
+    it('does eta reductions inside nested structures', () => {
+      assertReduce('λs.λz.s z', 'λs.s', { etaEnabled: true })
+      assertReduce('λx.f g x', 'f g', { etaEnabled: true })
+      assertReduce('λx.λy.f g y', 'λx.f g', { etaEnabled: true })
+      assertReduce('λx.λy.(λx.f x) y', 'λx.f', { etaEnabled: true })
+      assertReduce('(λx.f x) (λx.g x)', 'f g', { etaEnabled: true })
+    })
+
+    it.skip('can do multiple "nested" eta reductions', () => {
+      assertReduce('λx.λy.f x y', 'f', { etaEnabled: true })
+      assertReduce('λx.λy.λz.f x y x', 'f', { etaEnabled: true })
+      assertReduce('λx.λy.λz.f g h x y x', 'f g h', { etaEnabled: true })
+      assertReduce('λx.λy.(λz.f z) y', 'f', { etaEnabled: true })
+    })
+
+    it('counts eta reductions as reduction steps', () => {
+      const { totalSteps, reductionSteps } = reduceTerm('λx.f x', {
+        etaEnabled: true
+      })
+      assert.equal(reductionSteps, 1)
+      assert.equal(totalSteps, 1)
+    })
+
+    it('records eta reduction steps', () => {
+      const { totalSteps, renderStep } = reduceTerm('(λx.f x) λx.g x', {
+        etaEnabled: true
+      })
+      assertSteps(totalSteps, renderStep, [
+        '(λx.f x) λx.g x -> f λx.g x',
+        'f λx.g x -> f g'
+      ])
+    })
+
+    // TODO: define whether beta or eta reductions are done first. E.g. on:
+    // - (λx.f x) λx.x
+    // - λx.(λy.y) x
+  })
+
   describe('definitions', () => {
     it('does not reduce standalone definitions', () => {
       const reductions = reduceProgram(`
@@ -147,12 +187,12 @@ describe('reduceProgram()', () => {
     })
 
     it('records definition resolution steps', () => {
-      const code = `
+      const { totalSteps, renderStep } = reduceTerm(`
         id = λx.x
         true = λt.λf.t
         id true
-      `
-      assertReduceSteps(code, [
+      `)
+      assertSteps(totalSteps, renderStep, [
         'id true -> (λx.x) true',
         '(λx.x) true -> true',
         'true -> λt.λf.t'
@@ -173,12 +213,12 @@ describe('reduceProgram()', () => {
     })
 
     it('only takes one step to resolve a definition that points to another definition (i.e. a "synonym")', () => {
-      const code = `
+      const { totalSteps, renderStep } = reduceTerm(`
         id = λx.x
         identity = id
         identity foo
-      `
-      assertReduceSteps(code, [
+      `)
+      assertSteps(totalSteps, renderStep, [
         'identity foo -> (λx.x) foo',
         '(λx.x) foo -> foo'
       ])

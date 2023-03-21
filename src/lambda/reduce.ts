@@ -133,7 +133,7 @@ const reduceEta: Reducer = (t, cb) => {
       }
     case 'app':
       const l = reduceEta(t.left, composeAppR(cb, t.right))
-      const r = reduceEta(t.right, composeAppR(cb, l))
+      const r = reduceEta(t.right, composeAppL(cb, l))
       return App(l, r)
     case 'def':
       return t
