@@ -131,17 +131,17 @@ describe('reduceProgram()', () => {
 
     it('does eta reductions inside nested structures', () => {
       assertReduce('λs.λz.s z', 'λs.s', { etaEnabled: true })
-      assertReduce('λx.f g x', 'f g', { etaEnabled: true })
-      assertReduce('λx.λy.f g y', 'λx.f g', { etaEnabled: true })
-      assertReduce('λx.λy.(λx.f x) y', 'λx.f', { etaEnabled: true })
-      assertReduce('(λx.f x) (λx.g x)', 'f g', { etaEnabled: true })
+      assertReduce('f λx.g x', 'f g', { etaEnabled: true })
+      assertReduce('(f λx.g x) h', 'f g h', { etaEnabled: true })
     })
 
-    it.skip('can do multiple "nested" eta reductions', () => {
+    it('can do multiple nested eta reductions', () => {
       assertReduce('λx.λy.f x y', 'f', { etaEnabled: true })
-      assertReduce('λx.λy.λz.f x y x', 'f', { etaEnabled: true })
-      assertReduce('λx.λy.λz.f g h x y x', 'f g h', { etaEnabled: true })
-      assertReduce('λx.λy.(λz.f z) y', 'f', { etaEnabled: true })
+      assertReduce('λx.λy.λz.f x y z', 'f', { etaEnabled: true })
+      assertReduce('λx.λy.λz.f g h x y z', 'f g h', { etaEnabled: true })
+      assertReduce('λx.λy.f x λz.y z', 'f', { etaEnabled: true })
+      assertReduce('λx.λy.f (λz.x z) y', 'f', { etaEnabled: true })
+      assertReduce('λx.f (λy.g y) λz.x z', 'f g', { etaEnabled: true })
     })
 
     it('counts eta reductions as reduction steps', () => {
@@ -153,18 +153,20 @@ describe('reduceProgram()', () => {
     })
 
     it('records eta reduction steps', () => {
-      const { totalSteps, renderStep } = reduceTerm('(λx.f x) λx.g x', {
+      const { totalSteps, renderStep } = reduceTerm('λx.λy.f (λz.x z) λz.y z', {
         etaEnabled: true
       })
       assertSteps(totalSteps, renderStep, [
-        '(λx.f x) λx.g x -> f λx.g x',
-        'f λx.g x -> f g'
+        'λx.λy.f (λz.x z) λz.y z -> λx.λy.f x λz.y z',
+        'λx.λy.f x λz.y z -> λx.λy.f x y',
+        'λx.λy.f x y -> λx.f x',
+        'λx.f x -> f'
       ])
     })
 
     // TODO: define whether beta or eta reductions are done first. E.g. on:
     // - (λx.f x) λx.x
-    // - λx.(λy.y) x
+    // - λx.(λy.f y) x
   })
 
   describe('definitions', () => {
