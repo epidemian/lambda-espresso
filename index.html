@@ -8,15 +8,7 @@
   <link href="assets/vendor/normalize.css" rel="stylesheet"/>
   <link href="assets/icon-font/styles.css" rel="stylesheet"/>
   <link href="assets/style.css" rel="stylesheet"/>
-  <!-- Global site tag (gtag.js) - Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-35084691-2"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-
-    gtag('config', 'UA-35084691-2');
-  </script>
+  <script data-goatcounter="https://demian.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
   <header>
@@ -72,15 +64,6 @@
         <div class="option">
           <label title="Enable η-reductions (e.g. λx.f x → f)">
             <input type="checkbox" name="eta-reductions">η-reductions
-          </label>
-        </div>
-        <div class="option">
-          Expand macros<br>
-          <label title="Expand macros only when necessary; might require more reduction steps">
-            <input type="radio" name="expand-macros" value="lazy" checked disabled>Lazy
-          </label>
-          <label title="Expand all macros at start">
-            <input type="radio" name="expand-macros" value="eager" disabled>Eager
           </label>
         </div>
       </div>
