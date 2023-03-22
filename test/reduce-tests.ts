@@ -1,21 +1,24 @@
 import assert from 'assert'
-import { Options, reduceProgram } from '../src/lambda'
+import { Options, Reduction, reduceProgram } from '../src/lambda'
 
-const reduceTerm = (str: string, options?: Options) => {
-  const reductions = reduceProgram(str, options)
+const reduceTerm = (code: string, options?: Options) => {
+  const reductions = reduceProgram(code, options)
   assert.equal(reductions.length, 1)
   return reductions[0]
 }
 
-const assertReduce = (expr: string, expected: string, options?: Options) => {
-  assert.strictEqual(reduceTerm(expr, options).final, expected)
+const assertReduce = (code: string, expected: string, options?: Options) => {
+  assert.strictEqual(reduceTerm(code, options).final, expected)
 }
 
-const assertReduceSteps = (expr: string, expectedSteps: string[]) => {
-  const { totalSteps, renderStep } = reduceTerm(expr)
+const assertSteps = (
+  totalSteps: number,
+  renderStep: Reduction['renderStep'],
+  expectedSteps: string[]
+) => {
   const actualSteps = Array.from({ length: totalSteps }).map((_, i) => {
-    const { before, after } = renderStep(i)
-    return `${before} -> ${after}`
+    const { type, before, after } = renderStep(i)
+    return `${type}: ${before} -> ${after}`
   })
   assert.deepStrictEqual(actualSteps, expectedSteps)
 }
@@ -58,13 +61,6 @@ describe('reduceProgram()', () => {
   it('indicates when a reduction does not terminate', () => {
     const { terminates } = reduceTerm('(λx.x x) (λx.x x)')
     assert(!terminates)
-  })
-
-  it('can reduce by eta-conversions', () => {
-    assertReduce('λx.f x', 'λx.f x')
-    assertReduce('λx.f x', 'f', { etaEnabled: true })
-    assertReduce('λs.λz.s z', 'λs.s', { etaEnabled: true })
-    assertReduce('λx.y z x', 'y z', { etaEnabled: true })
   })
 
   describe('alpha-renaming in substitution (λy.T)[x := S]', () => {
@@ -127,6 +123,66 @@ describe('reduceProgram()', () => {
     })
   })
 
+  describe('eta reductions', () => {
+    const assertReduceEta = (code: string, expected: string) => {
+      assertReduce(code, code)
+      assertReduce(code, expected, { etaEnabled: true })
+    }
+
+    it('does eta reductions when etaEnabled is passed', () => {
+      assertReduceEta('λx.f x', 'f')
+    })
+
+    it('does eta reductions inside nested structures', () => {
+      assertReduceEta('λs.λz.s z', 'λs.s')
+      assertReduceEta('f λx.g x', 'f g')
+      assertReduceEta('f (λx.g x) h', 'f g h')
+    })
+
+    it('can do multiple nested eta reductions', () => {
+      assertReduceEta('λx.λy.f x y', 'f')
+      assertReduceEta('λx.λy.λz.f x y z', 'f')
+      assertReduceEta('λx.λy.λz.f g h x y z', 'f g h')
+      assertReduceEta('λx.λy.f x λz.y z', 'f')
+      assertReduceEta('λx.λy.f (λz.x z) y', 'f')
+      assertReduceEta('λx.f (λy.g y) λz.x z', 'f g')
+    })
+
+    it('counts eta reductions as reduction steps', () => {
+      const { totalSteps, reductionSteps } = reduceTerm('λx.f x', {
+        etaEnabled: true
+      })
+      assert.equal(reductionSteps, 1)
+      assert.equal(totalSteps, 1)
+    })
+
+    it('records eta reduction steps', () => {
+      const { totalSteps, renderStep } = reduceTerm('λx.λy.f (λz.x z) λz.y z', {
+        etaEnabled: true
+      })
+      assertSteps(totalSteps, renderStep, [
+        'eta: λx.λy.f (λz.x z) λz.y z -> λx.λy.f x λz.y z',
+        'eta: λx.λy.f x λz.y z -> λx.λy.f x y',
+        'eta: λx.λy.f x y -> λx.f x',
+        'eta: λx.f x -> f'
+      ])
+    })
+
+    it('applies etas after betas', () => {
+      const { totalSteps, renderStep } = reduceTerm('λx.(λy.f y) x', {
+        etaEnabled: true
+      })
+      // Notice that the initially there are also two eta reductions available:
+      // - the lhs of the inner application: (λy.f y) -> f
+      // - or the whole outer function: λx.(λy.f y) x -> λy.f y
+      // Both have the same effect as the initial beta reduction.
+      assertSteps(totalSteps, renderStep, [
+        'beta: λx.(λy.f y) x -> λx.f x',
+        'eta: λx.f x -> f'
+      ])
+    })
+  })
+
   describe('definitions', () => {
     it('does not reduce standalone definitions', () => {
       const reductions = reduceProgram(`
@@ -147,15 +203,15 @@ describe('reduceProgram()', () => {
     })
 
     it('records definition resolution steps', () => {
-      const code = `
+      const { totalSteps, renderStep } = reduceTerm(`
         id = λx.x
         true = λt.λf.t
         id true
-      `
-      assertReduceSteps(code, [
-        'id true -> (λx.x) true',
-        '(λx.x) true -> true',
-        'true -> λt.λf.t'
+      `)
+      assertSteps(totalSteps, renderStep, [
+        'def: id true -> (λx.x) true',
+        'beta: (λx.x) true -> true',
+        'def: true -> λt.λf.t'
       ])
     })
 
@@ -173,15 +229,25 @@ describe('reduceProgram()', () => {
     })
 
     it('only takes one step to resolve a definition that points to another definition (i.e. a "synonym")', () => {
-      const code = `
+      const { totalSteps, renderStep } = reduceTerm(`
         id = λx.x
         identity = id
         identity foo
-      `
-      assertReduceSteps(code, [
-        'identity foo -> (λx.x) foo',
-        '(λx.x) foo -> foo'
+      `)
+      assertSteps(totalSteps, renderStep, [
+        'def: identity foo -> (λx.x) foo',
+        'beta: (λx.x) foo -> foo'
       ])
+    })
+
+    it('returns the names of definition that are alpha-equal to the final result', () => {
+      const { finalSynonyms } = reduceTerm(`
+        true = λt.λf.t
+        false = λt.λf.f
+        second = λa.λb.b
+        second true false
+      `)
+      assert.deepStrictEqual(finalSynonyms, ['false', 'second'])
     })
   })
 })

@@ -119,21 +119,25 @@ const reduceEta: Reducer = (t, cb) => {
     case 'var':
       return t
     case 'fun':
+      // First reduce "down" in case the body is an application and its rhs can
+      // be eta-reduced down to a var.
+      const body = reduceEta(t.body, composeFun(cb, t.param))
+      const before = body === t.body ? t : Fun(t.param, body)
       // λx.(F x) = F if x is free in F
       if (
-        t.body.type === 'app' &&
-        t.body.right.type === 'var' &&
-        t.body.right.name === t.param &&
-        !freeIn(t.param, t.body.left)
+        body.type === 'app' &&
+        body.right.type === 'var' &&
+        body.right.name === t.param &&
+        !freeIn(t.param, body.left)
       ) {
-        cb(markStep({ type: 'eta', before: t, after: t.body.left }))
-        return t.body.left
+        cb(markStep({ type: 'eta', before, after: body.left }))
+        return body.left
       } else {
-        return Fun(t.param, reduceEta(t.body, composeFun(cb, t.param)))
+        return before
       }
     case 'app':
       const l = reduceEta(t.left, composeAppR(cb, t.right))
-      const r = reduceEta(t.right, composeAppR(cb, l))
+      const r = reduceEta(t.right, composeAppL(cb, l))
       return App(l, r)
     case 'def':
       return t
