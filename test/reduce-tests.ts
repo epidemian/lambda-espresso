@@ -239,5 +239,15 @@ describe('reduceProgram()', () => {
         'beta: (λx.x) foo -> foo'
       ])
     })
+
+    it('returns the names of definition that are alpha-equal to the final result', () => {
+      const { finalSynonyms } = reduceTerm(`
+        true = λt.λf.t
+        false = λt.λf.f
+        second = λa.λb.b
+        second true false
+      `)
+      assert.deepStrictEqual(finalSynonyms, ['false', 'second'])
+    })
   })
 })
