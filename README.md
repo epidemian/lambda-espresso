@@ -1,6 +1,7 @@
 # λ-Espresso ☕
 
-[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://github.com/prettier/prettier)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/epidemian/lambda-espresso/ci.yml?branch=main&logo=github)](https://github.com/epidemian/lambda-espresso/actions/workflows/ci.yml)
+[![code style: prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 
 An interactive λ calculus interpreter.
 
