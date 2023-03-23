@@ -36,6 +36,7 @@
     "lint": "eslint src test",
     "lint-fix": "npm run lint -- --fix",
     "format": "prettier --write '{src,test}/**/*.ts'",
+    "check-format": "prettier --check '{src,test}/**/*.ts'",
     "watch-build": "chokidar src --initial --silent -c 'npm run build'",
     "watch-grammar": "chokidar src/lambda/grammar.jison --silent -c 'npm run build-grammar'",
     "watch-test": "chokidar src test --initial --silent -c 'npm run test'",

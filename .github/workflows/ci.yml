@@ -16,7 +16,13 @@ jobs:
         with:
           node-version: '18.x'
           cache: npm
-      - run: npm ci
-      - run: npm run build
-      - run: npm run lint
-      - run: npm test
+      - name: Install dependencies
+        run: npm ci
+      - name: Build assets
+        run: npm run build
+      - name: Run tests
+        run: npm test
+      - name: Run ESLint
+        run: npm run lint
+      - name: Check Prettier format
+        run: npm run check-format
