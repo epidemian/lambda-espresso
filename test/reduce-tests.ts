@@ -111,6 +111,15 @@ describe('reduceProgram()', () => {
       assertReduce('(λx.λy.x λz.x) (y z)', 'λy1.y z λz1.y z')
     })
 
+    it('records alpha renaming steps', () => {
+      const { totalSteps, renderStep } = reduceTerm(`(λx.λy.x λz.x) (y z)`)
+      assertSteps(totalSteps, renderStep, [
+        'alpha: (λx.λy.x λz.x) (y z) -> (λx.λy1.x λz.x) (y z)',
+        'alpha: (λx.λy1.x λz.x) (y z) -> (λx.λy1.x λz1.x) (y z)',
+        'beta: (λx.λy1.x λz1.x) (y z) -> λy1.y z λz1.y z'
+      ])
+    })
+
     it('does not count alpha-renames as reduction steps', () => {
       const term = '(λx.λy.x λz.x) (y z)'
       const { reductionSteps, totalSteps } = reduceTerm(term)
