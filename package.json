@@ -26,12 +26,13 @@
     "typescript": "^5.0.2"
   },
   "scripts": {
-    "start": "concurrently --names server,grammar,build,test,lint http-server 'npm run watch-grammar' 'npm run watch-build' 'npm run watch-test' 'npm run watch-lint'",
+    "start": "concurrently --names server,grammar,build,test,lint 'npm run server' 'npm run watch-grammar' 'npm run watch-build' 'npm run watch-test' 'npm run watch-lint'",
     "prebuild": "[ -f src/lambda/grammar.js ] || npm run build-grammar",
     "build": "browserify --debug --detect-globals false --no-builtins -p tsify src/app.ts > assets/index.js",
     "build-grammar": "jison src/lambda/grammar.jison -o src/lambda/grammar.js",
     "build-prod": "npm run build && npm run minify-js",
     "minify-js": "terser assets/index.js --source-map \"root='.',url='index.js.map',content=inline\" -o assets/index.js",
+    "server": "http-server -c-1",
     "test": "mocha",
     "lint": "eslint src test",
     "lint-fix": "npm run lint -- --fix",
