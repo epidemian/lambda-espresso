@@ -67,13 +67,9 @@ export const renameForSubstitution = (
       if (freeIn(t.param, s) && freeIn(x, t.body)) {
         const newVarName = renameVar(t.param, t.body, s)
         const renamedBody = applySubstitution(t.body, t.param, Var(newVarName))
-        cb(
-          markStep({
-            type: 'alpha',
-            before: t,
-            after: (t = Fun(newVarName, renamedBody))
-          })
-        )
+        const renamedFun = Fun(newVarName, renamedBody)
+        cb(markStep({ type: 'alpha', before: t, after: renamedFun }))
+        t = renamedFun
       }
       const body = renameForSubstitution(t.body, x, s, composeFun(cb, t.param))
       return Fun(t.param, body)

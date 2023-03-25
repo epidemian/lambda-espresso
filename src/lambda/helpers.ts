@@ -8,7 +8,7 @@ export const composeFun = (fn: Callback, x: string) => (b: Term) =>
 export const composeAppL = (fn: Callback, l: Term) => (r: Term) => fn(App(l, r))
 export const composeAppR = (fn: Callback, r: Term) => (l: Term) => fn(App(l, r))
 
-export type Definitions = { [key: string]: Term }
+export type Definitions = Record<string, Term>
 
 // Represents a reduction "step" as displayed on the application.
 export type Step =

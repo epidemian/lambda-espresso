@@ -36,5 +36,3 @@ export const dedent = (str: string) => {
 
   return unindented.trim()
 }
-
-export const collapseWhitespace = (str: string) => str.replace(/\s+/gm, ' ')
