@@ -77,14 +77,12 @@ const resolveTermRefs = (
   }
 }
 
-type RefNames = { [key: string]: string[] }
-
 // Changes all Refs inside term t to either Vars or Defs.
 const resolveDefRefs = (
   defName: string,
   t: TermOrRef,
   defs: Definitions,
-  refNames: RefNames,
+  refNames: Record<string, string[]>,
   boundNames: string[] = []
 ) => {
   switch (t.type) {
@@ -116,7 +114,7 @@ const resolveDefRefs = (
 const checkForCircularRefs = (
   name: string,
   refName: string,
-  refNames: RefNames,
+  refNames: Record<string, string[]>,
   path: string[] = []
 ) => {
   if (name === refName) {
