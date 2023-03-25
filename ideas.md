@@ -21,6 +21,7 @@
   - Maybe use native navigator.share() if available
 - Run lambda evaluation on a web worker to avoid locking the UI when computing heavy things.
 - Do not collapse reductions just by clicking; it's annoying if you try to select some text.
+- Add a keyboard shortcut for Share (maybe ctrl+S)
 - Avoid "too much recursion" errors
   - Maybe use trampolining (or something similar)
   - Maybe convert recursive functions into loops using local arrays as stacks if needed
