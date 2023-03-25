@@ -1,4 +1,4 @@
-import { collapseWhitespace, timed } from '../utils'
+import { timed } from '../utils'
 import { Parser } from './grammar'
 import { Definitions } from './helpers'
 import { App, Fun, Term } from './terms'
@@ -98,10 +98,7 @@ const resolveDefRefs = (
         Object.assign(t, { type: 'def', term: defs[t.name] })
       } else {
         throw Error(
-          collapseWhitespace(
-            `Illegal free variable "${t.name}" in "${defName}".
-        Definitions cannot have free variables.`
-          )
+          `Illegal free variable "${t.name}" in "${defName}". Definitions cannot have free variables.`
         )
       }
       break
@@ -123,18 +120,12 @@ const checkForCircularRefs = (
   path: string[] = []
 ) => {
   if (name === refName) {
-    const circularNote = path.length
-      ? `In this case the definition does not reference itself directly, but
-        through other definitions: ${[name, ...path, name].join(' → ')}.`
-      : ''
-    throw Error(
-      collapseWhitespace(
-        `Illegal recursive reference in "${name}". Definitions cannot
-      reference themselves; they are just simple find&replace mechanisms.
-      ${circularNote}
-      If you want to write a recursive function, look for "Y combinator" ;)`
-      )
-    )
+    let message = `Illegal recursive reference in "${name}". Definitions cannot reference themselves, they are just simple find&replace mechanisms.\n`
+    const refCycle = path.length ? [name, ...path, name].join(' → ') : null
+    message += refCycle
+      ? `In this case the definition does not reference itself directly, but through other definitions: ${refCycle}.`
+      : 'If you want to write a recursive function, search for "Y combinator" ;)'
+    throw Error(message)
   }
 
   const nextRefs = refNames[refName] || []

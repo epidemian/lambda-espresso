@@ -150,7 +150,7 @@ describe('parse()', () => {
     )
   })
 
-  it('disallows mutually-recursive definitions', () => {
+  it('disallows mutually-recursive definitions and shows cyclic definitions on error', () => {
     const code = `
       foo = (λx.x) bar
       bar = baz qux
@@ -159,7 +159,7 @@ describe('parse()', () => {
     `
     assertParseFails(
       code,
-      /^Error: Illegal recursive reference in "baz"\..*baz → foo → bar → baz/
+      /^Error: Illegal recursive reference in "baz"\.(.|\n)*baz → foo → bar → baz/
     )
   })
 
