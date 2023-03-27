@@ -259,4 +259,55 @@ describe('reduceProgram()', () => {
       assert.deepEqual(finalSynonyms, ['false', 'second'])
     })
   })
+
+  describe('applicative reduction', () => {
+    // TODO: add tests for classic applicative reduction, like reducing
+    // arguments before the function they are applied to.
+
+    describe('fixed-point recursion', () => {
+      const defs = `
+        one = λs.λz.s z
+        two = λs.λz.s (s z)
+        add = λm.λn.λs.λz.m s (n s z)
+        pred = λn.λs.λz.n (λf.λg.g (f s)) (λx.z) (λx.x)
+        true = λt.λf.t
+        false = λt.λf.f
+        and = λp.λq.p q p
+        zero? = λn.n (λx.false) true
+        ; sum(n) = 1 + 2 + ... + n
+        sum = fix λrec.λn.(zero? n) n (add n (rec (pred n)))
+      `
+
+      it('enters an infinite loop when using the Y combinator', () => {
+        const code = `
+          ${defs}
+          fix = λf.(λx.f (x x)) (λx.f (x x))
+          sum two
+        `
+        const { terminates } = reduceTerm(code, {
+          strategy: 'applicative',
+          maxReductionSteps: 100
+        })
+
+        assert(!terminates)
+      })
+
+      // TODO: fix applicative reduction
+      it.skip('terminates when using the Z combinator', () => {
+        const code = `
+          ${defs}
+          fix = λf.(λx.f λv.x x v) (λx.f λv.x x v)
+          sum two
+        `
+        const { terminates, final } = reduceTerm(code, {
+          strategy: 'applicative',
+          maxReductionSteps: 100
+        })
+
+        assert(terminates)
+        // sum(2) = 1 + 2 = 3
+        assert.equal(final, 'λs.λz.s (s (s z))')
+      })
+    })
+  })
 })
