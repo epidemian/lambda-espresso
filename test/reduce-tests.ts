@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert/strict'
 import { Options, Reduction, reduceProgram } from '../src/lambda'
 
 const reduceTerm = (code: string, options?: Options) => {
@@ -8,7 +8,7 @@ const reduceTerm = (code: string, options?: Options) => {
 }
 
 const assertReduce = (code: string, expected: string, options?: Options) => {
-  assert.strictEqual(reduceTerm(code, options).final, expected)
+  assert.equal(reduceTerm(code, options).final, expected)
 }
 
 const assertSteps = (
@@ -20,7 +20,7 @@ const assertSteps = (
     const { type, before, after } = renderStep(i)
     return `${type}: ${before} -> ${after}`
   })
-  assert.deepStrictEqual(actualSteps, expectedSteps)
+  assert.deepEqual(actualSteps, expectedSteps)
 }
 
 describe('reduceProgram()', () => {
@@ -256,7 +256,7 @@ describe('reduceProgram()', () => {
         second = λa.λb.b
         second true false
       `)
-      assert.deepStrictEqual(finalSynonyms, ['false', 'second'])
+      assert.deepEqual(finalSynonyms, ['false', 'second'])
     })
   })
 })

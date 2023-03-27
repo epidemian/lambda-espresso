@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert/strict'
 import { App, Def, Definitions, Fun, parse, Term, Var } from '../src/lambda'
 
 const assertParse = (
