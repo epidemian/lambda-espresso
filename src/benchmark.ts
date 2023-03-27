@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import { reduceProgram } from './lambda'
 import { enableLogTimings } from './utils'
 
@@ -32,4 +33,4 @@ const [{ reductionSteps, totalSteps, final }] = reduceProgram(code, {
 
 console.log('reductions:', reductionSteps)
 console.log('total steps:', totalSteps)
-console.log('ok:', final === 'true' || final === 'λt.λf.t')
+assert.equal(final, 'λt.λf.t')
