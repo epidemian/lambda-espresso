@@ -14,8 +14,9 @@ const parse = timed('parse', (str: string) => {
   // The terms of the program.
   const terms: Term[] = []
 
-  // Add some handy functions so the parser can build the AST.
+  // Set initial parser state and helper functions.
   parser.yy = {
+    openParens: 0,
     parseFunction: Fun,
     parseApplication: App,
     parseDefinition: (name: string, term: Term) => {

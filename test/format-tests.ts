@@ -1,4 +1,4 @@
-import assert from 'assert'
+import assert from 'node:assert/strict'
 import { format, parse } from '../src/lambda'
 
 const assertFormat = (str: string, expected: string) => {
