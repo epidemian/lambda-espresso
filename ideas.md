@@ -6,6 +6,7 @@
     the expression that the user typed
   - Allow links and rich text on comments ala Markdown. E.g. show `*bold*` text as bold
 - Improve the replacing `\` with `λ` to avoid losing undo stack. Maybe using a rich text editor, or a font that has `\` character replaced entirely.
+- Use cache-busting hash on index.js asset to allow browsers to re-fetch the resource after deploys.
 - Change name of the project to Lambda Notes or something like that; simpler, easier to remember.
 - Change definition operator to := to match Wikipedia article and normal notation (and to allow defining = as a identifier).
   - Maybe investigate a bit more first to see if there's consensus about whether to use = or :=
