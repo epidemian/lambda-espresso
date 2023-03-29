@@ -265,6 +265,10 @@ describe('reduceProgram()', () => {
     // arguments before the function they are applied to.
 
     describe('fixed-point recursion', () => {
+      // Note the dummy λd.d argument on `sum` definition and the extra function
+      // wrapping of both "then" and "else" branches of the conditional. This is
+      // done to avoid applicative order from trying to fully reduce the
+      // recursive call when the base condition is met.
       const defs = `
         one = λs.λz.s z
         two = λs.λz.s (s z)
@@ -275,34 +279,32 @@ describe('reduceProgram()', () => {
         and = λp.λq.p q p
         zero? = λn.n (λx.false) true
         ; sum(n) = 1 + 2 + ... + n
-        sum = fix λrec.λn.(zero? n) n (add n (rec (pred n)))
+        sum = fix λrec.λn.(zero? n) (λd.n) (λd.add n (rec (pred n))) λd.d
       `
 
-      it('enters an infinite loop when using the Y combinator', () => {
+      const opts = {
+        strategy: 'applicative',
+        maxReductionSteps: 100
+      } as const
+
+      it('goes into infinite recursion when using the Y combinator', () => {
         const code = `
           ${defs}
           fix = λf.(λx.f (x x)) (λx.f (x x))
           sum two
         `
-        const { terminates } = reduceTerm(code, {
-          strategy: 'applicative',
-          maxReductionSteps: 100
-        })
+        const { terminates } = reduceTerm(code, opts)
 
         assert(!terminates)
       })
 
-      // TODO: fix applicative reduction
-      it.skip('terminates when using the Z combinator', () => {
+      it('terminates when using the Z combinator', () => {
         const code = `
           ${defs}
           fix = λf.(λx.f λv.x x v) (λx.f λv.x x v)
           sum two
         `
-        const { terminates, final } = reduceTerm(code, {
-          strategy: 'applicative',
-          maxReductionSteps: 100
-        })
+        const { terminates, final } = reduceTerm(code, opts)
 
         assert(terminates)
         // sum(2) = 1 + 2 = 3
