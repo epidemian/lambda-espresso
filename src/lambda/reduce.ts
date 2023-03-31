@@ -29,7 +29,8 @@ type Reducer = (t: Term, cb: Callback) => Term
 
 // Note: the implementation of these reduction strategies were based on the
 // paper "Demonstrating Lambda Calculus Reduction", by Peter Sestoft
-// See: http://itu.dk/people/sestoft/papers/sestoft-lamreduce.pdf
+// See: http://itu.dk/people/sestoft/papers/sestoft-lamreduce.pdf, also included
+// in bib/ directory.
 
 const reduceCallByName: Reducer = (t, cb) => {
   switch (t.type) {
