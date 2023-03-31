@@ -23,6 +23,11 @@
 - Run lambda evaluation on a web worker to avoid locking the UI when computing heavy things.
 - Do not collapse reductions just by clicking; it's annoying if you try to select some text.
 - Add a keyboard shortcut for Share (maybe ctrl+S)
+- Add an option to have "standard terms" already defined globally. Thinks like:
+  - common combinators (I, K, Y)
+  - Church booleans and logic operations
+  - Church numerals (say, from 0 to 9, or have any number that appear on the program be converted to its Church numeral) and maths operations
+  - pair and list operations
 - Avoid "too much recursion" errors
   - Maybe use trampolining (or something similar)
   - Maybe convert recursive functions into loops using local arrays as stacks if needed
