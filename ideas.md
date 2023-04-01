@@ -6,6 +6,7 @@
     the expression that the user typed
   - Allow links and rich text on comments ala Markdown. E.g. show `*bold*` text as bold
 - Improve the replacing `\` with `λ` to avoid losing undo stack. Maybe using a rich text editor, or a font that has `\` character replaced entirely.
+- Use cache-busting hash on index.js asset to allow browsers to re-fetch the resource after deploys.
 - Change name of the project to Lambda Notes or something like that; simpler, easier to remember.
 - Change definition operator to := to match Wikipedia article and normal notation (and to allow defining = as a identifier).
   - Maybe investigate a bit more first to see if there's consensus about whether to use = or :=
@@ -22,6 +23,11 @@
 - Run lambda evaluation on a web worker to avoid locking the UI when computing heavy things.
 - Do not collapse reductions just by clicking; it's annoying if you try to select some text.
 - Add a keyboard shortcut for Share (maybe ctrl+S)
+- Add an option to have "standard terms" already defined globally. Thinks like:
+  - common combinators (I, K, Y)
+  - Church booleans and logic operations
+  - Church numerals (say, from 0 to 9, or have any number that appear on the program be converted to its Church numeral) and maths operations
+  - pair and list operations
 - Avoid "too much recursion" errors
   - Maybe use trampolining (or something similar)
   - Maybe convert recursive functions into loops using local arrays as stacks if needed

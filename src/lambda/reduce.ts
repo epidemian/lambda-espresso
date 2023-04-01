@@ -27,6 +27,11 @@ export default reduce
 
 type Reducer = (t: Term, cb: Callback) => Term
 
+// Note: the implementation of these reduction strategies were based on the
+// paper "Demonstrating Lambda Calculus Reduction", by Peter Sestoft
+// See: http://itu.dk/people/sestoft/papers/sestoft-lamreduce.pdf, also included
+// in bib/ directory.
+
 const reduceCallByName: Reducer = (t, cb) => {
   switch (t.type) {
     case 'var':
@@ -87,7 +92,7 @@ const reduceApplicative: Reducer = (t, cb) => {
     case 'app':
       let l = reduceCallByValue(t.left, composeAppR(cb, t.right))
       if (l.type === 'fun') {
-        const r = reduceCallByValue(t.right, composeAppL(cb, l))
+        const r = reduceApplicative(t.right, composeAppL(cb, l))
         return reduceApplicative(apply(l, r, cb), cb)
       } else {
         l = reduceApplicative(l, composeAppR(cb, t.right))

@@ -270,9 +270,7 @@ input[name=max-steps] {
   display: inline;
 }
 
-/* Highlight last term of a reduction */
-.collapsed .term:last-child,
-.expanded .step:last-child .term.after {
+.term.final {
   font-weight: bold;
 }
 
