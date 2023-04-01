@@ -117,13 +117,13 @@ const renderCollapsedReduction = (reduction: Reduction) =>
   `<div class=reduction>${renderCollapsedReductionForm(reduction)}</div>`
 
 const renderCollapsedReductionForm = (reduction: Reduction) => {
-  const initial = renderTerm(reduction.initial)
+  let initial = ''
   let arrow = ''
-  let final = ''
   if (reduction.reductionSteps > 0) {
+    initial = renderTerm(reduction.initial)
     arrow = renderArrow('→', `(${reduction.reductionSteps})`)
-    final = renderTerm(reduction.final)
   }
+  const final = renderTerm(reduction.final, 'final')
   const synonyms = renderSynonyms(reduction.finalSynonyms)
   return `<div class=collapsed>${initial} ${arrow} ${final} ${synonyms}</div>`
 }
@@ -131,13 +131,13 @@ const renderCollapsedReductionForm = (reduction: Reduction) => {
 const renderExpandedReductionForm = (reduction: Reduction) => {
   const steps = []
   for (let i = 0; i < reduction.totalSteps; i++) {
+    const isLast = i === reduction.totalSteps - 1
     const step = reduction.renderStep(i, renderStepOptions)
     const before = renderTerm(step.before, 'before')
-    const after = renderTerm(step.after, 'after')
+    const after = renderTerm(step.after, 'after' + (isLast ? ' final' : ''))
     const [arrowSymbol, arrowLabel] = arrowSymbols[step.type]
     const arrow = renderArrow(arrowSymbol, arrowLabel)
-    const lastStep = i === reduction.totalSteps - 1
-    const synonyms = lastStep ? renderSynonyms(reduction.finalSynonyms) : ''
+    const synonyms = isLast ? renderSynonyms(reduction.finalSynonyms) : ''
     steps.push(
       `<span class=step>${before}<br>${arrow} ${after} ${synonyms}</span>`
     )
