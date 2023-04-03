@@ -6,7 +6,7 @@ import { dedent, enableLogTimings, timed } from './utils'
 
 enableLogTimings()
 
-const input: HTMLInputElement = $('.input')
+const input = $('.input', HTMLTextAreaElement)
 const output = $('.output')
 
 // Run code on ctrl+enter.
@@ -54,12 +54,12 @@ const renderSynonyms = (synonyms: string[]) =>
 
 const getOptions = (): Options => {
   const maxReductionSteps = parseInt(
-    $<HTMLInputElement>('input[name=max-steps]').value || '0',
+    $('input[name=max-steps]', HTMLInputElement).value || '0',
     10
   )
-  const strategy = $<HTMLInputElement>('input[name=strategy]:checked')
+  const strategy = $('input[name=strategy]:checked', HTMLInputElement)
     .value as Options['strategy']
-  const etaEnabled = $<HTMLInputElement>('[name=eta-reductions]').checked
+  const etaEnabled = $('[name=eta-reductions]', HTMLInputElement).checked
   return { maxReductionSteps, strategy, etaEnabled }
 }
 

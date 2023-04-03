@@ -1,5 +1,16 @@
-export const $ = <T extends Element>(s: string) =>
-  document.querySelector(s) as T
+function $(selector: string): Element
+function $<T extends Element>(selector: string, elementCtor: { new (): T }): T
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+function $(selector: string, elementCtor = Element) {
+  const element = document.querySelector(selector)
+  if (!(element instanceof elementCtor)) {
+    throw TypeError(
+      `expected '${selector}' to find an ${elementCtor.name} but got ${element}`
+    )
+  }
+  return element
+}
+export { $ }
 
 // Similar to jQuery.fn.on(type, selector, handler)
 export const delegate = (
